@@ -47,6 +47,7 @@ frontend/.env.production.local
 dataset/
 sample/
 models/
+!models/.gitkeep
 *.pth
 *.pt
 *.onnx

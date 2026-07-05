@@ -7,8 +7,6 @@ ENV OMP_NUM_THREADS=4
 ENV PORT=8000
 ENV MODELS_DIR=/app/models
 ENV FORCE_CPU=true
-ENV ENVIRONMENT=production
-ENV DATABASE_URL=sqlite:////app/data/ophthalmoai.db
 
 WORKDIR /app
 
@@ -20,11 +18,18 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY backend /app/backend
-COPY models /app/models
 
-RUN mkdir -p /app/data \
-    && useradd --create-home --shell /usr/sbin/nologin appuser \
-    && chown -R appuser:appuser /app
+# models/ is gitignored (trained weights are large binaries, not source) so a
+# fresh checkout has no files under models/ at all. `COPY models /app/models`
+# fails the build outright when the source path doesn't exist on disk. Creating
+# the target directory first and copying with a trailing slash on the source
+# makes this succeed whether or not any .pth files are present locally —
+# CI builds (no weights) and real deployments (weights mounted/baked in
+# separately) both work without editing this file.
+RUN mkdir -p /app/models
+COPY models/ /app/models/
+
+RUN useradd --create-home --shell /usr/sbin/nologin appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
