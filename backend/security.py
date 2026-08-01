@@ -63,7 +63,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Strict-Transport-Security"] = _HSTS
 
         for h in _HEADERS_TO_REMOVE:
-            response.headers.pop(h, None)
+            if h in response.headers:
+                del response.headers[h]
 
         response.headers["Server"] = "OphthalmoAI"
 

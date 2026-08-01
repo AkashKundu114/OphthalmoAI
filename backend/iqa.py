@@ -46,7 +46,12 @@ def assess_image_quality(image_pil: Image.Image) -> Tuple[bool, List[str]]:
 
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+    try:
+        laplacian_var = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    except Exception:
+        gx, gy = np.gradient(gray.astype(np.float64))
+        laplacian_var = float(np.var(gx) + np.var(gy))
+
     if laplacian_var < LAPLACIAN_VARIANCE_MIN:
         issues.append(
             f"Image appears blurry (sharpness score {laplacian_var:.0f}, "

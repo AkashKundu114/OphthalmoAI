@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -7,14 +9,22 @@ from typing import Optional, Tuple
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 
 try:
-    from jose import JWTError, jwt
-    JOSE_AVAILABLE = True
+    import bcrypt
+    BCRYPT_AVAILABLE = True
 except ImportError:
-    JOSE_AVAILABLE = False
+    BCRYPT_AVAILABLE = False
+
+try:
+    import jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    try:
+        from jose import jwt  # type: ignore
+        JWT_AVAILABLE = True
+    except ImportError:
+        JWT_AVAILABLE = False
 
 from .db import User, get_db
 from .logging_config import get_logger
@@ -23,24 +33,45 @@ from .validators import validate_email, validate_password_strength, validate_rol
 
 logger = get_logger("auth")
 
-
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_BEFORE_PRODUCTION_DEPLOYMENT")
+JWT_SECRET_KEY = SECRET_KEY
 ALGORITHM  = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
 
 ROLE_HIERARCHY = {"patient": 0, "clinician": 1, "admin": 2}
 
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 def hash_password(plain: str) -> str:
-    return pwd_context.hash(plain)
+    """Hash a password using bcrypt (if available) or PBKDF2-HMAC-SHA256."""
+    if BCRYPT_AVAILABLE:
+        pwd_bytes = plain.encode("utf-8")
+        salt = bcrypt.gensalt(rounds=12)
+        return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+    salt = os.urandom(16)
+    derived = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, 100_000)
+    return f"pbkdf2_sha256${salt.hex()}${derived.hex()}"
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    """Verify a password against a bcrypt or PBKDF2 hash."""
+    try:
+        if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
+            if BCRYPT_AVAILABLE:
+                return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+            return False
+        if hashed.startswith("pbkdf2_sha256$"):
+            parts = hashed.split("$")
+            if len(parts) != 3:
+                return False
+            salt = bytes.fromhex(parts[1])
+            expected = bytes.fromhex(parts[2])
+            derived = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, 100_000)
+            return hmac.compare_digest(derived, expected)
+        return False
+    except Exception:
+        return False
 
 
 def create_access_token(
@@ -49,18 +80,15 @@ def create_access_token(
     extra_claims: Optional[dict] = None,
     expires_minutes: Optional[int] = None,
 ) -> str:
-    if not JOSE_AVAILABLE:
-        raise RuntimeError(
-            "python-jose is not installed. "
-            "Run: pip install python-jose[cryptography]"
-        )
+    if not JWT_AVAILABLE:
+        raise RuntimeError("JWT library (PyJWT or python-jose) is not installed.")
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=expires_minutes or ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload: dict = {
-        "sub":  subject,
+        "sub":  str(subject),
         "role": role,
-        "jti":  str(uuid.uuid4()), 
+        "jti":  str(uuid.uuid4()),
         "iat":  now,
         "exp":  expire,
         **(extra_claims or {}),
@@ -69,11 +97,11 @@ def create_access_token(
 
 
 def decode_token(token: str) -> dict:
-    if not JOSE_AVAILABLE:
-        raise RuntimeError("python-jose is not installed.")
+    if not JWT_AVAILABLE:
+        raise RuntimeError("JWT library (PyJWT or python-jose) is not installed.")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError as exc:
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token is invalid or has expired. Please log in again.",
@@ -139,11 +167,11 @@ def require_role(*roles: str):
                 detail="Token is missing the subject claim.",
             )
         user = db.query(User).filter(
-            User.id == user_id, User.is_active == True  
+            User.id == user_id, User.is_active == True  # noqa: E712
         ).first()
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail="User not found or account is disabled.",
             )
         if ROLE_HIERARCHY.get(user.role, -1) < min_rank:
@@ -163,15 +191,15 @@ def revoke_token(token: str) -> None:
     try:
         payload = jwt.decode(
             token, SECRET_KEY, algorithms=[ALGORITHM],
-            options={"verify_exp": False},  
+            options={"verify_exp": False},
         )
         jti = payload.get("jti")
         exp = payload.get("exp", 0)
         if jti:
             token_blacklist.revoke(jti, float(exp))
             logger.info("auth.token_revoked", jti=jti[:8] + "…")
-    except JWTError:
-        pass 
+    except Exception:
+        pass
 
 
 def authenticate_user(
@@ -197,7 +225,7 @@ def authenticate_user(
 
     user = db.query(User).filter(User.email == email_normalised).first()
 
-    dummy_hash = "$2b$12$invalidhashpadding000000000000000000000000000000000000"
+    dummy_hash = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
     password_ok = verify_password(
         password,
         user.hashed_password if user else dummy_hash,

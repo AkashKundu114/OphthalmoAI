@@ -484,9 +484,10 @@ class TestPredictResponseShape(unittest.TestCase):
                 }
             }
 
+            from backend.db import create_tables
+            create_tables()
             from fastapi.testclient import TestClient
-            client = TestClient(bm.app)
-
+            client = TestClient(bm.app, raise_server_exceptions=False)
             img_bytes = self._make_fake_image_bytes()
             response = client.post(
                 "/predict",

@@ -159,12 +159,45 @@ def validate_ollama_url_from_env() -> None:
     )
 
 
+_EMERGENCY_PATTERNS = [
+    r"chemical\s+(?:splash|exposure|burn|in\s+my\s+eye)",
+    r"bleach\s+in\s+(?:my\s+)?eye",
+    r"acid\s+in\s+(?:my\s+)?eye",
+    r"sudden\s+(?:loss\s+of\s+vision|blindness|blackout)",
+    r"(?:curtain|shadow)\s+over\s+(?:my\s+)?vision",
+    r"flashes\s+of\s+light\s+and\s+floaters",
+    r"penetrating\s+(?:eye\s+)?injury",
+    r"punctured\s+(?:my\s+)?eye",
+    r"unbearable\s+(?:eye\s+)?pain\s+with\s+vomiting",
+    r"foreign\s+object\s+stuck\s+in\s+eye",
+]
+_EMERGENCY_RE = re.compile("|".join(_EMERGENCY_PATTERNS), re.IGNORECASE)
+
+
+def detect_medical_emergency(text: str) -> Tuple[bool, Optional[str]]:
+    """Scan text for acute, sight-threatening medical emergency keywords."""
+    if not text or not isinstance(text, str):
+        return False, None
+    match = _EMERGENCY_RE.search(text)
+    if match:
+        return True, (
+            "🚨 MEDICAL EMERGENCY DETECTED: Your symptoms or query indicates an acute, vision-threatening situation. "
+            "Please DO NOT rely on AI advice. Immediately contact emergency medical services (Call 911 / 112) or go to the nearest Emergency Room / Urgent Eye Care Clinic."
+        )
+    return False, None
+
+
 MAX_CHAT_MESSAGE_LEN = int(os.getenv("MAX_CHAT_MESSAGE_LENGTH", "2000"))
 
 _INJECTION_PATTERNS = [
     r"ignore\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions?|prompts?|context)",
     r"you\s+are\s+now\s+(?:a\s+)?(?:dan|evil|unfiltered|uncensored|jailbreak)",
     r"act\s+as\s+(?:if\s+you\s+(?:are|were)\s+)?(?:an?\s+)?(?:evil|unfiltered|uncensored)",
+    r"write\s+(?:me\s+)?a\s+prescription",
+    r"prescribe\s+(?:me\s+)?(?:medication|drugs|antibiotics|eyedrops)",
+    r"exact\s+dosage\s+for",
+    r"(?:write|generate)\s+(?:python|javascript|code|script|essay|story|song)",
+    r"solve\s+(?:this\s+)?equation",
     r"<\|?(?:im_start|im_end|endoftext|pad)\|?>",
     r"\[INST\]|\[/INST\]|\[SYS\]|\[/SYS\]",
     r"###\s*(?:Human|Assistant|System|User)\s*:",
@@ -172,6 +205,8 @@ _INJECTION_PATTERNS = [
     r"\{\{.*?\}\}",
     r"\{%.*?%\}",
     r"<!--.*?-->",
+    r"<\s*script\b[^>]*>",
+    r"<\s*/\s*script\s*>",
     r"```(?:bash|sh|python|js)\s+(?:cat|curl|wget|nc|ncat|python|node)",
     r"^(?:system|developer|admin|root)\s*:\s*",
 ]
@@ -201,8 +236,8 @@ def sanitise_chat_message(message: str) -> Tuple[bool, str]:
             pattern_matched=match.group(0)[:60],
         )
         return False, (
-            "Your message contains patterns that cannot be processed. "
-            "Please rephrase your eye-health question."
+            "Your message contains patterns or off-topic requests that cannot be processed. "
+            "Please keep your questions focused strictly on eye health and ophthalmic guidance."
         )
 
     return True, cleaned.strip()

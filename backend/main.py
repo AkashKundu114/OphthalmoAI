@@ -77,6 +77,7 @@ from .security import (
 from .storage import store as storage_store, presigned_url
 from .uncertainty import build_review_payload, mc_dropout_predict
 from .validators import (
+    detect_medical_emergency,
     sanitise_chat_message,
     validate_email,
     validate_ollama_url_from_env,
@@ -91,7 +92,7 @@ _IS_PROD = _ENV not in {"development", "dev", "test", "testing"}
 
 MODELS_DIR    = os.getenv("MODELS_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models"))
 FORCE_CPU     = os.getenv("FORCE_CPU", "false").lower() in {"1", "true", "yes"}
-DEVICE        = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
+DEVICE        = torch.device("cuda" if not FORCE_CPU and torch.cuda.is_available() else "cpu")
 GEMINI_MODEL  = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
@@ -113,11 +114,13 @@ HIERARCHY = {
 ROUTER_MODEL: Optional[nn.Module] = None
 SPECIALIST_MODELS: Dict[int, Any] = {}
 
-OPHTHALMOLOGY_SYSTEM_PROMPT = """You are OphthalmoAI Doctor, a specialized AI assistant focused on
-ophthalmology and eye health education. Provide accurate, empathetic responses about eye conditions
-while always recommending professional consultation. Never diagnose definitively; always frame
-results as 'AI screening'. For emergencies (sudden vision loss, chemical exposure, trauma), direct
-to emergency care immediately."""
+OPHTHALMOLOGY_SYSTEM_PROMPT = """You are OphthalmoAI Doctor, a specialized AI educational assistant focused exclusively on ophthalmology and eye health.
+
+STRICT CLINICAL & SAFETY BOUNDARIES:
+1. Focus strictly on eye health, eye conditions, symptoms, and eye care education.
+2. Politely refuse all off-topic requests (such as coding, general tasks, essays, math, or roleplay) with: "I am specialized strictly in eye health and eye conditions. Please ask an eye-health question."
+3. NEVER provide a definitive diagnosis or generate drug prescriptions or exact dosage instructions. Always frame outputs as AI screening guidance.
+4. For acute emergencies (sudden vision loss, chemical exposure, eye trauma), instruct the user to contact emergency services (911 / 112 / Emergency Eye Care) immediately."""
 
 preprocess = transforms.Compose([
     transforms.Resize((380, 380)),
@@ -548,6 +551,7 @@ async def predict(
             "escalation_message":       code_entry["escalation_message"],
             "iqa_acceptable":           iqa_acceptable,
             "iqa_warnings":             iqa_warnings,
+            "condition_details":        MEDICAL_INFO.get(diagnosis, MEDICAL_INFO.get("Normal", {})),
         }
 
         scan_id = None
@@ -704,6 +708,20 @@ async def chat_endpoint(
     if not safe_ok:
         raise HTTPException(422, detail=safe_msg)
 
+    is_emergency, emergency_msg = detect_medical_emergency(chat_request.message)
+    if is_emergency:
+        log_event(
+            db, "chat.emergency_flagged", success=True,
+            user_id=current_user.id if current_user else None,
+            ip_address=client_ip,
+        )
+        return {
+            "reply": emergency_msg,
+            "model_used": "emergency_interceptor",
+            "is_emergency": True,
+            "disclaimer": "🚨 EMERGENCY NOTICE: Seek immediate in-person emergency medical care.",
+        }
+
     system = OPHTHALMOLOGY_SYSTEM_PROMPT
     if chat_request.diagnosis_context:
         ctx     = chat_request.diagnosis_context
@@ -777,10 +795,133 @@ async def chat_endpoint(
         db, "chat", success=True,
         user_id=current_user.id if current_user else None,
         ip_address=client_ip,
-        metadata={"model_used": model_used,
-                  "has_diagnosis_context": chat_request.diagnosis_context is not None},
+        metadata={"model_used": model_used, "has_diagnosis_context": chat_request.diagnosis_context is not None},
     )
-    return {"reply": reply, "model_used": model_used}
+    return {
+        "reply": reply,
+        "model_used": model_used,
+        "disclaimer": "AI screening for educational & triage guidance only. Not a binding clinical diagnosis.",
+    }
+
+
+from .fhir import export_to_fhir_diagnostic_report
+
+
+@app.get("/fhir/export/{scan_id}")
+async def get_fhir_report(scan_id: str, db: Session = Depends(get_db)):
+    scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
+    if not scan:
+        raise HTTPException(404, detail=f"Scan record '{scan_id}' not found.")
+
+    scan_dict = {
+        "scan_id": scan.id,
+        "user_id": scan.user_id,
+        "timestamp": scan.timestamp.isoformat() if scan.timestamp else None,
+        "diagnosis": scan.diagnosis,
+        "confidence": scan.confidence,
+        "icd10_code": scan.icd10_code,
+        "snomed_code": scan.snomed_code,
+        "urgency": scan.urgency,
+        "uncertainty": scan.uncertainty,
+        "requires_human_review": scan.requires_human_review,
+        "iqa_acceptable": scan.iqa_acceptable,
+        "escalation_message": f"Clinical Triage Urgency: {scan.urgency.upper()}.",
+    }
+    return export_to_fhir_diagnostic_report(scan_dict)
+
+
+@app.get("/clinician/cases")
+async def list_clinician_cases(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("clinician", "admin")),
+):
+    scans = (
+        db.query(ScanResult)
+        .filter(ScanResult.requires_human_review == True)  # noqa: E712
+        .order_by(ScanResult.timestamp.desc())
+        .limit(50)
+        .all()
+    )
+    return {
+        "cases": [
+            {
+                "scan_id": s.id,
+                "user_id": s.user_id,
+                "timestamp": s.timestamp.isoformat() if s.timestamp else None,
+                "diagnosis": s.diagnosis,
+                "confidence": s.confidence,
+                "group_name": s.group_name,
+                "urgency": s.urgency,
+                "uncertainty": s.uncertainty,
+                "review_reasons": s.review_reasons,
+                "icd10_code": s.icd10_code,
+            }
+            for s in scans
+        ]
+    }
+
+
+@app.post("/clinician/override/{scan_id}")
+async def submit_clinician_override(
+    scan_id: str,
+    override: OverrideRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("clinician", "admin")),
+):
+    scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
+    if not scan:
+        raise HTTPException(404, detail="Scan record not found.")
+
+    entry = ClinicianOverride(
+        scan_id=scan.id,
+        clinician_id=current_user.id,
+        verdict=override.verdict,
+        corrected_diagnosis=override.corrected_diagnosis,
+        corrected_icd10=override.corrected_icd10,
+        notes=override.notes,
+    )
+    db.add(entry)
+    scan.requires_human_review = False
+    db.commit()
+
+    log_event(
+        db, "clinician_override", success=True, user_id=current_user.id,
+        resource_id=scan.id, resource_type="scan_result",
+        metadata={"verdict": override.verdict, "corrected_diagnosis": override.corrected_diagnosis},
+    )
+    return {"status": "success", "message": "Clinician sign-off recorded successfully."}
+
+
+@app.get("/patient/history/{patient_id}")
+async def get_patient_history(
+    patient_id: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        scans = (
+            db.query(ScanResult)
+            .filter(ScanResult.user_id == patient_id)
+            .order_by(ScanResult.timestamp.desc())
+            .all()
+        )
+    except Exception:
+        scans = []
+
+    return {
+        "patient_id": patient_id,
+        "scans": [
+            {
+                "scan_id": s.id,
+                "timestamp": s.timestamp.isoformat() if s.timestamp else None,
+                "diagnosis": s.diagnosis,
+                "confidence": s.confidence,
+                "group_name": s.group_name,
+                "urgency": s.urgency,
+                "icd10_code": s.icd10_code,
+            }
+            for s in scans
+        ]
+    }
 
 
 if __name__ == "__main__":

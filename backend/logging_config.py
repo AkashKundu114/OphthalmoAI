@@ -22,6 +22,13 @@ except ImportError:
     STRUCTLOG_AVAILABLE = False
 
 
+def _safe_add_logger_name(logger, method_name, event_dict):
+    name = getattr(logger, "name", None)
+    if name:
+        event_dict["logger"] = name
+    return event_dict
+
+
 def configure_logging(json_output: bool = True) -> None:
     logging.basicConfig(
         format="%(message)s",
@@ -40,7 +47,7 @@ def configure_logging(json_output: bool = True) -> None:
     structlog.configure(
         processors=[
             structlog.stdlib.add_log_level,
-            structlog.stdlib.add_logger_name,
+            _safe_add_logger_name,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,

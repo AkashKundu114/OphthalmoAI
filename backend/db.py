@@ -212,6 +212,21 @@ class ModelVersion(Base):
         return f"<ModelVersion {self.group_key} {self.version_tag} active={self.active}>"
 
 
+class APIKey(Base):
+    __tablename__ = "api_keys"
+
+    id = Column(String(36), primary_key=True, default=_uuid)
+    name = Column(String(100), nullable=False)
+    key_hash = Column(String(128), nullable=False, unique=True, index=True)
+    prefix = Column(String(16), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+
+    def __repr__(self):
+        return f"<APIKey {self.name} prefix={self.prefix}>"
+
+
 def create_tables() -> None:
     Base.metadata.create_all(bind=engine)
 
