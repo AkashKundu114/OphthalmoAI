@@ -542,132 +542,213 @@ export default function App() {
                 )}
 
                 {result ? (
-                  <div className="space-y-6 animate-fade-up">
-                    {/* Primary Prediction Card */}
-                    <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 relative overflow-hidden">
-                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">{result.group_name}</span>
-                          <h3 className="text-2xl font-extrabold text-white mt-0.5">{result.diagnosis}</h3>
+                    <div className="space-y-6 animate-fade-up">
+                      {/* 1. Primary Diagnosis Header */}
+                      <div className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500"></div>
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-800">
+                          <div>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 mb-3">
+                              {result.group_name}
+                            </span>
+                            <h3 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2">{result.diagnosis}</h3>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-mono">ICD-10: <span className="text-emerald-300">{result.icd10_code || 'N/A'}</span></span>
+                              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-mono">SNOMED: <span className="text-emerald-300">{result.snomed_code || 'N/A'}</span></span>
+                              <SeverityBadge severity={result.urgency || 'Normal'} />
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tabular-nums">{result.confidence}%</div>
+                            <span className="text-xs text-slate-400 font-mono font-medium block mt-1">Calibrated Confidence</span>
+                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">MC Uncertainty: {(result.uncertainty * 100).toFixed(1)}%</span>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-black text-cyan-400 tabular-nums">{result.confidence}%</div>
-                          <span className="text-[10px] text-slate-400 font-mono">Calibrated Confidence</span>
-                        </div>
+
+                        {/* 2. Clinical Impression & Pathophysiology */}
+                        {result.condition_details?.pathophysiology && (
+                          <div className="pt-6">
+                            <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
+                              <Brain className="w-4 h-4 text-emerald-400" /> Clinical Impression & Pathophysiology
+                            </h4>
+                            <p className="text-sm text-slate-400 leading-relaxed">
+                              {result.condition_details.pathophysiology}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                          <p className="text-[10px] text-slate-400 uppercase font-semibold">ICD-10 Code</p>
-                          <p className="text-xs font-mono font-bold text-cyan-300 mt-1">{result.icd10_code || 'N/A'}</p>
-                        </div>
-                        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                          <p className="text-[10px] text-slate-400 uppercase font-semibold">SNOMED-CT</p>
-                          <p className="text-xs font-mono font-bold text-teal-300 mt-1">{result.snomed_code || 'N/A'}</p>
-                        </div>
-                        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                          <p className="text-[10px] text-slate-400 uppercase font-semibold">Urgency</p>
-                          <div className="mt-1"><SeverityBadge severity={result.urgency || 'Normal'} /></div>
-                        </div>
-                        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                          <p className="text-[10px] text-slate-400 uppercase font-semibold">MC Uncertainty</p>
-                          <p className="text-xs font-mono font-bold text-indigo-300 mt-1">{(result.uncertainty * 100).toFixed(1)}%</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* GradCAM Heatmap Toggle View */}
-                    {result.heatmap && (
-                      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                          <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                            <Layers className="w-4 h-4" /> Explainable AI Visual Analysis
-                          </p>
-                          <button
-                            onClick={() => setShowHeatmap(!showHeatmap)}
-                            className="text-xs text-cyan-400 hover:underline font-semibold"
-                          >
-                            {showHeatmap ? 'Show Original Scan' : 'Show Grad-CAM Heatmap'}
+                      {/* 3. Visual Examination Findings & Grad-CAM Heatmap */}
+                      <div className="glass-panel p-6 rounded-2xl border border-slate-800">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                          <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-cyan-400" /> Visual Findings & Explainable AI
+                          </h4>
+                          <button onClick={() => setShowHeatmap(!showHeatmap)} className="text-[11px] px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 transition-colors">
+                            {showHeatmap ? 'Toggle Original Scan' : 'Toggle Grad-CAM Heatmap'}
                           </button>
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-slate-400">Original Retinal Scan</p>
-                            <img src={previewUrl} alt="Original Scan" className="w-full h-48 object-cover rounded-xl border border-slate-800" />
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-slate-400">Grad-CAM Heatmap Focus Overlay</p>
-                            <img src={result.heatmap} alt="GradCAM Heatmap" className="w-full h-48 object-cover rounded-xl border border-slate-800" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Probabilities & Warnings */}
-                    <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-                      <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                        <BarChart2 className="w-4 h-4" /> Specialist Class Probabilities
-                      </p>
-
-                      <div className="space-y-3">
-                        {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
-                          <ProbabilityBar key={cls} label={cls} value={prob} />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Structured Symptom Alerts */}
-                    {result.hybrid_warnings_structured && result.hybrid_warnings_structured.length > 0 && (
-                      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
-                        <p className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                          <ShieldAlert className="w-4 h-4" /> Clinical Symptom Alerts & Mismatches
-                        </p>
-
-                        <div className="space-y-2">
-                          {result.hybrid_warnings_structured.map((w, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
-                                w.severity === 'urgent'
-                                  ? 'bg-red-950/60 border-red-800/80 text-red-200'
-                                  : w.severity === 'warning'
-                                  ? 'bg-amber-950/60 border-amber-800/80 text-amber-200'
-                                  : 'bg-cyan-950/60 border-cyan-800/80 text-cyan-200'
-                              }`}
-                            >
-                              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                              <span className="leading-relaxed">{w.message}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                          <div className="md:col-span-2 space-y-3">
+                            <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900 group">
+                              <img src={showHeatmap && result.heatmap ? result.heatmap : previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
+                              <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md">
+                                {showHeatmap && result.heatmap ? 'Grad-CAM' : 'Original'}
+                              </div>
                             </div>
-                          ))}
+                          </div>
+                          <div className="md:col-span-3 space-y-4">
+                            {result.condition_details?.analysis && (
+                              <div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Expected Visual Findings</span>
+                                <p className="text-xs text-slate-300 leading-relaxed">{result.condition_details.analysis}</p>
+                              </div>
+                            )}
+                            <div>
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2 block">Specialist Model Probabilities</span>
+                              <div className="space-y-2.5">
+                                {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
+                                  <ProbabilityBar key={cls} label={cls} value={prob} />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    )}
 
-                    {/* Report Export Bar */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 glass-panel rounded-2xl border border-slate-800">
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
-                        <FileText className="w-4 h-4 text-cyan-400" />
-                        <span>Export EHR & Clinical Documents</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* 4. Recommended Diagnostic Workups */}
+                        {result.condition_details?.diagnostic_workup && (
+                          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                            <h4 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                              <Microscope className="w-4 h-4" /> Recommended Diagnostic Workup
+                            </h4>
+                            <ul className="space-y-2.5">
+                              {result.condition_details.diagnostic_workup.map((workup, i) => (
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/50 mt-1.5 shrink-0" />
+                                  <span>{workup}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* 5. Treatment Protocols */}
+                        {result.condition_details?.treatment && (
+                          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                            <h4 className="text-sm font-bold text-teal-400 flex items-center gap-2">
+                              <Pill className="w-4 h-4" /> Clinical Treatment Protocols
+                            </h4>
+                            <ul className="space-y-2.5">
+                              {result.condition_details.treatment.map((tx, i) => (
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500/50 mt-1.5 shrink-0" />
+                                  <span>{tx}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={handleExportFHIR}
-                          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-800/60 transition flex items-center gap-1.5"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Export FHIR R4 JSON</span>
-                        </button>
-                        <button
-                          onClick={generatePDFReport}
-                          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition flex items-center gap-1.5"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download PDF Report</span>
-                        </button>
+
+                      {/* 6. Precautions & Doctor Notes */}
+                      <div className="glass-panel p-6 rounded-2xl border border-amber-900/30 bg-gradient-to-br from-slate-900 to-slate-950 space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {result.condition_details?.precautions && (
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                                <ShieldAlert className="w-4 h-4" /> Immediate Precautions
+                              </h4>
+                              <ul className="space-y-2">
+                                {result.condition_details.precautions.map((prec, i) => (
+                                  <li key={i} className="flex items-start gap-2.5 text-xs text-amber-200/80 leading-relaxed">
+                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500/70 shrink-0 mt-0.5" />
+                                    <span>{prec}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {result.condition_details?.doctor_notes && (
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                                <Stethoscope className="w-4 h-4" /> Doctor's Clinical Notes
+                              </h4>
+                              <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-900/30">
+                                <p className="text-xs text-cyan-100/90 leading-relaxed italic">
+                                  "{result.condition_details.doctor_notes}"
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Symptom Alerts */}
+                      {result.hybrid_warnings_structured && result.hybrid_warnings_structured.length > 0 && (
+                        <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
+                          <p className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                            <ShieldAlert className="w-4 h-4" /> Clinical Symptom Alerts & Mismatches
+                          </p>
+                          <div className="space-y-2">
+                            {result.hybrid_warnings_structured.map((w, idx) => (
+                              <div
+                                key={idx}
+                                className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
+                                  w.severity === 'urgent'
+                                    ? 'bg-red-950/60 border-red-800/80 text-red-200'
+                                    : w.severity === 'warning'
+                                    ? 'bg-amber-950/60 border-amber-800/80 text-amber-200'
+                                    : 'bg-cyan-950/60 border-cyan-800/80 text-cyan-200'
+                                }`}
+                              >
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <span className="leading-relaxed">{w.message}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 7. Consultation Checklist & Export */}
+                      <div className="flex flex-col lg:flex-row gap-4">
+                        {result.condition_details?.questions_for_doctor && (
+                          <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
+                            <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2 uppercase tracking-wider">
+                              <ClipboardList className="w-4 h-4 text-emerald-400" /> Questions for your Ophthalmologist
+                            </h4>
+                            <ul className="space-y-2 pl-1">
+                              {result.condition_details.questions_for_doctor.map((q, i) => (
+                                <li key={i} className="flex items-start gap-2 text-[11px] text-slate-400">
+                                  <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5 text-[9px] text-emerald-400 font-mono">{i+1}</span>
+                                  <span className="leading-relaxed mt-0.5">{q}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className="lg:w-1/3 flex flex-col justify-end gap-3 p-5 glass-panel rounded-2xl border border-slate-800">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Export Clinical Records</p>
+                          <button
+                            onClick={handleExportFHIR}
+                            className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-800/60 transition flex items-center justify-center gap-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Export FHIR R4 Record</span>
+                          </button>
+                          <button
+                            onClick={generatePDFReport}
+                            className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Download Full PDF Report</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
                 ) : (
                   <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
