@@ -37,12 +37,7 @@ from .validators import validate_email, validate_password_strength, validate_rol
 logger = get_logger("auth")
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_BEFORE_PRODUCTION_DEPLOYMENT")
-# Alias: backend/main.py imports `JWT_SECRET_KEY` from this module (for its startup
-# placeholder-secret guard) but this module only ever defined `SECRET_KEY`. That is a
-# pre-existing bug — found while running a real import test of the patched app, not
-# introduced by this change — that would raise ImportError on any clean checkout before
-# a single request is served. Fixing with an alias rather than renaming SECRET_KEY, since
-# SECRET_KEY is used throughout this file and renaming it risks a wider, riskier diff.
+# Alias key for main.py integration
 JWT_SECRET_KEY = SECRET_KEY
 ALGORITHM  = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "480"))

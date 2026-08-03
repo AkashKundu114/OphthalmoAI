@@ -312,8 +312,6 @@ class TokenResponse(BaseModel):
     role: str
     user_id: str
 
-# OverrideRequest / ActivateModelRequest moved to routes_admin.py (they belong to the
-# endpoints defined there; kept out of main.py to avoid duplicate model definitions).
 
 
 _SEVERITY_ICON = {"info": "✅", "warning": "⚠️", "urgent": "🚨"}

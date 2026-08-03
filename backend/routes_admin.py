@@ -1,21 +1,8 @@
 """
-The three endpoints that were documented (in docs/clinical/CLINICAL_SAFETY.md and
-docs/technical/ISSUES.md) but never actually implemented in backend/main.py:
-
-  POST /scans/{scan_id}/override
-  GET  /admin/audit-logs
-  POST /admin/model-registry/activate
-
-Kept in a separate router module rather than pasted into the already-large main.py.
-Wire in with, in main.py:
-
-    from .routes_admin import router as admin_router
-    app.include_router(admin_router)
-
-This module intentionally imports OverrideRequest and ActivateModelRequest from main.py
-rather than redefining them, since those Pydantic models are already declared there — see
-the wiring note at the bottom of this file for the one adjustment main.py needs to avoid a
-circular import.
+Router module for administrative and clinician endpoints:
+- Clinician overrides
+- Model registry management
+- Audit logging access
 """
 from __future__ import annotations
 
