@@ -63,6 +63,7 @@ class User(Base):
         back_populates="clinician"
     )
     audit_entries = relationship("AuditLog", back_populates="user")
+    appointments = relationship("PatientAppointment", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.email} role={self.role}>"
@@ -103,6 +104,22 @@ class ScanResult(Base):
 
     image_path = Column(String(500), nullable=True)
     heatmap_path = Column(String(500), nullable=True)
+
+    hba1c = Column(Float, nullable=True)
+    systolic_bp = Column(Integer, nullable=True)
+    diastolic_bp = Column(Integer, nullable=True)
+    patient_age = Column(Integer, nullable=True)
+    is_smoker = Column(Boolean, nullable=True)
+
+    dicom_patient_id = Column(String(100), nullable=True)
+    dicom_study_uid = Column(String(100), nullable=True)
+    dicom_series_uid = Column(String(100), nullable=True)
+
+    spatial_description = Column(Text, nullable=True)
+
+    sign_off_status = Column(String(32), nullable=False, default="pending")
+    signed_off_at = Column(DateTime(timezone=True), nullable=True)
+    signed_off_by = Column(String(36), nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
 
@@ -208,6 +225,24 @@ class APIKey(Base):
 
     def __repr__(self):
         return f"<APIKey {self.name} prefix={self.prefix}>"
+
+
+class PatientAppointment(Base):
+    __tablename__ = "patient_appointments"
+
+    id = Column(String(36), primary_key=True, default=_uuid)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    clinic_name = Column(String(255), nullable=False)
+    appointment_time = Column(DateTime(timezone=True), nullable=False)
+    purpose = Column(String(255), nullable=False)
+    status = Column(String(32), nullable=False, default="scheduled")  # scheduled, completed, missed
+    sms_reminder_sent = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
+
+    user = relationship("User", back_populates="appointments")
+
+    def __repr__(self):
+        return f"<PatientAppointment clinic={self.clinic_name} time={self.appointment_time}>"
 
 
 def create_tables() -> None:

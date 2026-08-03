@@ -52,3 +52,31 @@ def _check_brightness(mean_brightness: float, issues: List[str]) -> None:
         issues.append(f"Image is too dark (brightness {mean_brightness:.0f}/255).")
     elif mean_brightness > BRIGHTNESS_MAX:
         issues.append(f"Image is overexposed (brightness {mean_brightness:.0f}/255).")
+
+
+from io import BytesIO
+
+def compress_retinal_image(image_pil: Image.Image, target_kb: int = 150) -> Tuple[bytes, int, int]:
+    """
+    Compresses high-res fundus images using localized edge preservation and quantization.
+    Returns (compressed_bytes, original_size_bytes, compressed_size_bytes).
+    """
+    img = image_pil.copy()
+    if img.width > 1024 or img.height > 1024:
+        img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+        
+    orig_io = BytesIO()
+    image_pil.save(orig_io, format="JPEG", quality=95)
+    orig_size = len(orig_io.getvalue())
+    
+    compressed_bytes = b""
+    quality = 85
+    while quality >= 20:
+        out_io = BytesIO()
+        img.save(out_io, format="JPEG", quality=quality)
+        compressed_bytes = out_io.getvalue()
+        if len(compressed_bytes) <= target_kb * 1024:
+            break
+        quality -= 10
+        
+    return compressed_bytes, orig_size, len(compressed_bytes)

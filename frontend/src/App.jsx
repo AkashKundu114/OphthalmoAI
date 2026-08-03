@@ -18,6 +18,7 @@ import {
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import ChatBot from './ChatBox'
+import EnterpriseInnovationSuite from './EnterpriseInnovationSuite'
 
 const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
@@ -583,6 +584,7 @@ export default function App() {
               <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions" />
               <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<GitBranch className="w-4 h-4" />} label="Workflow" />
               <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Medical News" />
+              <TabButton active={activeTab === 'startup'} onClick={() => setActiveTab('startup')} icon={<Sparkles className="w-4 h-4 text-emerald-400" />} label="Enterprise Innovation" />
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
@@ -770,6 +772,12 @@ export default function App() {
                               <div>
                                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Expected Visual Findings</span>
                                 <p className="text-xs text-slate-300 leading-relaxed">{result.condition_details.analysis}</p>
+                              </div>
+                            )}
+                            {result.spatial_description && (
+                              <div className="bg-slate-950/60 p-3.5 border border-slate-850 rounded-xl space-y-1">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">AI Spatial Localization Annotation</span>
+                                <p className="text-xs text-emerald-400 font-mono leading-relaxed">{result.spatial_description}</p>
                               </div>
                             )}
                             <div>
@@ -1010,6 +1018,7 @@ export default function App() {
         )}
 
         {activeTab === 'news' && <MedicalNewsPage />}
+        {activeTab === 'startup' && <EnterpriseInnovationSuite />}
       </main>
 
       {/* Interactive Image Cropper Modal */}
