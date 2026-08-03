@@ -50,7 +50,7 @@ import base64
 
 from .audit import log_event
 from .db_async import get_async_db
-from .routes_admin import router as admin_router
+from .routes_admin import OverrideRequest, router as admin_router
 from .auth import (
     ROLE_HIERARCHY, JWT_SECRET_KEY,
     authenticate_user, create_access_token, decode_token,
