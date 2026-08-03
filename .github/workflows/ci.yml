@@ -38,6 +38,15 @@ jobs:
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
 
+      - name: Validate Alembic migrations (upgrade + downgrade round-trip)
+        env:
+          DATABASE_URL: sqlite:///./ci_alembic_check.db
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+          rm -f ci_alembic_check.db
+
       - name: Install test tools
         run: pip install pytest pytest-asyncio pytest-cov httpx
 

@@ -1,6 +1,6 @@
 # Clinical Safety
 
-This document describes the safety mechanisms built into OphthalmoAI: how the system decides a result needs human review, how clinicians can override or correct an AI result, how urgent findings are escalated, and what to do if something goes wrong. It is meant to be read alongside `docs/INTENDED_USE.md` (what the system is for) and `docs/CLINICAL_VALIDATION.md` (how well it performs).
+This document describes the safety mechanisms built into OphthalmoAI: how the system decides a result needs human review, how clinicians can override or correct an AI result, how urgent findings are escalated, and what to do if something goes wrong. It is meant to be read alongside `docs/clinical/INTENDED_USE.md` (what the system is for) and `docs/clinical/CLINICAL_VALIDATION.md` (how well it performs).
 
 ## 1. Layered Safety Design
 
@@ -23,7 +23,7 @@ No single mechanism here is treated as sufficient on its own. The system layers 
 | Epistemic uncertainty above threshold | MC-Dropout variance > 0.15 (default) | The model is inconsistent with itself across repeated stochastic passes — a sign the input sits near a decision boundary |
 | Diagnosis is sight-threatening/systemic-emergency AND confidence below stricter threshold | Uveitis or Jaundice, confidence < 90% | The cost of a missed or wrong call on these specific conditions is categorically higher than for the others in the taxonomy |
 
-These thresholds are configurable (`DEFAULT_CONFIDENCE_THRESHOLD`, `DEFAULT_UNCERTAINTY_THRESHOLD`, `CRITICAL_CONFIDENCE_THRESHOLD` in `backend/uncertainty.py`) and should be tuned against real validation data (see `docs/CLINICAL_VALIDATION.md`) rather than left at their illustrative defaults in any real deployment.
+These thresholds are configurable (`DEFAULT_CONFIDENCE_THRESHOLD`, `DEFAULT_UNCERTAINTY_THRESHOLD`, `CRITICAL_CONFIDENCE_THRESHOLD` in `backend/uncertainty.py`) and should be tuned against real validation data (see `docs/clinical/CLINICAL_VALIDATION.md`) rather than left at their illustrative defaults in any real deployment.
 
 ### 2.2 What "flagged for review" means operationally
 
@@ -58,7 +58,9 @@ Any user with the `clinician` or `admin` role can record a structured second opi
 - **`inconclusive`** — the clinician could not determine a diagnosis from the available information (this is itself useful signal, distinct from agreement or disagreement).
 - **`insufficient_image_quality`** — the clinician judges the image itself inadequate for any diagnostic conclusion, independent of what the model said.
 
-Each scan can have at most one override recorded (enforced at the database level — `clinician_overrides.scan_id` is unique). This is append-only data: overrides are never edited or deleted, only added, which preserves a clean audit trail of what was actually reviewed and when. See `docs/CLINICAL_VALIDATION.md` Section 4 for how this data should be used as an ongoing performance-monitoring signal.
+Each scan can have at most one override recorded (enforced at the database level — `clinician_overrides.scan_id` is unique). This is append-only data: overrides are never edited or deleted, only added, which preserves a clean audit trail of what was actually reviewed and when. See `docs/clinical/CLINICAL_VALIDATION.md` Section 4 for how this data should be used as an ongoing performance-monitoring signal.
+
+**Note (added this session):** this endpoint was previously documented here but not actually implemented in `backend/main.py`. It now lives in `backend/routes_admin.py` and enforces exactly the rules above — verdict validation, `corrected_diagnosis` required for `disagree`, 409 on a duplicate override for the same scan, and role-gated to `clinician`/`admin` — all covered by `tests/backend/test_routes_admin.py`.
 
 ## 5. Audit Trail
 
@@ -67,13 +69,13 @@ Every prediction, chat interaction, login, registration, and clinician override 
 - **Append-only.** Rows are never updated or deleted by application code.
 - **Best-effort relative to the primary operation.** A failure to write an audit log entry is itself logged but never blocks or fails the user-facing request — the audit system is not allowed to become a new point of failure for patient-facing functionality. This is a deliberate tradeoff: it means the audit trail is not a hard guarantee in the case of a database outage during the exact moment of a request. Deployments with stricter compliance requirements (e.g., requiring a complete audit trail with no gaps) should consider making audit writes synchronous and blocking, which this codebase does not do by default.
 
-Admins can query the trail via `GET /admin/audit-logs`.
+Admins can query the trail via `GET /admin/audit-logs` (also added this session, in `backend/routes_admin.py`; previously documented but not implemented).
 
 ## 6. Model Versioning and Rollback
 
 Every trained model checkpoint that's registered (`backend/model_registry.py`) carries its validation metrics and calibration temperature alongside the weights path. Promoting a new model to active, or rolling back to a previous version, is recorded with a timestamp and the admin who performed the action.
 
-**Important operational caveat:** activating a model version in the registry (`POST /admin/model-registry/activate`) updates the database record of which version *should* be active — it does not hot-swap the weights currently loaded in a running API process's memory. A process restart (or a future hot-reload mechanism, not yet implemented) is required for a registry change to actually affect inference. Treat registry activation as "staging the next deployment," not as an instantaneous production change. Document this clearly in your deployment runbook, and use a blue/green or canary rollout process for any model update rather than activating-and-hoping.
+**Important operational caveat:** activating a model version in the registry (`POST /admin/model-registry/activate`, also added this session) updates the database record of which version *should* be active — it does not hot-swap the weights currently loaded in a running API process's memory. A process restart (or a future hot-reload mechanism, not yet implemented) is required for a registry change to actually affect inference. The endpoint's own response includes this warning explicitly. Treat registry activation as "staging the next deployment," not as an instantaneous production change. Document this clearly in your deployment runbook, and use a blue/green or canary rollout process for any model update rather than activating-and-hoping.
 
 ## 7. What This System Does Not Do
 

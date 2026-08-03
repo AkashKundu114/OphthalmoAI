@@ -173,7 +173,6 @@ jobs:
 
           echo "Backend FQDN: $BACKEND_FQDN"
 
-          # Poll /health up to 10 times (90 s total)
           for i in $(seq 1 10); do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
               "https://$BACKEND_FQDN/health" || echo "000")
@@ -237,7 +236,6 @@ jobs:
           echo " Triggered : ${{ github.actor }} @ ${{ github.event_name }}"
           echo "════════════════════════════════════════════════════════"
 
-          # Write to GitHub Step Summary
           {
             echo "## ✅ OphthalmoAI Deployed"
             echo "| | |"

@@ -1,326 +1,74 @@
 # Technical Notes
-## OphthalmoAI — v2.1
+## OphthalmoAI — v2.2
+
+*(Condensed from the original v2.1 TRD; updated to reflect this session's changes. See `git log` / `WIRING.md` for the detailed change history if this repo is under version control.)*
 
 ---
 
 ## 1. System Overview
 
-OphthalmoAI is split into two main pieces:
-
-- **Backend:** Python / FastAPI serving a PyTorch inference pipeline via REST API, with JWT auth, SQLAlchemy persistence, and structured logging.
+- **Backend:** Python / FastAPI serving a PyTorch inference pipeline via REST API, with JWT auth, SQLAlchemy persistence (sync + async), Alembic migrations, and structured logging.
 - **Frontend:** React SPA served by Nginx (production) or Vite dev server (development).
 
-Communication is over HTTP/JSON (REST), with `multipart/form-data` for image uploads.
+---
+
+## 2. Technology Stack — changes this session
+
+| Component | Change |
+|---|---|
+| DB access (auth) | `backend/auth.py` now uses `AsyncSession` (`backend/db_async.py`) instead of blocking sync calls for `get_current_user`, `require_role`, `authenticate_user` |
+| Schema management | Alembic added (`alembic/`, `alembic.ini`) — `alembic upgrade head` is now the documented path for schema changes; `create_tables()` remains for first-run convenience only |
+| New endpoints | `backend/routes_admin.py`: `POST /scans/{id}/override`, `GET /admin/audit-logs`, `POST /admin/model-registry/activate` |
+| New dependencies | `aiosqlite==0.20.0`, `asyncpg==0.30.0` added to `backend/requirements.txt` |
+| CI | `.github/workflows/ci.yml` gained an Alembic upgrade/downgrade/upgrade validation step |
+
+Everything else in the original stack table (FastAPI, PyTorch, MobileNetV3/EfficientNet-B4, pytorch-grad-cam, slowapi, structlog, React 19, Vite 7, Tailwind 3, jsPDF, react-easy-crop, DOMPurify) is unchanged.
 
 ---
 
-## 2. Technology Stack
+## 3. Three Bugs Found and Fixed This Session
 
-### 2.1 Backend
+Found by actually running the app end-to-end (import + live `TestClient` requests), not by static review. All three were present in the codebase before this session's changes and are unrelated to the async/endpoint work itself:
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Language | Python | 3.10+ (3.11 recommended) |
-| Web framework | FastAPI | ≥0.115 |
-| ASGI server | Uvicorn (with standard extras) | ≥0.32 |
-| Deep learning | PyTorch + torchvision | 2.1+ |
-| Model: Router | MobileNetV3-Large | torchvision |
-| Model: Specialists | EfficientNet-B4 | torchvision |
-| Explainability | pytorch-grad-cam | ≥1.5.4 |
-| Calibration | TemperatureScaler (custom) | `backend/calibration.py` |
-| Uncertainty | MC-Dropout (custom) | `backend/uncertainty.py` |
-| Image Quality Assessment | OpenCV-headless + PIL | `backend/iqa.py` |
-| Clinical codes | ICD-10 / SNOMED-CT lookup | `backend/clinical_codes.py` |
-| Image processing | Pillow, OpenCV-headless, NumPy | latest |
-| Authentication | python-jose (JWT), passlib (bcrypt) | ≥3.3, ≥1.7.4 |
-| Database ORM | SQLAlchemy | 2.0+ |
-| Database | SQLite (dev) / PostgreSQL (prod) | — |
-| LLM client | google-generativeai (Gemini) | ≥0.8 |
-| HTTP client | httpx (async, for Ollama) | ≥0.28 |
-| Validation | Pydantic v2 | ≥2.5 |
-| Config | python-dotenv | ≥1.0 |
-| Rate limiting | slowapi | 0.1.9 |
-| Logging | structlog | 24.x |
-| Model registry | SQLAlchemy + JSON sidecar | `backend/model_registry.py` |
-| Encrypted storage | boto3 (S3-compatible) | optional |
-
-### 2.2 Frontend
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Language | JavaScript (ES2020+) | — |
-| Framework | React | 19 |
-| Build tool | Vite | 7 |
-| CSS | Tailwind CSS | 3 |
-| Icons | lucide-react | ≥0.554 |
-| HTTP client | Axios | ≥1.13 |
-| PDF generation | jsPDF + jspdf-autotable | 4.x, 5.x |
-| Image crop | react-easy-crop | 5.x |
-| HTML sanitisation | DOMPurify | 3.x |
-| Fonts | Sora, DM Sans (Google Fonts) | — |
-
-### 2.3 Infrastructure
-
-| Component | Technology |
-|-----------|-----------|
-| Containerisation | Docker, Docker Compose v2 |
-| Frontend server (prod) | Nginx 1.27 (unprivileged) |
-| Cloud | Azure Container Apps + ACR + PostgreSQL Flexible Server |
-| Orchestration (optional) | Kubernetes ≥1.28 / AKS |
-| Ingress | Nginx Ingress Controller (K8s) / Azure built-in HTTPS (ACA) |
-| CI/CD | GitHub Actions (ci.yml + security.yml + azure-deploy.yml) |
+1. **`backend/main.py` imported `JWT_SECRET_KEY` from `backend/auth.py`, which only defined `SECRET_KEY`.** `ImportError` on any clean checkout. Fixed with an alias.
+2. **`backend/logging_config.py` paired `structlog.stdlib.add_logger_name` with `PrintLoggerFactory()`.** `PrintLogger` has no `.name` attribute, so this crashed on the very first log call — i.e., at startup. Fixed by dropping that processor and binding the logger name explicitly instead.
+3. **`backend/security.py`'s `SecurityHeadersMiddleware` called `response.headers.pop(h, None)`.** Starlette's `MutableHeaders` doesn't implement `.pop()`. Since this middleware wraps every response, the app would have 500'd on every single request in production. Fixed with `del response.headers[h]` guarded by a membership check.
 
 ---
 
-## 3. Architecture
+## 4. Data Models (DB) — unchanged from v2.1
 
-### 3.1 Component Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Client Browser                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  React SPA (Vite/Nginx)                                   │  │
-│  │  Pages: Home | Diagnostic | How It Works | Conditions | News │  │
-│  │  Components: DiagnosticPage | ChatBot | CropTool | PDF    │  │
-│  └───────────────────────┬───────────────────────────────────┘  │
-└──────────────────────────┼──────────────────────────────────────┘
-                           │  HTTP (REST + multipart)
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  FastAPI Backend (Uvicorn)                                       │
-│                                                                  │
-│  Security Middleware Stack:                                      │
-│    SecurityHeadersMiddleware → RequestIDMiddleware → CORS        │
-│                                                                  │
-│  Routes:                                                         │
-│    GET  /           → system status                              │
-│    GET  /health     → liveness probe                             │
-│    GET  /ready      → readiness probe (503 if models not loaded) │
-│    GET  /conditions → condition metadata from MEDICAL_INFO       │
-│    POST /predict    → inference pipeline (rate-limited)          │
-│    POST /chat       → LLM chat proxy (rate-limited)              │
-│    POST /auth/register                                           │
-│    POST /auth/token → JWT login                                  │
-│    POST /auth/logout → JTI blacklist                             │
-│    GET  /auth/me                                                 │
-│                                                                  │
-│  Inference Pipeline (POST /predict):                             │
-│    1. Magic-byte validation + dimension check (IQA gate 1)       │
-│    2. PIL decode → RGB                                           │
-│    3. Image Quality Assessment (iqa.py) → iqa_warnings          │
-│    4. Preprocess → [1, 3, 380, 380] tensor                      │
-│    5. Router (MobileNetV3) → group_idx + router_conf            │
-│    6. Specialist (EfficientNet-B4) → logits                     │
-│    7. Temperature scaling (calibration.py) → calibrated probs   │
-│    8. MC-Dropout (uncertainty.py) → epistemic_uncertainty       │
-│    9. Grad-CAM → heatmap base64                                  │
-│   10. Symptom cross-check → hybrid_warnings (8 fields)          │
-│   11. Clinical codes (clinical_codes.py) → ICD-10, urgency      │
-│   12. Human-review flag (uncertainty.py) → requires_human_review│
-│   13. Persist to DB (ScanResult) + AuditLog                     │
-│   14. Return JSON response                                       │
-│                                                                  │
-│  State: Models loaded at startup via lifespan context manager    │
-│  DB: SQLAlchemy (SQLite dev, PostgreSQL prod)                    │
-└──────────┬──────────────────────┬───────────────────────────────┘
-           │                      │
-  ┌────────▼───────┐    ┌─────────▼──────────┐
-  │ PyTorch Models │    │  LLM Backend        │
-  │ (GPU / CPU)    │    │  Google Gemini      │
-  │ router.pth     │    │  OR Ollama (local)  │
-  │ specialist_*.pth│   └────────────────────┘
-  └────────────────┘
-```
+`users`, `scan_results`, `clinician_overrides`, `audit_logs`, `model_versions` — see `backend/db.py` for the authoritative SQLAlchemy models, and `alembic/versions/0001_initial_schema.py` (added this session) for the migration that creates them.
 
 ---
 
-## 4. Data Models (DB)
+## 5. Model Specifications — unchanged from v2.1
 
-### 4.1 User
-
-```python
-id, email, hashed_password, full_name,
-role ("patient"|"clinician"|"admin"),
-is_active, created_at, last_login_at
-```
-
-### 4.2 ScanResult
-
-```python
-id, user_id, diagnosis, confidence, group_name,
-probabilities (JSON), calibrated, calibration_temperature,
-uncertainty, requires_human_review, review_reasons (JSON),
-icd10_code, snomed_code, urgency, urgency_rank,
-hybrid_warnings (JSON), hybrid_warnings_structured (JSON),
-iqa_acceptable, iqa_warnings (JSON),
-symptoms_reported (JSON), model_version_id,
-router_group_idx, image_path, heatmap_path, created_at
-```
-
-### 4.3 ClinicianOverride
-
-```python
-id, scan_id, clinician_id,
-verdict ("agree"|"disagree"|"inconclusive"|"insufficient_image_quality"),
-corrected_diagnosis, corrected_icd10, notes, created_at
-```
-
-### 4.4 AuditLog
-
-```python
-id, user_id, action, resource_id, resource_type,
-ip_address, user_agent, success, error_detail,
-metadata_ (JSON), timestamp
-```
-
-### 4.5 ModelVersion
-
-```python
-id, group_key, version_tag, architecture, weights_path,
-val_accuracy, val_auc, val_sensitivity, val_specificity,
-val_set_description, calibration_temperature, calibration_ece,
-active, registered_at, registered_by
-```
-
-### 4.6 Inference Response (JSON)
-
-```python
-{
-  "group_name": str,
-  "diagnosis": str,
-  "confidence": float,         # 0–100, calibrated
-  "heatmap": str | None,       # "data:image/jpeg;base64,..."
-  "probabilities": dict,       # {ClassName: float} sums to ~1.0
-  "hybrid_warnings": list[str],
-  "hybrid_warnings_structured": list[{"severity": str, "message": str}],
-  "details": {                 # from MEDICAL_INFO
-    "description", "analysis", "symptoms",
-    "treatment", "precautions", "severity", "advice"
-  },
-  # New in v2.1:
-  "calibrated": bool,
-  "calibration_temperature": float,
-  "uncertainty": float,
-  "requires_human_review": bool,
-  "review_reasons": list[str],
-  "icd10_code": str,
-  "snomed_code": str,
-  "urgency": str,              # "none"|"elective"|"non-urgent"|"urgent"|"emergency"
-  "urgency_rank": int,         # 0–4
-  "referral": str,
-  "escalation_message": str | None,
-  "iqa_acceptable": bool,
-  "iqa_warnings": list[str],
-  "scan_id": str | None        # present if PERSIST_SCANS=true
-}
-```
+Router: MobileNetV3-Large, 3 classes, 224×224 input. Specialists: EfficientNet-B4, 380×380 input (2 classes anterior, 4 classes surface). Adnexal/Eyelid: direct pass-through, no specialist model at inference. See `docs/technical/BACKEND_SCHEMA.md` for full detail.
 
 ---
 
-## 5. Model Specifications
-
-### 5.1 Router — MobileNetV3-Large
-
-| Property | Value |
-|----------|-------|
-| Pre-processing input | Resize(380,380) → ToTensor → Normalize (shared transform) |
-| Output classes | 3 (Adnexal, Anterior, Ocular Surface) |
-| Final layer | `classifier[3]` → `Linear(in, 3)` |
-| Saved as | `models/router.pth` (state_dict) |
-
-### 5.2 Specialist — EfficientNet-B4
-
-| Property | Anterior | Surface |
-|----------|----------|---------|
-| Input | `[1, 3, 380, 380]` | `[1, 3, 380, 380]` |
-| Output classes | 2 (Cataract, Uveitis) | 4 (Conjunctivitis, Jaundice, Normal, Pterygium) |
-| Calibration | Temperature scaling (models/calibration.json) | same |
-| Uncertainty | MC-Dropout (8 passes default) | same |
-| Grad-CAM target | `model.features[-1]` | same |
-
-### 5.3 Adnexal — Direct Pass-Through
-
-- Single class (Eyelid) — no specialist model needed at inference
-- Router confidence is returned directly
-- `SPECIALIST_MODELS[0]` has `type: "direct"`
-
----
-
-## 6. Performance
-
-| Metric | GPU (RTX 3050, 6 GB) | CPU |
-|--------|---------------------|-----|
-| Router inference | ~50 ms | ~500 ms |
-| Specialist inference | ~100 ms | ~2000 ms |
-| Temperature scaling | <1 ms | <1 ms |
-| MC-Dropout (8 passes) | ~200 ms | ~3000 ms |
-| Grad-CAM | ~200 ms | ~3000 ms |
-| IQA check | ~30 ms | ~100 ms |
-| Total `/predict` | <1 s | <10 s |
-| `/chat` (Gemini) | 1–5 s | 1–5 s |
-
----
-
-## 7. Security
+## 6. Security — additions this session
 
 | Requirement | Implementation |
 |-------------|---------------|
-| JWT auth | python-jose, HS256, configurable expiry |
-| Token revocation | JTI-based in-memory blacklist (TokenBlacklist) |
-| Role-based access | patient / clinician / admin; `require_role()` FastAPI dep |
-| Brute-force protection | LoginAttemptTracker: 5 failures → 15-min lockout |
-| CORS | Explicit origin list required in production; wildcard blocked |
-| File validation | Magic-byte check + dimension guard (no MIME spoofing) |
-| Upload size | Configurable `MAX_FILE_SIZE_BYTES` (default 20 MB) |
-| Security headers | SecurityHeadersMiddleware: CSP, HSTS (prod), X-Frame-Options, etc. |
-| Error messages | safe_error_detail(): no stack traces in production |
-| Prompt injection | sanitise_chat_message(): 13 regex patterns blocked |
-| SSRF | validate_ollama_url(): private IP ranges blocked |
-| IP anonymisation | Last IPv4 octet / last 80 IPv6 bits masked in all logs |
-| Audit trail | Every auth, prediction, and override logged to DB + structlog |
-| Rate limiting | slowapi; raises RuntimeError at startup in production if absent |
-| Container security | Non-root users; read-only filesystem (frontend) |
+| Async auth path | `backend/db_async.py`, real `AsyncSession` + `select()` in `auth.py` |
+| Schema migrations | Alembic, verified `upgrade head` → `downgrade base` → `upgrade head` round-trip |
+| Admin-only endpoints | `GET /admin/audit-logs`, `POST /admin/model-registry/activate` gated via `require_role("admin")` |
+| Clinician-only endpoint | `POST /scans/{id}/override` gated via `require_role("clinician", "admin")`, with append-only (409 on duplicate) enforcement |
+
+Everything else in the original Security table (JWT/JTI blacklist, brute-force lockout, CORS wildcard guard, magic-byte file validation, security headers, prompt-injection filtering, SSRF guard, IP anonymisation, audit trail, rate limiting, container security) is unchanged — see `docs/technical/SECURITY_AUDIT.md`.
 
 ---
 
-## 8. Error Handling
-
-| Scenario | HTTP Status | Response |
-|----------|------------|----------|
-| Router not loaded | 503 | `{"detail": "AI diagnostic system offline..."}` |
-| Specialist not loaded | 503 | `{"detail": "Specialist model for group X not loaded"}` |
-| File too large | 413 | `{"detail": "File exceeds the X MB limit"}` |
-| Invalid MIME type | 415 | `{"detail": "Unsupported file type '...'"}` |
-| Magic byte mismatch | 415 | `{"detail": "Content-Type mismatch..."}` |
-| Not a valid image | 422 | `{"detail": "File could not be decoded as an image"}` |
-| Inference failure | 500 | `{"detail": "An internal error occurred (ref: <id>)"}` (production) |
-| Rate limit exceeded | 429 | Standard slowapi response |
-| Invalid credentials | 401 | `{"detail": "Invalid email or password."}` |
-| Locked out | 401 | `{"detail": "Account temporarily locked..."}` |
-| Insufficient permissions | 403 | `{"detail": "Your role ('...') does not have permission..."}` |
-| Grad-CAM failure | 200 | `heatmap: null`; rest of result still returned |
-
----
-
-## 9. Known Limitations & Technical Debt
+## 7. Known Limitations & Technical Debt — updated
 
 | Item | Status |
 |------|--------|
-| Single Uvicorn worker limits CPU concurrency | Open — Celery/RQ queue planned for v3.1 |
-| In-memory TokenBlacklist lost on restart | Open — Redis migration documented in ROADMAP.md |
-| In-memory LoginAttemptTracker not shared across workers | Open — same Redis fix |
-| `specialist_eyelid.pth` trained but unused at inference | Open — documented in ISSUES.md M7 |
-| No input image validation beyond size/type | Resolved — magic-byte + dimension checks added |
-| All 8 symptoms not sent to `/predict` | Resolved — all 8 fields now in FormData and backend |
-| No Vite dev proxy | Resolved — added in vite.config.js |
-| Conditions page used hardcoded data | Resolved — fetches from `GET /conditions` |
-| `App.css` leftover | Resolved — removed |
-| JWT secret placeholder in production | Resolved — startup guard added |
-| CORS wildcard in production | Resolved — startup guard added |
-| Stack traces leaked in 500 errors | Resolved — safe_error_detail() |
-| Chat XSS risk | Resolved — DOMPurify sanitisation in ChatBox |
-| No CI/CD | Resolved — ci.yml + security.yml + azure-deploy.yml |
-| License inconsistency (MIT vs Apache) | Resolved — all references updated to Apache 2.0 |
-
-For the full remediation history, see [`SECURITY_AUDIT.md`](../SECURITY_AUDIT.md).
+| Single Uvicorn worker limits CPU concurrency | Open |
+| In-memory TokenBlacklist / LoginAttemptTracker not shared across workers | Open |
+| `specialist_eyelid.pth` trained but unused at inference | Open |
+| `backend/model_registry.py: set_active()` still sync-only | Open — `routes_admin.py`'s activate endpoint re-implements the two statements against `AsyncSession` directly rather than calling it; consolidating is a follow-up |
+| `backend/audit.py: log_event()` still sync-only | Partially addressed — `register()`/`login()` now use a dedicated async-safe audit write (`_log_audit_async()` in `main.py`) so they don't silently stop writing to `audit_logs`; other call sites (`predict`, `chat`) are unaffected since they still use the sync `Session` |
+| No secrets manager integration | Open |
+| No Prometheus/Grafana/Sentry monitoring | Open |

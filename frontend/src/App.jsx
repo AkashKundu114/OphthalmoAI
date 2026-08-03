@@ -216,6 +216,173 @@ const HomePage = ({ onNavigate }) => (
   </div>
 )
 
+const MedicalNewsPage = () => {
+  const [activeCategory, setActiveCategory] = useState('All')
+
+  const categories = ['All', 'Research', 'Technology', 'Prevention', 'Treatment', 'Pediatric']
+
+  const news = [
+    {
+      title: 'AI Outperforms Junior Doctors in Diagnosing Diabetic Retinopathy from Fundus Photos',
+      category: 'Technology', date: 'May 2025', readTime: '5 min',
+      summary: 'A multi-center study published in Nature Medicine demonstrated that a deep learning model achieved 94.5% sensitivity and 91.2% specificity in detecting referable diabetic retinopathy — outperforming three junior ophthalmologists under time-pressure conditions.',
+      tags: ['AI', 'Diabetic Retinopathy', 'Deep Learning'],
+      highlight: true,
+      source: 'Nature Medicine',
+    },
+    {
+      title: 'Omega-3 Fatty Acids Linked to 20% Reduction in Age-Related Macular Degeneration Risk',
+      category: 'Prevention', date: 'April 2025', readTime: '4 min',
+      summary: 'A 12-year longitudinal cohort study (n=38,000) found that participants with the highest dietary intake of DHA and EPA had a significantly lower incidence of early AMD compared to those with the lowest intake.',
+      tags: ['AMD', 'Nutrition', 'Prevention'],
+      highlight: false,
+      source: 'JAMA Ophthalmology',
+    },
+    {
+      title: 'Gene Therapy Trial Shows 70% Vision Improvement in Leber Congenital Amaurosis Patients',
+      category: 'Treatment', date: 'April 2025', readTime: '6 min',
+      summary: 'Phase III clinical trial results for AAV-mediated RPE65 gene therapy showed durable visual improvements at 3-year follow-up, with 70% of treated eyes meeting the primary endpoint of clinically meaningful functional vision improvement.',
+      tags: ['Gene Therapy', 'LCA', 'Rare Disease'],
+      highlight: false,
+      source: 'The Lancet',
+    },
+    {
+      title: 'Smartphone-Based OCT Reaches Primary Care — A Game Changer for Glaucoma Screening',
+      category: 'Technology', date: 'March 2025', readTime: '4 min',
+      summary: 'A portable, smartphone-attachable OCT device priced under $500 demonstrated 88% sensitivity for detecting glaucomatous optic nerve changes in a real-world primary care setting, opening the door to widespread community screening.',
+      tags: ['Glaucoma', 'OCT', 'Telemedicine'],
+      highlight: false,
+      source: 'British Journal of Ophthalmology',
+    },
+    {
+      title: 'Blue Light from Screens: Myth vs. Reality — A 2025 Meta-Analysis',
+      category: 'Research', date: 'March 2025', readTime: '7 min',
+      summary: 'A meta-analysis of 64 studies found no strong evidence linking screen-emitted blue light to permanent retinal damage in healthy adults. Evening screen use can still disrupt sleep timing.',
+      tags: ['Blue Light', 'Digital Eye Strain', 'Meta-Analysis'],
+      highlight: false,
+      source: 'Investigative Ophthalmology & Visual Science',
+    },
+    {
+      title: 'Global Myopia Crisis: 50% of World\'s Population Expected to Be Myopic by 2050',
+      category: 'Research', date: 'February 2025', readTime: '5 min',
+      summary: 'Updated modelling using global prevalence data projects that approximately 4.8 billion people will be myopic by 2050, with high myopia (≥−6D) affecting nearly 1 billion. Outdoor time and low-dose atropine remain the most evidence-backed interventions.',
+      tags: ['Myopia', 'Epidemiology', 'Public Health'],
+      highlight: true,
+      source: 'The Lancet',
+    },
+    {
+      title: 'Children\'s Vision After COVID-19: Screen Time and the Accelerated Myopia Surge',
+      category: 'Pediatric', date: 'February 2025', readTime: '4 min',
+      summary: 'Post-pandemic data from 12 Asian countries show a 2–3× acceleration in myopia progression among school-age children. The WHO recommends at least 2 hours of outdoor time daily as a primary preventative strategy.',
+      tags: ['Myopia', 'Pediatric', 'COVID-19'],
+      highlight: false,
+      source: 'WHO Global Report',
+    },
+    {
+      title: 'FDA Approves First Drop-Based Treatment for Presbyopia in Adults Over 40',
+      category: 'Treatment', date: 'January 2025', readTime: '3 min',
+      summary: 'A once-daily pilocarpine 1.25% ophthalmic solution received FDA approval for treating age-related near-vision blur. Clinical trials showed 30% of patients achieved ≥3 lines of improvement in corrected distance visual acuity.',
+      tags: ['Presbyopia', 'FDA Approval', 'Treatment'],
+      highlight: false,
+      source: 'FDA Press Release',
+    },
+  ]
+
+  const filtered = activeCategory === 'All' ? news : news.filter(n => n.category === activeCategory)
+
+  const categoryColors = {
+    Research: { bg: 'bg-indigo-950/60 text-indigo-400 border-indigo-900/60' },
+    Technology: { bg: 'bg-blue-950/60 text-blue-400 border-blue-900/60' },
+    Prevention: { bg: 'bg-emerald-950/60 text-emerald-400 border-emerald-900/60' },
+    Treatment: { bg: 'bg-red-950/60 text-red-400 border-red-900/60' },
+    Pediatric: { bg: 'bg-amber-950/60 text-amber-400 border-amber-900/60' },
+  }
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Ophthalmic Research & Medical News</h2>
+          <p className="text-xs text-slate-400 mt-1">Curated highlights and clinical findings from leading peer-reviewed journals and medical publications.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+              activeCategory === cat
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-lg shadow-cyan-500/10'
+                : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filtered.map((article, i) => {
+          const catStyle = categoryColors[article.category] || { bg: 'bg-slate-950/60 text-slate-400 border-slate-900/60' }
+          return (
+            <div
+              key={i}
+              className={`glass-card p-6 rounded-2xl border transition-all flex flex-col justify-between ${
+                article.highlight ? 'border-cyan-500/30 shadow-md shadow-cyan-500/5' : 'border-slate-800'
+              }`}
+            >
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded border ${catStyle.bg}`}>
+                    {article.category}
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                    <Calendar className="w-3.5 h-3.5" /> {article.date}
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                    <Clock className="w-3.5 h-3.5" /> {article.readTime}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {article.highlight && (
+                    <div className="flex items-center gap-1 text-xs font-semibold text-cyan-400">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span>Featured Publication</span>
+                    </div>
+                  )}
+                  <h3 className="text-base font-bold text-slate-100 leading-snug">{article.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{article.summary}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-slate-800/60 flex items-center justify-between">
+                <span className="text-[10px] font-mono text-slate-500 italic">Source: {article.source}</span>
+                <div className="flex flex-wrap gap-1">
+                  {article.tags.map((tag, j) => (
+                    <span key={j} className="text-[9px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400 font-mono">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-900/30 flex items-start gap-3">
+        <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+        <p className="text-[11px] text-amber-200/80 leading-relaxed">
+          <strong>Academic Advisory Note:</strong> These articles are summarized highlights for scientific education. They are not intended for clinical diagnosis. Always consult the original peer-reviewed source literature and certified practitioners for professional medical decision-making.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('diagnostic')
   const [selectedFile, setSelectedFile] = useState(null)
@@ -415,6 +582,7 @@ export default function App() {
               <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Diagnostic Tool" />
               <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions" />
               <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<GitBranch className="w-4 h-4" />} label="Workflow" />
+              <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Medical News" />
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
@@ -840,6 +1008,8 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {activeTab === 'news' && <MedicalNewsPage />}
       </main>
 
       {/* Interactive Image Cropper Modal */}

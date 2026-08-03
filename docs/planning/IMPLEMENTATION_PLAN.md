@@ -37,6 +37,13 @@ Use this list to verify a complete local setup from scratch.
 - [ ] `python scripts/train_surface.py` → `models/specialist_surface.pth` saved
 - [ ] `python scripts/train_eyelid.py` → `models/specialist_eyelid.pth` saved (optional — not used in inference)
 
+### Database (added this session)
+
+- [ ] `alembic upgrade head` → creates/updates `users`, `scan_results`,
+      `clinician_overrides`, `audit_logs`, `model_versions` tables
+      (previously this relied solely on `create_tables()` at app startup, which
+      creates tables but cannot apply schema changes to an existing database)
+
 ### Backend
 
 - [ ] `.env` file created in project root
@@ -99,10 +106,13 @@ Use this list to verify a complete local setup from scratch.
 | Heatmap → base64 JPEG encoding | Dev | ✅ Done |
 | Symptom cross-check logic | Dev | ✅ Done |
 | `MEDICAL_INFO` dictionary (7 conditions) | Dev | ✅ Done |
-| `/chat` endpoint — Anthropic + Ollama support | Dev | ✅ Done |
+| `/chat` endpoint — Gemini + Ollama support | Dev | ✅ Done |
 | Ophthalmology system prompt | Dev | ✅ Done |
 | `/health` and `/ready` probes | Dev | ✅ Done |
 | GPU cache cleanup per request | Dev | ✅ Done |
+| Async DB path for auth (`db_async.py`) | Dev | ✅ Done (this session) |
+| Admin endpoints (`routes_admin.py`) | Dev | ✅ Done (this session) |
+| Alembic migrations | Dev | ✅ Done (this session) |
 
 ### Phase 4 — Frontend Core (Days 4–8)
 
@@ -170,52 +180,28 @@ These items are documented in the TRD but summarised here as actionable tasks.
 
 ### Issue 1 — Extra symptom fields not sent to API
 
-**Location:** `frontend/src/App.jsx` — `handleAnalyze()`  
-**Problem:** `halos`, `discharge`, `lightSens`, `spots`, `duration` are collected but only `pain`, `vision`, `itch` are sent to `/predict`. The extra fields are used in the PDF only.  
-**Fix:**
-1. Add new Form fields to the `/predict` FastAPI endpoint
-2. Expand `analyze_symptoms()` to incorporate halos, discharge, light sensitivity rules
-3. Update FormData in `handleAnalyze()` to include all 8 symptom fields
+**Status: Resolved.** `frontend/src/App.jsx` — `handleAnalyze()` now sends all 8 symptom
+fields, and `backend/main.py`'s `/predict` endpoint and `_build_symptom_alerts()` accept
+and use all of them.
 
 ### Issue 2 — Unused `App.css` file
 
-**Location:** `frontend/src/App.css`  
-**Problem:** The file exists (Vite template artefact) but is never imported.  
-**Fix:** Delete `frontend/src/App.css`. No functionality is affected.
+**Status: Resolved.** The unused Vite-template `App.css` was removed; nothing imported it.
 
 ### Issue 3 — No Vite proxy for development
 
-**Location:** `frontend/vite.config.js`  
-**Problem:** No proxy is configured. Developers must set `VITE_API_URL` manually or encounter CORS issues.  
-**Fix:** Add to `vite.config.js`:
-```javascript
-server: {
-  proxy: {
-    '/api': {
-      target: 'http://localhost:8000',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/api/, '')
-    }
-  }
-}
-```
-Then set `VITE_API_URL=/api` in `.env.local`.
+**Status: Resolved.** `frontend/vite.config.js` includes the `/api` proxy.
 
 ### Issue 4 — No input image validation on backend
 
-**Problem:** The backend does not validate file size, MIME type, or image dimensions before inference.  
-**Fix:** Add at the start of `/predict`:
-```python
-MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
-contents = await file.read()
-if len(contents) > MAX_FILE_SIZE:
-    raise HTTPException(status_code=413, detail="File too large")
-```
+**Status: Resolved.** `backend/security.py`'s `validate_magic_bytes()` and
+`validate_image_dimensions()` are called from `/predict` before any PIL/PyTorch processing.
 
 ### Issue 5 — Single Uvicorn worker limits concurrency
 
-**Problem:** Running one worker is safe for GPU (avoids model contention) but blocks concurrent requests.  
-**Fix (medium term):** Implement a request queue with asyncio locks, or use a task queue (Celery + Redis) so multiple workers can share GPU access safely.
+**Status: Open.** Still a known limitation — safe for GPU (avoids model contention) but
+blocks concurrent requests on CPU. A Celery/Redis queue is the documented medium-term fix
+(see `ROADMAP.md` §3.1); not implemented.
 
 ---
 
@@ -225,26 +211,26 @@ if len(contents) > MAX_FILE_SIZE:
 
 | Feature | Notes |
 |---------|-------|
-| Expand symptom API | Send all 8 symptom fields to backend; expand cross-check rules |
-| User accounts / history | Store scan results per user (requires DB: PostgreSQL + Prisma or SQLAlchemy) |
-| Retinal fundus support | Add fundus image preprocessing + new specialist model for AMD/Glaucoma/DR |
-| Mobile app | React Native or Capacitor wrapper |
+| Expand symptom API | Done — all 8 symptom fields now sent to backend |
+| User accounts / history | Done — JWT auth + `ScanResult`/`AuditLog` tables exist |
+| Retinal fundus support | Not started — see `ROADMAP.md` §2.2 |
+| Mobile app | Not started |
 
 ### Medium Priority
 
 | Feature | Notes |
 |---------|-------|
-| Multi-language | i18n for UI text; system prompt localisation |
-| Confidence calibration | Temperature scaling post-training to calibrate softmax probabilities |
-| Model versioning | Serve multiple model versions; A/B test routing |
-| Offline mode | Service worker + cached models via ONNX/TFLite in browser |
+| Multi-language | Not started |
+| Confidence calibration | Done — `backend/calibration.py`, temperature scaling |
+| Model versioning | Done — `backend/model_registry.py` + admin activate endpoint |
+| Offline mode | Not started |
 
 ### Low Priority / Research
 
 | Feature | Notes |
 |---------|-------|
-| Federated learning | Train on distributed hospital data without centralising patient images |
-| OCT / Fundus specialist | Extend to posterior segment pathology |
-| DICOM support | Accept DICOM files from clinical scanners |
-| EHR integration | FHIR API for exporting results to patient records |
-| Batch inference API | Accept ZIP of images, return batch results as CSV |
+| Federated learning | Not started |
+| OCT / Fundus specialist | Not started |
+| DICOM support | Not started |
+| EHR integration | Not started |
+| Batch inference API | Not started |

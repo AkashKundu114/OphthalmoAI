@@ -18,14 +18,9 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY backend /app/backend
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
 
-# models/ is gitignored (trained weights are large binaries, not source) so a
-# fresh checkout has no files under models/ at all. `COPY models /app/models`
-# fails the build outright when the source path doesn't exist on disk. Creating
-# the target directory first and copying with a trailing slash on the source
-# makes this succeed whether or not any .pth files are present locally —
-# CI builds (no weights) and real deployments (weights mounted/baked in
-# separately) both work without editing this file.
 RUN mkdir -p /app/models
 COPY models/ /app/models/
 

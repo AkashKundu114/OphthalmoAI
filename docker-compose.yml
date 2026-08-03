@@ -35,6 +35,10 @@ services:
       - "8000:8000"
     volumes:
       - backend-data:/app/data
+    # NOTE (added this session): run `docker compose exec backend alembic upgrade head`
+    # after the container is healthy, or add it as a one-shot init container in your
+    # orchestrator, before relying on schema changes beyond first-run table creation.
+    # See alembic/ and backend/main.py's lifespan comment near create_tables().
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 30s

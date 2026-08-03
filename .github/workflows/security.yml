@@ -13,10 +13,6 @@ concurrency:
   group: security-${{ github.ref }}
   cancel-in-progress: false
 
-# Required for github/codeql-action/upload-sarif@v3 across every job below.
-# Without this, SARIF uploads fail with a 403 even when the underlying scan
-# succeeds, which previously made Bandit/Semgrep/Trivy/OWASP report as
-# failed jobs despite `|| true` on the scan step itself.
 permissions:
   contents: read
   security-events: write
@@ -77,12 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # NOTE: --error was removed. It caused this step to hard-fail the job on
-      # any high-confidence finding, which is redundant with (and less
-      # visible than) surfacing findings via SARIF upload to the Security
-      # tab, and was inconsistent with how Bandit/Trivy are configured
-      # elsewhere in this workflow (scan failures don't fail the job; only
-      # the summary job reports overall status).
       - name: Run Semgrep (Python + JS security rulesets)
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
@@ -191,10 +181,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Using the gitleaks/gitleaks-action wrapper requires a paid
-      # GITLEAKS_LICENSE for repos owned by an organization (it's free only
-      # for personal-account public repos). Running the OSS binary directly
-      # avoids that license gate entirely while producing the same scan.
       - name: Install Gitleaks
         run: |
           curl -sSfL \
@@ -283,12 +269,10 @@ jobs:
             --format json \
             --output pip-audit.json || AUDIT_FAILED=true
 
-          # Pretty-print summary
           pip-audit \
             --requirement backend/requirements.txt \
             --desc on || true
 
-          # Surface the exit code after printing
           if [ "${AUDIT_FAILED:-false}" = "true" ]; then
             echo "::warning::pip-audit found vulnerabilities. Review pip-audit.json artefact."
           fi

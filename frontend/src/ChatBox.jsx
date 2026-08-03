@@ -371,8 +371,6 @@ const ChatBot = ({ diagnosisContext }) => {
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder="Ask about eye health, symptoms, prevention..."
-                      rows={1}
-                      maxLength={MAX_INPUT_LENGTH + 1}
                       className="flex-1 text-xs px-3 py-2.5 rounded-xl resize-none outline-none glass-input"
                       style={{
                         borderColor: inputError ? '#EF4444' : undefined,

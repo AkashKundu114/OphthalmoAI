@@ -64,7 +64,7 @@ For each class within each specialist model group, `scripts/evaluate_models.py` 
 
 ## 3. Subgroup Performance
 
-*(To be completed once dataset demographics are characterized — see `docs/INTENDED_USE.md` Section 6, item 2. Performance should be broken out by any demographic or technical dimension where the dataset has adequate representation to support a subgroup estimate — e.g., by skin tone category, by age band, by capture device, by lighting condition. Do not report a subgroup metric computed on fewer than ~30 samples; state the gap instead.)*
+*(To be completed once dataset demographics are characterized — see `docs/clinical/INTENDED_USE.md` Section 6, item 2. Performance should be broken out by any demographic or technical dimension where the dataset has adequate representation to support a subgroup estimate — e.g., by skin tone category, by age band, by capture device, by lighting condition. Do not report a subgroup metric computed on fewer than ~30 samples; state the gap instead.)*
 
 ## 4. Clinician Agreement (Post-Deployment)
 

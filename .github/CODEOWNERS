@@ -14,18 +14,11 @@
 *                                   @your-org/maintainers
 
 # --- CI / CD pipeline definitions ---
-# Changes here can silently weaken or disable security gates (e.g. removing
-# a `permissions:` block, dropping `--error` from a scanner, changing
-# `exit-code` on a vulnerability scan from failing to non-failing). Treat
-# any diff to these files as security-relevant even when it looks like
-# routine CI maintenance.
 /.github/workflows/                @your-org/security @your-org/maintainers
 /.github/CODEOWNERS                @your-org/security @your-org/maintainers
 /.github/owasp-suppressions.xml    @your-org/security
 
 # --- Containers & deployment ---
-# Dockerfile changes affect what's baked into the production image (base
-# image version, installed packages, user/permissions, COPY sources).
 /backend/Dockerfile                @your-org/security @your-org/maintainers
 /frontend/Dockerfile               @your-org/security @your-org/maintainers
 /docker-compose.yml                @your-org/maintainers
@@ -35,12 +28,14 @@
 /backend/auth.py                   @your-org/security
 /backend/security.py               @your-org/security
 /backend/validators.py             @your-org/security
+/backend/db_async.py               @your-org/security
 /env.example                       @your-org/security
 
 # --- Dependency manifests ---
-# A bumped or newly-added dependency is exactly what the dependency-audit
-# jobs in security.yml exist to catch, but a human should still look at
-# *why* something changed here.
 /backend/requirements.txt          @your-org/security
 /frontend/package.json             @your-org/security
 /frontend/package-lock.json        @your-org/security
+
+# --- Database schema / migrations (added this session) ---
+/alembic/                          @your-org/maintainers
+/backend/db.py                     @your-org/maintainers

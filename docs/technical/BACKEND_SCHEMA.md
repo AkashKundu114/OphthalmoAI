@@ -8,7 +8,9 @@
 
 ## 1. Overview
 
-The backend is a **FastAPI** app with 6 HTTP endpoints. Models are loaded once at startup into module globals. Image uploads are processed in memory; files are not persisted to disk. `/predict` and `/chat` are rate-limited via `slowapi`.
+The backend is a **FastAPI** app. Models are loaded once at startup into module globals. Image uploads are processed in memory; files are not persisted to disk unless `SCAN_STORAGE_BUCKET` is configured. `/predict`, `/chat`, and the `/auth/*` endpoints are rate-limited via `slowapi`.
+
+**Added this session:** three admin/clinician endpoints (`backend/routes_admin.py`), and `get_current_user`/`require_role`/`authenticate_user` (in `backend/auth.py`) now use a real async SQLAlchemy session (`backend/db_async.py`) instead of blocking the event loop on every request.
 
 ---
 
@@ -78,352 +80,88 @@ Output tensor shape: `[1, 3, 380, 380]` (batch of 1).
 
 System status overview.
 
-**Response 200:**
-```json
-{
-  "status": "OphthalmoAI System Ready",
-  "device": "cuda",
-  "router_loaded": true,
-  "specialists_loaded": 3,
-  "chat_backend": "Google Gemini (gemini-2.0-flash)"
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | string | Fixed string |
-| `device` | string | `"cuda"` or `"cpu"` |
-| `router_loaded` | boolean | Whether `ROUTER_MODEL` is not None |
-| `specialists_loaded` | integer | Count of entries in `SPECIALIST_MODELS` |
-| `chat_backend` | string | `"Google Gemini (model)"` \| `"Ollama (model)"` \| `"Not Configured"` |
-
----
-
 ### `GET /health`
 
-Simple liveness probe. Always returns 200 if the process is running.
-
-**Response 200:**
-```json
-{ "ok": true, "device": "cuda" }
-```
-
----
+Simple liveness probe.
 
 ### `GET /ready`
 
 Readiness probe. Returns 503 if the router model is not loaded.
 
-**Response 200 (ready):**
-```json
-{ "ok": true, "router_loaded": true, "specialists_loaded": 3 }
-```
-
-**Response 503 (not ready):**
-```json
-{ "ok": false, "router_loaded": false, "specialists_loaded": 0 }
-```
-
----
-
 ### `GET /conditions`
 
-Returns clinical metadata for all 7 detectable conditions, sourced directly from `backend/medical_data.py` (`MEDICAL_INFO`). This is the single source of truth used by both the AI's clinical reference lookups and the frontend's Conditions page — the frontend no longer maintains a separate hardcoded copy of this data.
-
-**Response 200:**
-```json
-{
-  "conditions": [
-    {
-      "key": "Conjunctivitis",
-      "name": "Conjunctivitis",
-      "group": "Ocular Surface",
-      "color": "#10B981",
-      "description": "Conjunctivitis, commonly known as 'Pink Eye'...",
-      "symptoms": ["..."],
-      "treatment": ["..."],
-      "precautions": ["..."],
-      "severity": "Low (usually self-limiting, but contagious)",
-      "advice": "..."
-    }
-  ]
-}
-```
-
----
+Returns clinical metadata for all 7 detectable conditions, sourced from `backend/medical_data.py`.
 
 ### `POST /predict`
 
-Main inference endpoint. Accepts an eye scan and symptom data; returns a full diagnostic result. Rate limited (default `10/minute` per IP, configurable via `PREDICT_RATE_LIMIT`).
+Main inference endpoint. Rate limited (default `10/minute` per IP).
 
-**Request:** `multipart/form-data`
+**Request:** `multipart/form-data` — `file`, `pain`, `vision`, `itch` (required); `halos`, `discharge`, `light_sens`, `floaters`, `duration` (optional, all 8 symptom fields feed the cross-check engine).
 
-| Field | Type | Required | Allowed Values |
-|-------|------|----------|----------------|
-| `file` | `UploadFile` | ✅ | JPG, PNG, BMP, WEBP — max `MAX_FILE_SIZE_BYTES` (default 20 MB) |
-| `pain` | `string` (Form) | ✅ | `"None"` \| `"Mild"` \| `"Severe"` \| `"Not Sure"` |
-| `vision` | `string` (Form) | ✅ | `"No"` \| `"Yes"` \| `"Not Sure"` |
-| `itch` | `string` (Form) | ✅ | `"No"` \| `"Yes"` \| `"Not Sure"` |
-| `halos` | `string` (Form) | ❌ (default `"No"`) | `"No"` \| `"Yes"` \| `"Not Sure"` |
-| `discharge` | `string` (Form) | ❌ (default `"None"`) | `"None"` \| `"Watery"` \| `"Thick/Yellow"` \| `"Not Sure"` |
-| `light_sens` | `string` (Form) | ❌ (default `"No"`) | `"No"` \| `"Yes"` \| `"Not Sure"` |
-| `floaters` | `string` (Form) | ❌ (default `"No"`) | `"No"` \| `"Yes"` \| `"Not Sure"` |
-| `duration` | `string` (Form) | ❌ (default `"Not Sure"`) | `"<1 day"` ... `">1 month"` \| `"Not Sure"` |
-
-**Response 200 (success):**
-```json
-{
-  "group_name": "Ocular Surface Disorders",
-  "diagnosis": "Conjunctivitis",
-  "confidence": 94.72,
-  "heatmap": "data:image/jpeg;base64,/9j/4AAQ...",
-  "probabilities": {
-    "Conjunctivitis": 0.9472,
-    "Jaundice": 0.0213,
-    "Normal": 0.0182,
-    "Pterygium": 0.0133
-  },
-  "hybrid_warnings": [
-    "✅ Symptom Match: Itchiness strongly supports Allergic Conjunctivitis."
-  ],
-  "hybrid_warnings_structured": [
-    { "severity": "info", "message": "Symptom Match: Itchiness strongly supports Allergic Conjunctivitis." }
-  ],
-  "details": {
-    "description": "Conjunctivitis, commonly known as 'Pink Eye'...",
-    "analysis": "The bulbar conjunctiva exhibits significant hyperemia...",
-    "symptoms": ["Pink or red in white of eye", "..."],
-    "treatment": ["Artificial tears...", "..."],
-    "precautions": ["Do not touch or rub your eyes", "..."],
-    "severity": "Low (usually self-limiting, but contagious)",
-    "advice": "If discharge is thick/yellow or pain is moderate..."
-  }
-}
-```
-
-`hybrid_warnings` is the legacy emoji-prefixed string list, kept for backward compatibility. `hybrid_warnings_structured` carries the same alerts as `{"severity": "info"|"warning"|"urgent", "message": "..."}` objects, with presentation (icon/emoji) left to the client — useful for i18n, screen readers, or non-visual clients.
-
-**Error responses** are now real HTTP status codes with a `detail` field (previously these were returned as `200 OK` with an `error` key):
-
-| Status | Cause |
-|--------|-------|
-| `413` | Upload exceeds `MAX_FILE_SIZE_BYTES` |
-| `415` | Unsupported `Content-Type` (not in the image MIME allow-list) |
-| `422` | File is not a valid/decodable image |
-| `503` | Router or specialist model not loaded |
-| `429` | Rate limit exceeded |
-| `500` | Unexpected inference failure |
-
-```json
-{ "detail": "AI diagnostic system offline. Train and load models first (see README)." }
-```
-
-#### Inference behaviour by group
-
-| Group | Specialist | Heatmap | Probabilities |
-|-------|-----------|---------|---------------|
-| Adnexal (group 0) | None (direct) | `null` | `{"Eyelid": 1.0}` |
-| Anterior (group 1) | EfficientNet-B4 | base64 JPEG | `{"Cataract": x, "Uveitis": y}` |
-| Surface (group 2) | EfficientNet-B4 | base64 JPEG | `{"Conjunctivitis": x, ...}` |
-
----
+**Response 200:** diagnosis, confidence, heatmap, probabilities, `hybrid_warnings`/`hybrid_warnings_structured`, calibration fields, uncertainty fields, ICD-10/SNOMED/urgency fields, IQA fields. Full shape unchanged from prior versions of this doc — see `backend/main.py: predict()`.
 
 ### `POST /chat`
 
-AI Doctor chatbot proxy. Routes to Google Gemini or Ollama depending on configuration. Rate limited (default `30/minute` per IP, configurable via `CHAT_RATE_LIMIT`).
+AI Doctor chatbot proxy. Rate limited (default `30/minute` per IP). Routes to Google Gemini (`GEMINI_API_KEY` set, model defaults to `gemini-2.0-flash` — the Google AI Studio free-tier Flash model) or Ollama (`OLLAMA_URL` set) as a local fallback.
 
-**Request:** `application/json`
+### `POST /auth/register`, `POST /auth/token`, `POST /auth/logout`, `GET /auth/me`
 
+Standard JWT auth flow. `/auth/register` and `/auth/token` use an `AsyncSession` (added this session — see `backend/db_async.py`).
+
+### `POST /scans/{scan_id}/override` — **added this session**
+
+Records a clinician's second opinion on a scan. Role: `clinician` or `admin`.
+
+**Request body:**
 ```json
 {
-  "message": "string (required)",
-  "history": [
-    { "role": "user", "content": "string" },
-    { "role": "assistant", "content": "string" }
-  ],
-  "diagnosis_context": {
-    "diagnosis": "Conjunctivitis",
-    "confidence": 94.72,
-    "group_name": "Ocular Surface Disorders",
-    "details": { "severity": "Low", "advice": "..." }
-  }
+  "verdict": "agree" | "disagree" | "inconclusive" | "insufficient_image_quality",
+  "corrected_diagnosis": "string, required if verdict is 'disagree'",
+  "corrected_icd10": "string, optional",
+  "notes": "string, optional"
 }
 ```
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `message` | string | ✅ | Current user message |
-| `history` | array | ✅ | Previous turns (can be empty `[]`); `role` must be `"user"` or `"assistant"` |
-| `diagnosis_context` | object \| null | ❌ | If provided, appended to the system prompt |
+**Responses:** `201` on success; `404` unknown scan; `409` a scan can have at most one override (append-only, enforced at the DB level and checked here for a clean error); `422` invalid verdict or missing `corrected_diagnosis`; `401`/`403` auth failures.
 
-**Response 200:**
-```json
-{
-  "reply": "Conjunctivitis (Pink Eye) is an inflammation of...",
-  "model_used": "gemini"
-}
-```
+### `GET /admin/audit-logs` — **added this session**
 
-| Field | Values |
-|-------|--------|
-| `model_used` | `"gemini"` \| `"ollama"` \| `"none"` |
+Paginated audit log query. Role: `admin` only. Query params: `action`, `user_id`, `success`, `limit` (default 50, max 500), `offset`.
+
+### `POST /admin/model-registry/activate` — **added this session**
+
+Promotes a `ModelVersion` to active for its group, deactivating any other active version in the same group. Role: `admin` only.
+
+**Request body:** `{"version_id": "..."}`
+
+**Response** includes an explicit `warning` field stating this updates the DB record only — it does not hot-swap weights in the running process's memory; a restart is required for the change to affect live inference (see `docs/clinical/CLINICAL_SAFETY.md` §6).
 
 ---
 
 ## 5. Symptom Cross-Check Rules
 
-The `analyze_symptoms()` / `analyze_symptoms_structured()` functions implement these rules (all 8 symptom fields are evaluated, not just `pain`/`vision`/`itch`):
-
-```
-1. diagnosis == "Conjunctivitis" AND pain == "Severe"
-   → warning: "Pain Mismatch: Severe pain is unusual for Pink Eye..."
-
-2. vision == "Yes" AND diagnosis in ["Conjunctivitis", "Eyelid"]
-   → warning: "Vision Loss Warning: Surface/Eyelid conditions rarely affect vision..."
-
-3. itch == "Yes" AND diagnosis == "Conjunctivitis"
-   → info: "Symptom Match: Itchiness strongly supports Allergic Conjunctivitis."
-
-4. diagnosis == "Jaundice"
-   → urgent: "URGENT: Scleral Icterus is a systemic emergency..."
-
-5. diagnosis == "Uveitis" AND pain in ["Mild", "Severe"]
-   → urgent: "URGENT: Uveitis with pain is sight-threatening..."
-
-6. halos == "Yes" AND diagnosis == "Cataract"
-   → info: "Symptom Match: Halos around lights strongly support a Cataract diagnosis."
-
-7. floaters == "Yes" AND diagnosis not in ["Uveitis", "Normal"]
-   → warning: "Floaters Reported: Consider ruling out Vitreous Detachment or Retinal Tear..."
-
-8. light_sensitivity == "Yes" AND diagnosis == "Uveitis"
-   → urgent: "URGENT: Light sensitivity with Uveitis is sight-threatening..."
-
-9. discharge == "Thick/Yellow" AND diagnosis == "Conjunctivitis"
-   → info: "Symptom Match: Thick/yellow discharge supports Bacterial Conjunctivitis."
-
-10. duration == ">1 month" AND diagnosis in ["Conjunctivitis", "Eyelid"]
-    → warning: "Chronic Duration: Symptoms lasting over a month warrant evaluation..."
-```
-
-Each rule's severity (`info` | `warning` | `urgent`) maps to the emoji prefix (`✅` | `⚠️` | `🚨`) used in the legacy `hybrid_warnings` string list.
+The `analyze_symptoms()` / `analyze_symptoms_structured()` functions implement 10 rules across all 8 symptom fields — see `backend/main.py: _build_symptom_alerts()` for the authoritative logic. Each rule's severity (`info` | `warning` | `urgent`) maps to an emoji prefix (`✅` | `⚠️` | `🚨`) in the legacy `hybrid_warnings` string list, and to a `{"severity", "message"}` object in `hybrid_warnings_structured`.
 
 ---
 
 ## 6. Medical Data Schema
 
-The `MEDICAL_INFO` dictionary in `backend/medical_data.py` stores clinical information for all 7 conditions, and is also exposed via `GET /conditions`.
-
-### Schema per condition
-
-```python
-{
-    'name':         str,       # Display name (e.g. "Eyelid Conditions" for key "Eyelid")
-    'group':        str,       # Friendly anatomical group label for the frontend
-    'color':        str,       # Accent hex color for condition cards
-    'analysis':     str,       # Visual/clinical analysis from AI perspective
-    'description':  str,       # Lay-person description of the condition
-    'symptoms':     list[str], # Common presenting symptoms
-    'treatment':    list[str], # Treatment options ordered by first-line preference
-    'precautions':  list[str], # Self-care and preventive measures
-    'severity':     str,       # Human-readable severity string
-    'advice':       str,       # Clinical recommendation / call to action
-}
-```
-
-### Keys present in MEDICAL_INFO
-
-```
-'Cataract'
-'Conjunctivitis'
-'Eyelid'
-'Jaundice'
-'Uveitis'
-'Normal'
-'Pterygium'
-```
-
-If a diagnosis is returned that has no entry in `MEDICAL_INFO`, the backend returns a default empty structure with `"Please consult an ophthalmologist."` advice.
+`backend/medical_data.py: MEDICAL_INFO` — one entry per of the 7 conditions (`Cataract`, `Conjunctivitis`, `Eyelid`, `Jaundice`, `Uveitis`, `Normal`, `Pterygium`), each with `name`, `group`, `color`, `analysis`, `description`, `symptoms`, `treatment`, `precautions`, `severity`, `advice`. Also exposed via `GET /conditions`.
 
 ---
 
-## 7. Pydantic Models
+## 7. Environment Variables Reference
 
-```python
-class ChatMessage(BaseModel):
-    role: str        # "user" or "assistant"
-    content: str
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `GEMINI_API_KEY` | `""` | Takes priority over Ollama |
+| `GEMINI_MODEL` | `"gemini-2.0-flash"` | Free-tier Flash model, used by `/chat` |
+| `OLLAMA_URL` / `OLLAMA_MODEL` | `""` / `"llama3.2:3b"` | Local LLM fallback |
+| `DATABASE_URL` | `sqlite:///./ophthalmoai.db` | Sync DB URL |
+| `ASYNC_DATABASE_URL` | derived from `DATABASE_URL` | **Added this session** — see `backend/db_async.py` |
+| `JWT_SECRET_KEY` | placeholder (must be changed) | |
+| `PREDICT_RATE_LIMIT` / `CHAT_RATE_LIMIT` / `AUTH_RATE_LIMIT` | `10/minute` / `30/minute` / `20/minute` | |
+| `MAX_FILE_SIZE_BYTES` | `20971520` | |
+| `CORS_ORIGINS` / `CORS_ALLOW_CREDENTIALS` | `"*"` / `"false"` | |
 
-class ChatRequest(BaseModel):
-    message: str
-    history: List[ChatMessage] = []
-    diagnosis_context: Optional[Dict[str, Any]] = None
-```
-
----
-
-## 8. LLM System Prompt
-
-The backend uses a fixed `OPHTHALMOLOGY_SYSTEM_PROMPT` string for all chat requests. When `diagnosis_context` is provided, the following is appended:
-
-```
---- CURRENT PATIENT AI SCREENING RESULT ---
-Detected Condition: <diagnosis>
-AI Confidence: <confidence>%
-Anatomical Group: <group_name>
-Severity: <severity>
-Clinical Advice: <advice>
-Note: This is an AI screening result only, not a clinical diagnosis.
-```
-
-**Google Gemini parameters:**
-```python
-model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-# system prompt passed as system_instruction at model construction time
-genai.GenerativeModel(model_name=model_name, system_instruction=system)
-```
-
-Conversation history is translated from the app's `{"role": "user"|"assistant", "content": "..."}` shape into Gemini's expected `{"role": "user"|"model", "parts": ["..."]}` shape (Gemini uses `"model"` rather than `"assistant"` for AI turns).
-
-**Ollama parameters:**
-```python
-{
-  "temperature": 0.7,
-  "num_gpu": 0    # CPU only — change if VRAM headroom available
-}
-```
-
----
-
-## 9. Environment Variables Reference
-
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `GEMINI_API_KEY` | string | `""` | Google Gemini API key; takes priority over Ollama |
-| `GEMINI_MODEL` | string | `"gemini-2.0-flash"` | Gemini model name used by `/chat` |
-| `OLLAMA_URL` | string | `""` | Ollama base URL, e.g. `http://localhost:11434` |
-| `OLLAMA_MODEL` | string | `"llama3.2:3b"` | Ollama model name |
-| `FORCE_CPU` | string | `"false"` | Set `"true"` to disable CUDA even if available |
-| `MODELS_DIR` | string | `<project_root>/models` | Absolute path to `.pth` files |
-| `MAX_FILE_SIZE_BYTES` | integer | `20971520` (20 MB) | Max accepted upload size for `/predict` |
-| `CORS_ORIGINS` | string | `"*"` | Comma-separated allowed origins |
-| `CORS_ALLOW_CREDENTIALS` | string | `"false"` | Must stay `"false"` while `CORS_ORIGINS="*"`; the app refuses to start otherwise |
-| `PREDICT_RATE_LIMIT` | string | `"10/minute"` | Per-IP rate limit for `/predict` (requires `slowapi`) |
-| `CHAT_RATE_LIMIT` | string | `"30/minute"` | Per-IP rate limit for `/chat` (requires `slowapi`) |
-| `PORT` | integer | `8000` | Uvicorn listen port |
-| `HOST` | string | `"0.0.0.0"` | Uvicorn listen host |
-
----
-
-## 10. CORS Configuration
-
-The backend uses FastAPI's `CORSMiddleware`:
-
-```python
-allow_origins=cors_origins,             # parsed from CORS_ORIGINS env var
-allow_credentials=allow_credentials,    # parsed from CORS_ALLOW_CREDENTIALS env var
-allow_methods=["*"],
-allow_headers=["*"]
-```
-
-In development, `CORS_ORIGINS=*` permits all origins. In production, restrict to your frontend domain. The app **refuses to start** if `CORS_ORIGINS=*` is combined with `CORS_ALLOW_CREDENTIALS=true`, since browsers reject credentialed requests against a wildcard origin and the combination is unsafe by spec.
+Full list in `env.example`.
