@@ -1,21 +1,3 @@
-"""
-Confidence calibration for OphthalmoAI's specialist models.
-
-Deep neural networks are systematically overconfident: a model reporting "94.7%
-Conjunctivitis" is very often wrong far more than 5.3% of the time. Temperature
-scaling (Guo et al., 2017, https://arxiv.org/abs/1706.04599) fixes this with a single
-learned scalar T per model, applied as logits / T before softmax. T > 1 makes the
-model less confident (the usual direction); T < 1 would make it more confident.
-
-This module provides:
-  - TemperatureScaler: wraps a trained model and learns T against a validation set
-  - CalibrationRegistry: loads/saves per-group temperatures from models/calibration.json
-  - apply_temperature(): the actual logits/T operation used at inference time in main.py
-
-If no calibration.json is present (e.g. a fresh clone with no calibration run yet),
-every temperature defaults to 1.0 — i.e. behaves exactly like the uncalibrated model,
-so this is always safe to import even before anyone runs scripts/calibrate_models.py.
-"""
 from __future__ import annotations
 
 import json
@@ -73,7 +55,7 @@ class CalibrationRegistry:
     def __init__(self, path: str):
         self.path = path
         self._temperatures: Dict[str, float] = {}
-        self.loaded_at: Optional[str] = None
+        self.loaded_at = None
         self.reload()
 
     def reload(self) -> None:
@@ -83,7 +65,7 @@ class CalibrationRegistry:
                     data = json.load(f)
                 self._temperatures = {k: float(v) for k, v in data.items()}
             except Exception as e:
-                print(f"⚠️  Failed to load calibration file at {self.path}: {e}")
+                print(f"Failed to load calibration file at {self.path}: {e}")
                 self._temperatures = {}
         else:
             self._temperatures = {}

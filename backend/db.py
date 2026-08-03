@@ -1,19 +1,3 @@
-"""
-Database models for OphthalmoAI.
-
-Uses SQLAlchemy Core + declarative mapping so the same models work with any
-backend (SQLite for dev/testing, PostgreSQL for staging/production).  The DB URL
-is read from the DATABASE_URL environment variable; it defaults to a local SQLite
-file so a fresh clone with no env vars still boots and passes tests without any
-external services.
-
-Tables:
-  users              — authentication + role management
-  scan_results       — every /predict call, with full clinical metadata
-  clinician_overrides — second-opinion / override entries tied to scan results
-  audit_logs         — immutable append-only event trail (auth, predictions, overrides)
-  model_versions     — model registry (architecture, path, metrics, calibration T)
-"""
 from __future__ import annotations
 
 import os
@@ -69,7 +53,6 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
     role = Column(String(32), nullable=False, default="patient")
-    # role values: "patient" | "clinician" | "admin"
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
@@ -92,28 +75,28 @@ class ScanResult(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     diagnosis = Column(String(100), nullable=False, index=True)
-    confidence = Column(Float, nullable=False)          
+    confidence = Column(Float, nullable=False)
     group_name = Column(String(100), nullable=True)
-    probabilities = Column(JSON, nullable=True)         
+    probabilities = Column(JSON, nullable=True)
 
     calibrated = Column(Boolean, nullable=False, default=False)
     calibration_temperature = Column(Float, nullable=True)
-    uncertainty = Column(Float, nullable=True)          
+    uncertainty = Column(Float, nullable=True)
     requires_human_review = Column(Boolean, nullable=False, default=False)
-    review_reasons = Column(JSON, nullable=True)         
+    review_reasons = Column(JSON, nullable=True)
 
     icd10_code = Column(String(20), nullable=True)
     snomed_code = Column(String(20), nullable=True)
-    urgency = Column(String(32), nullable=True)          
-    urgency_rank = Column(Integer, nullable=True)        
+    urgency = Column(String(32), nullable=True)
+    urgency_rank = Column(Integer, nullable=True)
 
-    hybrid_warnings = Column(JSON, nullable=True)     
-    hybrid_warnings_structured = Column(JSON, nullable=True)  
+    hybrid_warnings = Column(JSON, nullable=True)
+    hybrid_warnings_structured = Column(JSON, nullable=True)
 
     iqa_acceptable = Column(Boolean, nullable=True)
-    iqa_warnings = Column(JSON, nullable=True)         
+    iqa_warnings = Column(JSON, nullable=True)
 
-    symptoms_reported = Column(JSON, nullable=True)     
+    symptoms_reported = Column(JSON, nullable=True)
 
     model_version_id = Column(String(36), ForeignKey("model_versions.id", ondelete="SET NULL"), nullable=True)
     router_group_idx = Column(Integer, nullable=True)
@@ -141,7 +124,7 @@ class ClinicianOverride(Base):
 
     verdict = Column(String(32), nullable=False)
 
-    corrected_diagnosis = Column(String(100), nullable=True)  
+    corrected_diagnosis = Column(String(100), nullable=True)
     corrected_icd10 = Column(String(20), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
@@ -162,8 +145,8 @@ class AuditLog(Base):
 
     action = Column(String(100), nullable=False, index=True)
 
-    resource_id = Column(String(36), nullable=True, index=True) 
-    resource_type = Column(String(50), nullable=True)             
+    resource_id = Column(String(36), nullable=True, index=True)
+    resource_type = Column(String(50), nullable=True)
 
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(500), nullable=True)
@@ -188,18 +171,18 @@ class ModelVersion(Base):
     id = Column(String(36), primary_key=True, default=_uuid)
     group_key = Column(String(50), nullable=False, index=True)
 
-    version_tag = Column(String(50), nullable=False)      
-    architecture = Column(String(100), nullable=False)   
-    weights_path = Column(String(500), nullable=False)    
+    version_tag = Column(String(50), nullable=False)
+    architecture = Column(String(100), nullable=False)
+    weights_path = Column(String(500), nullable=False)
 
     val_accuracy = Column(Float, nullable=True)
     val_auc = Column(Float, nullable=True)
-    val_sensitivity = Column(JSON, nullable=True)   
-    val_specificity = Column(JSON, nullable=True)   
+    val_sensitivity = Column(JSON, nullable=True)
+    val_specificity = Column(JSON, nullable=True)
     val_set_description = Column(Text, nullable=True)
 
     calibration_temperature = Column(Float, nullable=True, default=1.0)
-    calibration_ece = Column(Float, nullable=True)  
+    calibration_ece = Column(Float, nullable=True)
 
     active = Column(Boolean, nullable=False, default=False, index=True)
 

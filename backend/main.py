@@ -19,7 +19,9 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from torchvision import models, transforms
 
 try:
@@ -47,6 +49,8 @@ except ImportError:
 import base64
 
 from .audit import log_event
+from .db_async import get_async_db
+from .routes_admin import router as admin_router
 from .auth import (
     ROLE_HIERARCHY, JWT_SECRET_KEY,
     authenticate_user, create_access_token, decode_token,
@@ -92,6 +96,13 @@ _IS_PROD = _ENV not in {"development", "dev", "test", "testing"}
 MODELS_DIR    = os.getenv("MODELS_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models"))
 FORCE_CPU     = os.getenv("FORCE_CPU", "false").lower() in {"1", "true", "yes"}
 DEVICE        = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
+# Chatbot LLM: defaults to Gemini 2.0 Flash, Google's free-tier model (as of this
+# writing, Flash models are available on Google AI Studio's free tier with published
+# per-minute/per-day request limits — see ai.google.dev/pricing). Overridable via
+# GEMINI_MODEL if a different Gemini model is preferred; Ollama remains the local/offline
+# fallback below when GEMINI_API_KEY isn't set. This was already the default in this
+# codebase; noted explicitly here per an explicit request to confirm the chatbot uses the
+# Flash free tier.
 GEMINI_MODEL  = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
@@ -158,6 +169,13 @@ async def lifespan(app: FastAPI):
         raise
 
     try:
+        # create_tables() (Base.metadata.create_all) stays here deliberately - it's right
+        # for a fresh SQLite dev checkout with zero setup, and it's a no-op against tables
+        # that already exist. What it does NOT do is apply schema *changes* to an existing
+        # production database (new columns, renamed tables, etc.) - already flagged in
+        # SECURITY_AUDIT.md's Residual Risk section. alembic/ (added alongside this
+        # comment) is the real path for schema changes anywhere with data worth keeping:
+        # run `alembic upgrade head` as a deploy step, not just this call.
         create_tables()
         logger.info("startup.db_ready")
     except Exception as exc:
@@ -267,6 +285,9 @@ _predict_limit = make_rate_limit_decorator(PREDICT_RATE_LIMIT)
 _chat_limit    = make_rate_limit_decorator(CHAT_RATE_LIMIT)
 _auth_limit    = make_rate_limit_decorator(AUTH_RATE_LIMIT)
 
+app.include_router(admin_router)  # POST /scans/{id}/override, GET /admin/audit-logs,
+                                  # POST /admin/model-registry/activate
+
 
 class ChatMessage(BaseModel):
     role: str
@@ -288,14 +309,8 @@ class TokenResponse(BaseModel):
     role: str
     user_id: str
 
-class OverrideRequest(BaseModel):
-    verdict: str
-    corrected_diagnosis: Optional[str] = None
-    corrected_icd10: Optional[str] = None
-    notes: Optional[str] = None
-
-class ActivateModelRequest(BaseModel):
-    version_id: str
+# OverrideRequest / ActivateModelRequest moved to routes_admin.py (they belong to the
+# endpoints defined there; kept out of main.py to avoid duplicate model definitions).
 
 
 _SEVERITY_ICON = {"info": "✅", "warning": "⚠️", "urgent": "🚨"}
@@ -340,6 +355,32 @@ def _client_ip(request: Request) -> Optional[str]:
     if xff:
         return xff.split(",")[0].strip()
     return request.client.host if request.client else None
+
+
+async def _log_audit_async(
+    db: AsyncSession, action: str, success: bool = True, user_id: Optional[str] = None,
+    ip_address: Optional[str] = None, error_detail: Optional[str] = None,
+) -> None:
+    """Async counterpart to audit.log_event() for the two endpoints (register, login)
+    that were converted to AsyncSession as part of the auth.py async migration.
+    audit.log_event() itself still expects a sync Session and is unmodified - every
+    other call site in this file (predict, chat) still uses it unchanged. This function
+    exists specifically so register()/login() don't silently stop writing to the
+    audit_logs table, which docs/clinical/CLINICAL_SAFETY.md documents as covering every
+    login and registration - dropping that quietly would be a real regression, not a
+    cosmetic one, so it gets its own async-safe path rather than being skipped."""
+    log_fn = logger.info if success else logger.warning
+    log_fn("audit.event", action=action, success=success, user_id=user_id, ip=ip_address)
+    try:
+        entry = AuditLog(
+            action=action, success=success, user_id=user_id,
+            ip_address=ip_address, error_detail=error_detail,
+        )
+        db.add(entry)
+        await db.commit()
+    except Exception as exc:
+        logger.error("audit.db_write_failed", action=action, error=str(exc))
+        await db.rollback()
 
 
 @app.get("/")
@@ -406,7 +447,7 @@ async def predict(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
-    client_ip = anonymise_ip(_client_ip(request))  
+    client_ip = anonymise_ip(_client_ip(request))
     user_id   = current_user.id if current_user else None
     req_id    = getattr(request.state, "request_id", None)
 
@@ -610,7 +651,7 @@ async def predict(
 async def register(
     request: Request,
     payload: RegisterRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ):
     email_ok, email_or_err = validate_email(payload.email)
     if not email_ok:
@@ -621,7 +662,8 @@ async def register(
         raise HTTPException(422, detail=pw_err)
 
     email = email_or_err  # normalised
-    if db.query(User).filter(User.email == email).first():
+    existing = await db.execute(select(User).where(User.email == email))
+    if existing.scalar_one_or_none():
         raise HTTPException(409, detail="An account with this email already exists.")
 
     user = User(
@@ -631,12 +673,12 @@ async def register(
         role="patient",
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     token = create_access_token(subject=user.id, role=user.role)
-    log_event(db, "register", success=True, user_id=user.id,
-              ip_address=anonymise_ip(_client_ip(request)))
+    await _log_audit_async(db, "register", success=True, user_id=user.id,
+                            ip_address=anonymise_ip(_client_ip(request)))
     return TokenResponse(access_token=token, role=user.role, user_id=user.id)
 
 
@@ -644,16 +686,16 @@ async def register(
 @_auth_limit
 async def login(
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     email: str = Form(...),
     password: str = Form(...),
 ):
     client_ip = anonymise_ip(_client_ip(request))
 
-    user, error = authenticate_user(db, email, password)
+    user, error = await authenticate_user(db, email, password)
     if error or not user:
-        log_event(db, "login", success=False, ip_address=client_ip,
-                  error_detail=error or "unknown")
+        await _log_audit_async(db, "login", success=False, ip_address=client_ip,
+                                error_detail=error or "unknown")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=error or "Invalid email or password.",
@@ -661,10 +703,10 @@ async def login(
         )
 
     user.last_login_at = datetime.now(timezone.utc)
-    db.commit()
+    await db.commit()
 
     token = create_access_token(subject=user.id, role=user.role)
-    log_event(db, "login", success=True, user_id=user.id, ip_address=client_ip)
+    await _log_audit_async(db, "login", success=True, user_id=user.id, ip_address=client_ip)
     return TokenResponse(access_token=token, role=user.role, user_id=user.id)
 
 

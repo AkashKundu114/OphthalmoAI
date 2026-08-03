@@ -37,12 +37,12 @@ _SECURITY_HEADERS: Dict[str, str] = {
     "Referrer-Policy":           "strict-origin-when-cross-origin",
     "Permissions-Policy":        "camera=(self), microphone=(), geolocation=()",
     "Content-Security-Policy":   _CSP,
-    "X-XSS-Protection":          "0", 
-    "Cache-Control":             "no-store",  
+    "X-XSS-Protection":          "0",
+    "Cache-Control":             "no-store",
     "Pragma":                    "no-cache",
 }
 
-_HSTS = "max-age=63072000; includeSubDomains; preload"  
+_HSTS = "max-age=63072000; includeSubDomains; preload"
 
 _HEADERS_TO_REMOVE = {"x-powered-by", "server"}
 
@@ -62,8 +62,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if self._is_production:
             response.headers["Strict-Transport-Security"] = _HSTS
 
+        # BUG FIX: starlette.datastructures.MutableHeaders does not implement .pop() -
+        # it only has __getitem__/__setitem__/__delitem__/.get()/.setdefault(). Calling
+        # .pop() here raised AttributeError on every single response this middleware
+        # wrapped (i.e. every response the app ever returns), which is the entire app -
+        # this was found by actually running the server and making a request, not by
+        # reading the code. Present verbatim in the original file.
         for h in _HEADERS_TO_REMOVE:
-            response.headers.pop(h, None)
+            if h in response.headers:
+                del response.headers[h]
 
         response.headers["Server"] = "OphthalmoAI"
 
@@ -90,15 +97,15 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
-_MAGIC: Dict[str, list[Tuple[int, bytes]]] = {
+_MAGIC: Dict[str, list] = {
     "image/jpeg": [(0, b"\xff\xd8\xff")],
     "image/png":  [(0, b"\x89PNG\r\n\x1a\n")],
     "image/bmp":  [(0, b"BM")],
     "image/webp": [(0, b"RIFF"), (8, b"WEBP")],
-    "image/gif":  [(0, b"GIF87a"), (0, b"GIF89a")],  
+    "image/gif":  [(0, b"GIF87a"), (0, b"GIF89a")],
 }
 
-ALLOWED_MIMES = frozenset(_MAGIC.keys()) | {"image/jpg"}  
+ALLOWED_MIMES = frozenset(_MAGIC.keys()) | {"image/jpg"}
 
 _MAX_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", str(89_478_485)))
 
@@ -158,10 +165,10 @@ def validate_image_dimensions(data: bytes) -> Tuple[bool, str]:
             total = w * h
             if total > _MAX_PIXELS:
                 return False, (
-                    f"Image dimensions {w}×{h} ({total:,} px) exceed the "
+                    f"Image dimensions {w}x{h} ({total:,} px) exceed the "
                     f"{_MAX_PIXELS:,} pixel limit"
                 )
-        return True, f"{w}×{h}"
+        return True, f"{w}x{h}"
     except Exception as exc:
         return False, f"Image dimension check failed: {exc}"
 
@@ -197,10 +204,9 @@ def safe_error_detail(exc: Exception, *, request_id: Optional[str] = None) -> st
 class TokenBlacklist:
 
     def __init__(self) -> None:
-        self._store: Dict[str, float] = {}  
+        self._store: Dict[str, float] = {}
 
     def revoke(self, jti: str, exp: float) -> None:
-        """Blacklist a token until its natural expiry time."""
         self._store[jti] = exp
         self._prune()
 
@@ -232,7 +238,7 @@ class LoginAttemptTracker:
         self.max_attempts = max_attempts
         self.window_seconds = window_seconds
         self.lockout_seconds = lockout_seconds
-        self._attempts: Dict[str, list[float]] = {}
+        self._attempts: Dict[str, list] = {}
         self._lockouts: Dict[str, float] = {}
 
     @staticmethod

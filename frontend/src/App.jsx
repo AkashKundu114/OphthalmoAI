@@ -23,10 +23,6 @@ const ACCENT = '#0891B2'
 const ACCENT_DARK = '#0E7490'
 const NAVY = '#0F2040'
 
-// M3: backend is the single source of truth for condition metadata
-// (GET /conditions, backed by backend/medical_data.py). Used as a fallback only if
-// that request fails, so the Conditions page still renders something on a backend
-// outage instead of going blank.
 const FALLBACK_CONDITIONS = [
   { key: 'Cataract', name: 'Cataract', severity: 'Moderate to Severe (depending on opacity density)', color: '#3B82F6', group: 'Anterior Segment' },
   { key: 'Uveitis', name: 'Uveitis', severity: 'High (Sight-Threatening Emergency)', color: '#EF4444', group: 'Anterior Segment' },
@@ -392,11 +388,6 @@ const WorkflowPage = () => {
 
 
 
-// M3: ConditionsPage now fetches its data from GET /conditions (backed by
-// backend/medical_data.py) instead of maintaining a second, hand-written array that had
-// already drifted out of sync with the backend's severity strings. Falls back to a
-// minimal local list if the request fails, so the page degrades gracefully rather than
-// going empty.
 const ConditionsPage = () => {
   const [selected, setSelected] = useState(null)
   const [conditions, setConditions] = useState(FALLBACK_CONDITIONS)
@@ -744,11 +735,6 @@ const DiagnosticPage = () => {
     setLoading(true)
     const formData = new FormData()
     formData.append('file', file)
-    // H1: all 8 symptom fields collected by the form are now sent to /predict.
-    // Previously only pain/vision/itch were appended here; halos, discharge,
-    // light sensitivity, floaters, and duration were collected but silently dropped,
-    // even though they were used in the PDF report and the backend's symptom
-    // cross-check engine already supports them.
     formData.append('pain', pain)
     formData.append('vision', vision)
     formData.append('itch', itch)
@@ -1414,9 +1400,6 @@ const DisclaimerBanner = () => (
   </div>
 )
 
-// C5 / L3: license text now matches the repository's actual LICENSE file (Apache
-// License 2.0), and the year is computed at render time instead of being hardcoded
-// and going stale every year.
 const Footer = () => (
   <footer className="py-8 border-t border-slate-200" style={{ background: '#F8FAFC' }}>
     <div className="flex flex-col items-center justify-between max-w-6xl gap-4 px-4 mx-auto sm:px-6 lg:px-8 sm:flex-row">

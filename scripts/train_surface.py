@@ -106,7 +106,6 @@ def main():
             print("   ⭐ Best Model Saved!")
 if __name__ == "__main__":
     try:
-        import copy
         from tqdm import tqdm
     except ImportError:
         print("Install tqdm: pip install tqdm")

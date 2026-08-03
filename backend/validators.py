@@ -18,12 +18,12 @@ _EMAIL_RE = re.compile(
     r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,63}$"
 )
 
-_BAD_EMAIL_PATTERNS: list[re.Pattern] = [
-    re.compile(r"\.{2,}"),     
-    re.compile(r"^[.\-@]"),    
-    re.compile(r"[.\-]@"),     
-    re.compile(r"@[.\-]"),    
-    re.compile(r"[.\-]$"),   
+_BAD_EMAIL_PATTERNS = [
+    re.compile(r"\.{2,}"),
+    re.compile(r"^[.\-@]"),
+    re.compile(r"[.\-]@"),
+    re.compile(r"@[.\-]"),
+    re.compile(r"[.\-]$"),
 ]
 
 
@@ -33,7 +33,7 @@ def validate_email(raw: str) -> Tuple[bool, str]:
 
     email = raw.strip().lower()
 
-    if len(email) > 254:            
+    if len(email) > 254:
         return False, "Email address exceeds the 254-character RFC limit"
 
     if not _EMAIL_RE.match(email):
@@ -44,7 +44,7 @@ def validate_email(raw: str) -> Tuple[bool, str]:
             return False, "Email address contains an invalid character sequence"
 
     local, domain = email.rsplit("@", 1)
-    if len(local) > 64:           
+    if len(local) > 64:
         return False, "Email local part exceeds the 64-character RFC limit"
 
     if "." not in domain:
@@ -68,11 +68,11 @@ def validate_password_strength(password: str) -> Tuple[bool, str]:
     if len(password) > 128:
         return False, "Password must be at most 128 characters"
     if not re.search(r"[A-Z]", password):
-        return False, "Password must contain at least one uppercase letter (A–Z)"
+        return False, "Password must contain at least one uppercase letter (A-Z)"
     if not re.search(r"[a-z]", password):
-        return False, "Password must contain at least one lowercase letter (a–z)"
+        return False, "Password must contain at least one lowercase letter (a-z)"
     if not re.search(r"\d", password):
-        return False, "Password must contain at least one digit (0–9)"
+        return False, "Password must contain at least one digit (0-9)"
     if not re.search(r"[!@#$%^&*()\-_=+\[\]{}|;:',.<>?/`~\\]", password):
         return False, "Password must contain at least one special character"
     if re.match(r"^(.)\1{7,}$", password):
@@ -83,18 +83,18 @@ def validate_password_strength(password: str) -> Tuple[bool, str]:
     return True, "OK"
 
 
-_PRIVATE_NETWORKS: list[ipaddress._BaseNetwork] = [
+_PRIVATE_NETWORKS = [
     ipaddress.ip_network("10.0.0.0/8"),
     ipaddress.ip_network("172.16.0.0/12"),
     ipaddress.ip_network("192.168.0.0/16"),
-    ipaddress.ip_network("127.0.0.0/8"),      
-    ipaddress.ip_network("169.254.0.0/16"),   
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),
     ipaddress.ip_network("0.0.0.0/8"),
-    ipaddress.ip_network("100.64.0.0/10"),    
-    ipaddress.ip_network("240.0.0.0/4"),      
-    ipaddress.ip_network("::1/128"),           
-    ipaddress.ip_network("fc00::/7"),          
-    ipaddress.ip_network("fe80::/10"),      
+    ipaddress.ip_network("100.64.0.0/10"),
+    ipaddress.ip_network("240.0.0.0/4"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fe80::/10"),
 ]
 
 _ALLOWED_SCHEMES = {"http", "https"}

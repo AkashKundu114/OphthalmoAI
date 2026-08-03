@@ -68,7 +68,6 @@ function renderMarkdown(rawText) {
 }
 
 function inlineTokens(text) {
-  // Process in order: bold → italic → code
   const boldParts = text.split(/\*\*(.+?)\*\*/g)
   return boldParts.flatMap((part, i) => {
     if (i % 2 === 1) {
@@ -327,7 +326,6 @@ const ChatBot = ({ diagnosisContext }) => {
                           }
                       }
                     >
-                      {/* C8 fix: renderMarkdown sanitises all text before display */}
                       {renderMarkdown(msg.content)}
                     </div>
                   </div>
@@ -384,7 +382,7 @@ const ChatBot = ({ diagnosisContext }) => {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask about eye health, symptoms, treatment…"
                       rows={1}
-                      maxLength={MAX_INPUT_LENGTH + 1} // +1 to allow the error state to trigger
+                      maxLength={MAX_INPUT_LENGTH + 1}
                       className="flex-1 text-sm px-3 py-2.5 rounded-xl resize-none outline-none transition-all"
                       style={{
                         border: `1.5px solid ${inputError ? '#ef4444' : '#e2e8f0'}`,

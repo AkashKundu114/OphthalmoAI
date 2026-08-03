@@ -23,6 +23,15 @@ python-jose[cryptography]==3.3.0
 sqlalchemy==2.0.36
 alembic==1.14.0
 
+# Added for backend/db_async.py (real async DB access for auth.py + routes_admin.py -
+# see that module's docstring for why a sync engine wasn't sufficient). aiosqlite covers
+# local/dev/test (DATABASE_URL default is sqlite:///./ophthalmoai.db); asyncpg covers
+# Postgres in production. Both are lightweight - installing both by default rather than
+# making this conditional keeps `pip install -r requirements.txt` giving a fully working
+# app regardless of which DATABASE_URL an operator points at.
+aiosqlite==0.20.0
+asyncpg==0.30.0
+
 scipy==1.14.1
 scikit-learn==1.6.0
 
