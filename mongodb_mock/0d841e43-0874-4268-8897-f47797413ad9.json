@@ -1,0 +1,26 @@
+{
+  "_id": "0d841e43-0874-4268-8897-f47797413ad9",
+  "probabilities": {
+    "Conjunctivitis": 0.9801866412162781,
+    "Jaundice": 0.00660444563254714,
+    "Normal": 0.00660444563254714,
+    "Pterygium": 0.00660444563254714
+  },
+  "review_reasons": [],
+  "hybrid_warnings": [],
+  "hybrid_warnings_structured": [],
+  "iqa_warnings": [
+    "Image appears blurry (sharpness score 0).",
+    "No clear iris/pupil region was detected."
+  ],
+  "symptoms_reported": {
+    "pain": "None",
+    "vision": "No",
+    "itch": "No",
+    "halos": "No",
+    "discharge": "None",
+    "light_sensitivity": "No",
+    "floaters": "No",
+    "duration": "Not Sure"
+  }
+}
