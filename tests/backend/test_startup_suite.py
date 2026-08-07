@@ -93,5 +93,13 @@ class TestStartupInnovationSuite(unittest.TestCase):
         self.assertEqual(signoff_data["status"], "overridden")
         self.assertTrue(signoff_data["sync_successful"])
 
+        # Test scan details retrieval (hybrid SQL + NoSQL)
+        res_details = self.client.get(f"/scans/{scan_id}/details")
+        self.assertEqual(res_details.status_code, 200)
+        details_data = res_details.json()
+        self.assertEqual(details_data["scan_id"], scan_id)
+        self.assertIn("probabilities", details_data)
+        self.assertIn("symptoms_reported", details_data)
+
 if __name__ == "__main__":
     unittest.main()

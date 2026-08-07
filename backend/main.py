@@ -51,6 +51,7 @@ import base64
 from .audit import log_event
 from .db_async import get_async_db
 from .routes_admin import OverrideRequest, router as admin_router
+from .mongodb_client import mongo_store
 from .auth import (
     ROLE_HIERARCHY, JWT_SECRET_KEY,
     authenticate_user, create_access_token, decode_token,
@@ -658,6 +659,21 @@ async def predict(
                 db.refresh(scan)
                 scan_id = scan.id
                 response_body["scan_id"] = scan_id
+
+                # Persist rich JSON details in MongoDB document store
+                mongo_store.insert_document(scan_id, {
+                    "probabilities": probs_dict,
+                    "review_reasons": review_payload["review_reasons"],
+                    "hybrid_warnings": hybrid_warnings,
+                    "hybrid_warnings_structured": hybrid_warnings_structured,
+                    "iqa_warnings": iqa_warnings,
+                    "symptoms_reported": {
+                        "pain": pain, "vision": vision, "itch": itch,
+                        "halos": halos, "discharge": discharge,
+                        "light_sensitivity": light_sens,
+                        "floaters": floaters, "duration": duration,
+                    }
+                })
             except Exception as persist_err:
                 logger.error("predict.persist_failed", error=str(persist_err))
                 db.rollback()
@@ -1182,6 +1198,30 @@ def sign_off_scan(
         "status": scan.sign_off_status,
         "sync_successful": sync_ok,
         "ehr_message": sync_msg
+    }
+
+@app.get("/scans/{scan_id}/details")
+def get_scan_details(scan_id: str, db: Session = Depends(get_db)):
+    """
+    Get composite diagnostic results (combines SQL metadata + MongoDB document payloads).
+    """
+    scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan result not found")
+        
+    doc = mongo_store.get_document(scan_id) or {}
+    
+    return {
+        "scan_id": scan.id,
+        "diagnosis": scan.diagnosis,
+        "confidence": scan.confidence,
+        "created_at": scan.created_at.isoformat() if scan.created_at else None,
+        "spatial_description": scan.spatial_description,
+        "dicom_patient_id": scan.dicom_patient_id,
+        "probabilities": doc.get("probabilities", scan.probabilities),
+        "review_reasons": doc.get("review_reasons", scan.review_reasons),
+        "hybrid_warnings": doc.get("hybrid_warnings", scan.hybrid_warnings),
+        "symptoms_reported": doc.get("symptoms_reported", scan.symptoms_reported)
     }
 
 @app.post("/admin/federated/sync")
