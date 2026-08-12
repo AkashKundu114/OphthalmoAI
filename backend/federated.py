@@ -15,7 +15,7 @@ class FederatedNode:
         self.samples_trained = random.randint(100, 1500)
         self.local_accuracy = round(random.uniform(0.85, 0.94), 4)
         self.last_sync = time.time()
-        # Mock parameter diff gradients
+
         param_gradients_norm = round(random.uniform(0.01, 0.08), 5)
         return {
             "node_id": self.node_id,
@@ -48,10 +48,10 @@ class FederatedServer:
             total_samples += update["samples"]
             weighted_acc += update["accuracy"] * update["samples"]
 
-        # Calculate FedAvg weighted accuracy
+
         self.global_accuracy = round(weighted_acc / total_samples, 4)
-        
-        # Calculate mock parameter drift metric
+
+
         param_drift = round(random.uniform(0.002, 0.015), 5)
 
         return {

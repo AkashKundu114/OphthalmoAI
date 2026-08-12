@@ -235,7 +235,7 @@ class PatientAppointment(Base):
     clinic_name = Column(String(255), nullable=False)
     appointment_time = Column(DateTime(timezone=True), nullable=False)
     purpose = Column(String(255), nullable=False)
-    status = Column(String(32), nullable=False, default="scheduled")  # scheduled, completed, missed
+    status = Column(String(32), nullable=False, default="scheduled")  
     sms_reminder_sent = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
 

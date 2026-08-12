@@ -213,7 +213,7 @@ const ChatBot = ({ diagnosisContext }) => {
 
   return (
     <>
-      {/* FAB Button */}
+      {}
       <button
         onClick={() => { setIsOpen(o => !o); setIsMinimized(false) }}
         className="fixed z-50 flex items-center justify-center transition-all duration-300 rounded-full shadow-2xl bottom-6 right-6 w-14 h-14 hover:scale-110 active:scale-95 border border-cyan-500/40"
@@ -232,7 +232,7 @@ const ChatBot = ({ diagnosisContext }) => {
         }
       </button>
 
-      {/* Floating Chat Container */}
+      {}
       {isOpen && (
         <div
           role="dialog"
@@ -244,7 +244,7 @@ const ChatBot = ({ diagnosisContext }) => {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 173, 181, 0.2)',
           }}
         >
-          {/* Header */}
+          {}
           <div className="flex items-center gap-3 px-4 py-3.5 shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/80 border-b border-slate-800">
             <div className="flex items-center justify-center rounded-full w-9 h-9 bg-cyan-500/20 border border-cyan-500/40">
               <Bot className="w-5 h-5 text-cyan-400" />
@@ -274,7 +274,7 @@ const ChatBot = ({ diagnosisContext }) => {
 
           {!isMinimized && (
             <>
-              {/* Educational Disclaimer */}
+              {}
               <div className="flex items-start gap-2 px-3.5 py-2 shrink-0 bg-amber-950/40 border-b border-amber-900/40">
                 <AlertCircle className="w-4 h-4 mt-0.5 text-amber-400 shrink-0" />
                 <p className="text-[11px] text-amber-200/90 leading-tight">
@@ -282,7 +282,7 @@ const ChatBot = ({ diagnosisContext }) => {
                 </p>
               </div>
 
-              {/* Message List */}
+              {}
               <div
                 className="flex-1 p-4 space-y-3.5 overflow-y-auto bg-slate-950/60"
                 aria-live="polite"
@@ -338,7 +338,7 @@ const ChatBot = ({ diagnosisContext }) => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick Questions Chips */}
+              {}
               {messages.length <= 2 && !loading && (
                 <div className="px-3.5 pb-2 shrink-0 bg-slate-950/60">
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -361,7 +361,7 @@ const ChatBot = ({ diagnosisContext }) => {
                 </div>
               )}
 
-              {/* Input Control */}
+              {}
               <div className="p-3 shrink-0 bg-slate-900 border-t border-slate-800">
                 <div className="flex gap-2">
                   <div className="flex flex-col flex-1">

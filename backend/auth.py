@@ -23,7 +23,7 @@ try:
     JWT_AVAILABLE = True
 except ImportError:
     try:
-        from jose import jwt  # type: ignore
+        from jose import jwt  
         JWT_AVAILABLE = True
     except ImportError:
         JWT_AVAILABLE = False
@@ -37,7 +37,7 @@ from .validators import validate_email, validate_password_strength, validate_rol
 logger = get_logger("auth")
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_BEFORE_PRODUCTION_DEPLOYMENT")
-# Alias key for main.py integration
+
 JWT_SECRET_KEY = SECRET_KEY
 ALGORITHM  = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
@@ -47,12 +47,12 @@ ROLE_HIERARCHY = {"patient": 0, "clinician": 1, "admin": 2}
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
-# NOTE ON SCOPE: hash_password/verify_password call into bcrypt, which is CPU-bound and
-# synchronous by nature — there is no "async bcrypt". Marking these `async def` without
-# actually offloading the work to a thread pool would just be a fake async signature, so
-# they stay plain `def`. If bcrypt's ~100-300ms cost becomes a measured bottleneck under
-# concurrent login load, the fix is `await run_in_threadpool(verify_password, ...)` at the
-# call site (starlette.concurrency.run_in_threadpool), not an `async def` here.
+
+
+
+
+
+
 def hash_password(plain: str) -> str:
     """Hash a password using bcrypt (if available) or PBKDF2-HMAC-SHA256."""
     if BCRYPT_AVAILABLE:
@@ -150,7 +150,7 @@ async def get_current_user(
         if not user_id:
             return None
         result = await db.execute(
-            select(User).where(User.id == user_id, User.is_active == True)  # noqa: E712
+            select(User).where(User.id == user_id, User.is_active == True)  
         )
         return result.scalar_one_or_none()
     except HTTPException:
@@ -178,7 +178,7 @@ def require_role(*roles: str):
                 detail="Token is missing the subject claim.",
             )
         result = await db.execute(
-            select(User).where(User.id == user_id, User.is_active == True)  # noqa: E712
+            select(User).where(User.id == user_id, User.is_active == True)  
         )
         user = result.scalar_one_or_none()
         if not user:
@@ -211,8 +211,8 @@ def revoke_token(token: str) -> None:
         if jti:
             token_blacklist.revoke(jti, float(exp))
             logger.info("auth.token_revoked", jti=jti[:8] + "…")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("auth.token_revoke_failed", error=str(e))
 
 
 async def authenticate_user(

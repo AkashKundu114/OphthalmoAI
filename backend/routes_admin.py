@@ -37,9 +37,9 @@ class ActivateModelRequest(BaseModel):
     version_id: str
 
 
-# ---------------------------------------------------------------------------
-# POST /scans/{scan_id}/override
-# ---------------------------------------------------------------------------
+
+
+
 @router.post("/scans/{scan_id}/override", status_code=201)
 async def create_scan_override(
     scan_id: str,
@@ -69,8 +69,8 @@ async def create_scan_override(
         select(ClinicianOverride).where(ClinicianOverride.scan_id == scan_id)
     )
     if existing_result.scalar_one_or_none():
-        # db.py's schema enforces this at the DB level (unique=True on scan_id) — checking
-        # here first so the error is a clean 409 instead of an IntegrityError leaking up.
+
+
         raise HTTPException(
             409,
             detail=(
@@ -110,9 +110,9 @@ async def create_scan_override(
     }
 
 
-# ---------------------------------------------------------------------------
-# GET /admin/audit-logs
-# ---------------------------------------------------------------------------
+
+
+
 @router.get("/admin/audit-logs")
 async def list_audit_logs(
     db: AsyncSession = Depends(get_async_db),
@@ -157,21 +157,21 @@ async def list_audit_logs(
     }
 
 
-# ---------------------------------------------------------------------------
-# POST /admin/model-registry/activate
-# ---------------------------------------------------------------------------
+
+
+
 @router.post("/admin/model-registry/activate")
 async def activate_model_version(
     payload: ActivateModelRequest,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_role("admin")),
 ):
-    # model_registry.set_active() is written against the SYNC Session API (db.query(...),
-    # db.commit()) - it was never converted to async in the version you pasted. Rather than
-    # silently pretend that's fine, this endpoint is honest about it: it re-implements the
-    # same two DB statements against AsyncSession here instead of calling set_active()
-    # directly, and leaves a pointer for consolidating the logic once model_registry.py
-    # itself is migrated to async (out of scope for this endpoint alone).
+
+
+
+
+
+
     target_result = await db.execute(
         select(ModelVersion).where(ModelVersion.id == payload.version_id)
     )
@@ -207,8 +207,8 @@ async def activate_model_version(
         "weights_path": target.weights_path,
         "active": target.active,
         "calibration_temperature": target.calibration_temperature,
-        # Repeating the caveat from CLINICAL_SAFETY.md §6 in the response itself, not just
-        # in docs, so a caller can't miss it:
+
+
         "warning": (
             "This updates the model registry record only. It does NOT hot-swap the model "
             "weights currently loaded in this running process's memory. A process restart "

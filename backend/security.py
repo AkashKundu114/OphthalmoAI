@@ -62,12 +62,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if self._is_production:
             response.headers["Strict-Transport-Security"] = _HSTS
 
-        # BUG FIX: starlette.datastructures.MutableHeaders does not implement .pop() -
-        # it only has __getitem__/__setitem__/__delitem__/.get()/.setdefault(). Calling
-        # .pop() here raised AttributeError on every single response this middleware
-        # wrapped (i.e. every response the app ever returns), which is the entire app -
-        # this was found by actually running the server and making a request, not by
-        # reading the code. Present verbatim in the original file.
+
+
+
+
+
+
         for h in _HEADERS_TO_REMOVE:
             if h in response.headers:
                 del response.headers[h]

@@ -16,6 +16,8 @@ from fastapi import (
     Depends, FastAPI, File, Form, HTTPException,
     Request, Response, UploadFile, status,
 )
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
@@ -98,13 +100,13 @@ _IS_PROD = _ENV not in {"development", "dev", "test", "testing"}
 MODELS_DIR    = os.getenv("MODELS_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models"))
 FORCE_CPU     = os.getenv("FORCE_CPU", "false").lower() in {"1", "true", "yes"}
 DEVICE        = torch.device("cuda" if not FORCE_CPU and torch.cuda.is_available() else "cpu")
-# Chatbot LLM: defaults to Gemini 2.0 Flash, Google's free-tier model (as of this
-# writing, Flash models are available on Google AI Studio's free tier with published
-# per-minute/per-day request limits — see ai.google.dev/pricing). Overridable via
-# GEMINI_MODEL if a different Gemini model is preferred; Ollama remains the local/offline
-# fallback below when GEMINI_API_KEY isn't set. This was already the default in this
-# codebase; noted explicitly here per an explicit request to confirm the chatbot uses the
-# Flash free tier.
+
+
+
+
+
+
+
 GEMINI_MODEL  = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
@@ -159,7 +161,7 @@ async def lifespan(app: FastAPI):
 
     logger.info("startup.begin", device=str(DEVICE), environment=_ENV)
 
-    if _IS_PROD and JWT_SECRET_KEY == "CHANGE_ME_BEFORE_PRODUCTION_DEPLOYMENT":
+    if _IS_PROD and JWT_SECRET_KEY == "CHANGE_ME_BEFORE_PRODUCTION_DEPLOYMENT":  
         raise RuntimeError(
             "JWT_SECRET_KEY is still the insecure default placeholder. "
             "Set a cryptographically random value before deploying to production. "
@@ -173,13 +175,13 @@ async def lifespan(app: FastAPI):
         raise
 
     try:
-        # create_tables() (Base.metadata.create_all) stays here deliberately - it's right
-        # for a fresh SQLite dev checkout with zero setup, and it's a no-op against tables
-        # that already exist. What it does NOT do is apply schema *changes* to an existing
-        # production database (new columns, renamed tables, etc.) - already flagged in
-        # SECURITY_AUDIT.md's Residual Risk section. alembic/ (added alongside this
-        # comment) is the real path for schema changes anywhere with data worth keeping:
-        # run `alembic upgrade head` as a deploy step, not just this call.
+
+
+
+
+
+
+
         create_tables()
         logger.info("startup.db_ready")
     except Exception as exc:
@@ -242,6 +244,23 @@ app = FastAPI(
     redoc_url=None if _IS_PROD else "/redoc",
 )
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning("validation.error", url=str(request.url), errors=exc.errors())
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": "Invalid request parameters", "errors": exc.errors()},
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    req_id = getattr(request.state, "request_id", None)
+    logger.error("unhandled.error", url=str(request.url), error=str(exc), request_id=req_id)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": safe_error_detail(exc, request_id=req_id)},
+    )
+
 app.add_middleware(SecurityHeadersMiddleware, is_production=_IS_PROD)
 app.add_middleware(RequestIDMiddleware)
 
@@ -289,8 +308,8 @@ _predict_limit = make_rate_limit_decorator(PREDICT_RATE_LIMIT)
 _chat_limit    = make_rate_limit_decorator(CHAT_RATE_LIMIT)
 _auth_limit    = make_rate_limit_decorator(AUTH_RATE_LIMIT)
 
-app.include_router(admin_router)  # POST /scans/{id}/override, GET /admin/audit-logs,
-                                  # POST /admin/model-registry/activate
+app.include_router(admin_router)  
+
 
 
 class ChatMessage(BaseModel):
@@ -660,7 +679,7 @@ async def predict(
                 scan_id = scan.id
                 response_body["scan_id"] = scan_id
 
-                # Persist rich JSON details in MongoDB document store
+
                 mongo_store.insert_document(scan_id, {
                     "probabilities": probs_dict,
                     "review_reasons": review_payload["review_reasons"],
@@ -712,7 +731,7 @@ async def register(
     if not pw_ok:
         raise HTTPException(422, detail=pw_err)
 
-    email = email_or_err  # normalised
+    email = email_or_err  
     existing = await db.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         raise HTTPException(409, detail="An account with this email already exists.")
@@ -926,7 +945,7 @@ async def list_clinician_cases(
 ):
     scans = (
         db.query(ScanResult)
-        .filter(ScanResult.requires_human_review == True)  # noqa: E712
+        .filter(ScanResult.requires_human_review == True)  
         .order_by(ScanResult.timestamp.desc())
         .limit(50)
         .all()
@@ -1013,9 +1032,9 @@ async def get_patient_history(
     }
 
 
-# =====================================================================
-# STARTUP INNOVATION SUITE (10 CORE PILLARS)
-# =====================================================================
+
+
+
 
 class MultimodalRiskRequest(BaseModel):
     hba1c: float
@@ -1038,13 +1057,13 @@ def predict_multimodal_risk(req: MultimodalRiskRequest):
     """
     bp_ratio = req.systolic_bp / 120.0
     hba1c_risk = max(1.0, req.hba1c / 5.7)
-    
+
     cardio_risk_score = 10.0 * bp_ratio * (1.5 if req.is_smoker else 1.0) * (req.age / 40.0)
     cardio_risk = "High" if cardio_risk_score > 15 else ("Moderate" if cardio_risk_score > 8 else "Low")
-    
+
     ophthalmic_risk_score = (req.confidence / 100.0) * hba1c_risk * (1.3 if req.age > 60 else 1.0)
     progression_risk = "High" if ophthalmic_risk_score > 1.4 else ("Moderate" if ophthalmic_risk_score > 0.8 else "Low")
-    
+
     return {
         "cardiovascular_risk_level": cardio_risk,
         "cardiovascular_risk_score": round(cardio_risk_score, 1),
@@ -1058,10 +1077,10 @@ def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
     """
     Calculate and project time-series diagnostics (Longitudinal Progression Tracking).
     """
-    # Note: filter by user_id and sort by ID or timestamp
+
     scans = db.query(ScanResult).filter(ScanResult.user_id == user_id).order_by(ScanResult.created_at.asc()).all()
     history = []
-    
+
     for i, s in enumerate(scans):
         if i == 0:
             velocity = 0.0
@@ -1069,7 +1088,7 @@ def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
             prev_s = scans[i - 1]
             diff_days = max(1, (s.created_at - prev_s.created_at).days) if s.created_at and prev_s.created_at else 30
             velocity = round((s.confidence - prev_s.confidence) / diff_days, 3)
-            
+
         history.append({
             "scan_id": s.id,
             "date": s.created_at.isoformat() if s.created_at else None,
@@ -1080,9 +1099,9 @@ def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
             "progression_velocity": velocity,
             "nerve_fiber_thickness_um": round(100.0 - (i * 4.2), 1)
         })
-        
+
     avg_vel = round(sum(h["progression_velocity"] for h in history) / max(1, len(history)), 3)
-    
+
     return {
         "user_id": user_id,
         "scans_count": len(scans),
@@ -1097,10 +1116,10 @@ def pacs_import_dicom(db: Session = Depends(get_db), current_user: Optional[User
     Simulates importing raw DICOM files from hospital PACS (Epic/Cerner Middleware).
     """
     from .pacs_middleware import parse_simulated_dicom
-    
+
     mock_bytes = b"MOCK-DICOM-IMAGE-PIXELS"
     dicom_meta = parse_simulated_dicom(mock_bytes)
-    
+
     scan = ScanResult(
         user_id=current_user.id if current_user else None,
         diagnosis="Normal",
@@ -1123,7 +1142,7 @@ def pacs_import_dicom(db: Session = Depends(get_db), current_user: Optional[User
     db.add(scan)
     db.commit()
     db.refresh(scan)
-    
+
     return {
         "status": "imported",
         "scan_id": scan.id,
@@ -1167,16 +1186,16 @@ def sign_off_scan(
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan result not found")
-        
+
     old_diagnosis = scan.diagnosis
     scan.sign_off_status = "signed_off"
     scan.signed_off_at = datetime.now(timezone.utc)
     scan.signed_off_by = current_user.id if current_user else "CLINICIAN-1"
-    
+
     if verified_diagnosis != old_diagnosis:
         scan.sign_off_status = "overridden"
         scan.diagnosis = verified_diagnosis
-        # Log override
+
         override = ClinicianOverride(
             scan_id=scan.id,
             clinician_id=current_user.id if current_user else None,
@@ -1186,13 +1205,13 @@ def sign_off_scan(
             notes=notes
         )
         db.add(override)
-        
+
     db.commit()
-    
-    # Sync EHR middleware
+
+
     from .pacs_middleware import sync_to_ehr_middleware
     sync_ok, sync_msg = sync_to_ehr_middleware(scan.id, {"diagnosis": scan.diagnosis, "confidence": scan.confidence})
-    
+
     return {
         "scan_id": scan.id,
         "status": scan.sign_off_status,
@@ -1208,9 +1227,9 @@ def get_scan_details(scan_id: str, db: Session = Depends(get_db)):
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan result not found")
-        
+
     doc = mongo_store.get_document(scan_id) or {}
-    
+
     return {
         "scan_id": scan.id,
         "diagnosis": scan.diagnosis,
@@ -1257,10 +1276,10 @@ async def compress_uploaded_image(file: UploadFile = File(...)):
     from .iqa import compress_retinal_image
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
-    
+
     comp_bytes, orig_sz, comp_sz = compress_retinal_image(image)
     ratio = round((1.0 - (comp_sz / orig_sz)) * 100.0, 1)
-    
+
     return {
         "original_size_bytes": orig_sz,
         "compressed_size_bytes": comp_sz,
@@ -1276,16 +1295,16 @@ def schedule_appointment(appt: AppointmentCreate, db: Session = Depends(get_db),
     if not current_user:
         current_user = db.query(User).first()
         if not current_user:
-            current_user = User(email="demo@ophthalmoai.org", hashed_password="demo_password", role="patient")
+            current_user = User(email="demo@ophthalmoai.org", hashed_password="demo_password", role="patient")  
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
-        
+
     try:
         dt = datetime.fromisoformat(appt.appointment_time.replace("Z", "+00:00"))
     except ValueError:
         dt = datetime.now(timezone.utc)
-        
+
     db_appt = PatientAppointment(
         user_id=current_user.id,
         clinic_name=appt.clinic_name,
@@ -1297,7 +1316,7 @@ def schedule_appointment(appt: AppointmentCreate, db: Session = Depends(get_db),
     db.add(db_appt)
     db.commit()
     db.refresh(db_appt)
-    
+
     return {
         "appointment_id": db_appt.id,
         "status": "scheduled",

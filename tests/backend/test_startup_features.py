@@ -40,7 +40,7 @@ class TestFHIRR4Exporter(unittest.TestCase):
         self.assertIn("H40.9", fhir_doc["conclusionCode"][0]["coding"][0]["code"])
         self.assertIn("Glaucoma", fhir_doc["conclusion"])
 
-        # Validate extensions
+
         ext_urls = [e["url"] for e in fhir_doc["extension"]]
         self.assertIn("https://ophthalmoai.org/fhir/StructureDefinition/ai-uncertainty", ext_urls)
         self.assertIn("https://ophthalmoai.org/fhir/StructureDefinition/requires-human-review", ext_urls)

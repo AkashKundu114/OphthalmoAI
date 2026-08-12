@@ -1,24 +1,98 @@
+# ========================
+# OS & System Files
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========================
+# IDE & Editors
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.settings/
+
+# ========================
+# Python & Backend
+# ========================
 __pycache__/
-*/__pycache__/
 *.py[cod]
 *$py.class
+*.so
+
+# Environments
+venv/
+env/
+.venv/
+.env/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
 
-venv/
-env/
-.venv/
+# Databases
+*.db
+*.sqlite3
 
+# ========================
+# Frontend (Node / Vite)
+# ========================
+node_modules/
+frontend/node_modules/
+dist/
+build/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Machine Learning & Data
+# ========================
+dataset/
+sample/
+models/
+!models/.gitkeep
+
+# Model weights
+*.pth
+*.pt
+*.onnx
+*.keras
+*.h5
+*.tflite
+*.safetensors
+
+# ========================
+# Environment & Secrets
+# ========================
 .env
 .env.*
 !.env.example
 !.env.sample
 
+# ========================
+# Logs & Temp Files
+# ========================
 *.log
-*.pid
 backend-live*.out.log
 backend-live*.err.log
 backend-production*.out.log
@@ -33,34 +107,6 @@ frontend-static*.out.log
 frontend-static*.err.log
 frontend-tunnel*.out.log
 frontend-tunnel*.err.log
-
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-frontend/.vite/
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-
-dataset/
-sample/
-models/
-!models/.gitkeep
-*.pth
-*.pt
-*.onnx
-*.keras
-*.h5
-*.tflite
-
-.DS_Store
-Thumbs.db
-desktop.ini
-.vscode/
-.idea/
-
 run_diagnostics.bat
 start_tunnel.bat
 run_frontend.bat

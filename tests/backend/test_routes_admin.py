@@ -28,8 +28,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("CORS_ORIGINS", "http://localhost:5173")
     monkeypatch.setenv("FORCE_CPU", "true")
 
-    # Reload backend.main fresh so it picks up the monkeypatched env vars - importing it
-    # at module level would bind DATABASE_URL etc. before the fixture runs.
+
+
     import importlib
     import backend.db as db_module
     import backend.db_async as db_async_module
@@ -163,7 +163,7 @@ class TestAdminAuditLogs:
     def test_admin_can_list(self, client):
         c, main_module, db_module = client
         ids = _seed_users_and_scan(db_module)
-        # Generate at least one audit event via a real login first.
+
         _login(c, ids["clinician_email"], "Sup3rSecure!Pass")
         admin_token = _login(c, ids["admin_email"], "Sup3rSecure!Pass3")
 

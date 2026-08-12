@@ -32,7 +32,7 @@ def _to_async_url(sync_url: str) -> str:
         return sync_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     if sync_url.startswith("postgresql+psycopg2://"):
         return sync_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
-    # Already async, or a driver we don't special-case — pass through unchanged.
+
     return sync_url
 
 

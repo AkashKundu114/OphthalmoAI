@@ -10,21 +10,21 @@ import {
 export default function EnterpriseInnovationSuite() {
   const apiUrl = import.meta.env.VITE_API_URL || '/api'
   
-  // Tab states for Sub-features
-  const [subTab, setSubTab] = useState('triage') // triage, multimodal, federated, assets, client
+  
+  const [subTab, setSubTab] = useState('triage') 
 
-  // PACS & EHR states
+  
   const [pacsLog, setPacsLog] = useState([])
   const [pacsLoading, setPacsLoading] = useState(false)
 
-  // HITL Queue states
+  
   const [queue, setQueue] = useState([])
   const [queueLoading, setQueueLoading] = useState(false)
   const [signOffLoading, setSignOffLoading] = useState({})
   const [reviewDiagnosis, setReviewDiagnosis] = useState({})
   const [reviewNotes, setReviewNotes] = useState({})
 
-  // Multi-Modal state
+  
   const [hba1c, setHba1c] = useState(6.2)
   const [systolic, setSystolic] = useState(130)
   const [diastolic, setDiastolic] = useState(85)
@@ -35,38 +35,38 @@ export default function EnterpriseInnovationSuite() {
   const [modalResult, setModalResult] = useState(null)
   const [modalLoading, setModalLoading] = useState(false)
 
-  // Federated states
+  
   const [fedLogs, setFedLogs] = useState([])
   const [fedRound, setFedRound] = useState(12)
   const [fedAccuracy, setFedAccuracy] = useState(0.915)
   const [fedLoading, setFedLoading] = useState(false)
 
-  // Compression states
+  
   const [compressFile, setCompressFile] = useState(null)
   const [compressResult, setCompressResult] = useState(null)
   const [compressLoading, setCompressLoading] = useState(false)
   const [compressPreview, setCompressPreview] = useState(null)
 
-  // Synthetic states
+  
   const [syntheticCondition, setSyntheticCondition] = useState('Cataract')
   const [syntheticSeverity, setSyntheticSeverity] = useState('moderate')
   const [syntheticResult, setSyntheticResult] = useState(null)
   const [syntheticLoading, setSyntheticLoading] = useState(false)
 
-  // Edge Autocapture states
-  const [captureStatus, setCaptureStatus] = useState('idle') // idle, centering, focusing, measuring, capturing, done
+  
+  const [captureStatus, setCaptureStatus] = useState('idle') 
   const [blurScore, setBlurScore] = useState(0)
   const [centeringScore, setCenteringScore] = useState(0)
   const [captureMessage, setCaptureMessage] = useState('Click "Start Autocapture Simulator" to initiate smart edge loop.')
 
-  // Patient CRM states
+  
   const [clinicName, setClinicName] = useState('St. John Ophthalmic Clinic')
   const [appointmentTime, setAppointmentTime] = useState('')
   const [apptPurpose, setApptPurpose] = useState('Routine Cataract Check')
   const [apptHistory, setApptHistory] = useState([])
   const [apptLoading, setApptLoading] = useState(false)
 
-  // 1. Fetch HITL queue & Appointments
+  
   const fetchTriageQueue = async () => {
     setQueueLoading(true)
     try {
@@ -93,7 +93,7 @@ export default function EnterpriseInnovationSuite() {
     fetchAppointments()
   }, [])
 
-  // PACS Import
+  
   const handlePacsImport = async () => {
     setPacsLoading(true)
     try {
@@ -113,7 +113,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Clinical Sign-Off
+  
   const handleSignOff = async (scanId) => {
     setSignOffLoading(prev => ({ ...prev, [scanId]: true }))
     try {
@@ -140,7 +140,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Multi-Modal Assessment
+  
   const handleMultiModal = async () => {
     setModalLoading(true)
     try {
@@ -161,7 +161,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Federated Learning Aggregation
+  
   const handleFederatedSync = async () => {
     setFedLoading(true)
     try {
@@ -176,7 +176,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Low-Bandwidth Compression
+  
   const handleCompressFile = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -198,7 +198,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Synthetic Generator
+  
   const handleGenerateSynthetic = async () => {
     setSyntheticLoading(true)
     try {
@@ -213,7 +213,7 @@ export default function EnterpriseInnovationSuite() {
     }
   }
 
-  // Autocapture simulation loop
+  
   const triggerAutocaptureSimulator = () => {
     setCaptureStatus('centering')
     setBlurScore(45)
@@ -226,7 +226,7 @@ export default function EnterpriseInnovationSuite() {
       setCaptureMessage('Eye centered. Autofocus loop active...')
       
       setTimeout(() => {
-        setBlurScore(145) // Above Laplacian variance threshold 80
+        setBlurScore(145) 
         setCaptureStatus('measuring')
         setCaptureMessage('Perfect exposure. Capturing retina structure...')
         
@@ -243,7 +243,7 @@ export default function EnterpriseInnovationSuite() {
     }, 1500)
   }
 
-  // Appointment scheduling
+  
   const handleScheduleAppt = async () => {
     setApptLoading(true)
     try {
@@ -295,10 +295,10 @@ export default function EnterpriseInnovationSuite() {
         ))}
       </div>
 
-      {/* TAB 1: EHR & PACS Triage Queue */}
+      {}
       {subTab === 'triage' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* HITL Triage queue */}
+          {}
           <div className="lg:col-span-2 space-y-6">
             <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
               <div className="flex justify-between items-center">
@@ -493,7 +493,7 @@ export default function EnterpriseInnovationSuite() {
             </button>
           </div>
 
-          {/* Results card */}
+          {}
           <div className="glass-card p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
@@ -507,7 +507,7 @@ export default function EnterpriseInnovationSuite() {
                 </div>
               ) : (
                 <div className="space-y-6 mt-4">
-                  {/* Cardiovascular danger */}
+                  {}
                   <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-semibold text-slate-400">Cardiovascular Threat Level</span>
@@ -525,7 +525,7 @@ export default function EnterpriseInnovationSuite() {
                     </div>
                   </div>
 
-                  {/* Ophthalmic decay forecast */}
+                  {}
                   <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-semibold text-slate-400">Ocular Progression Risk</span>
@@ -543,7 +543,7 @@ export default function EnterpriseInnovationSuite() {
                     </div>
                   </div>
 
-                  {/* Doctor notes */}
+                  {}
                   <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-850 flex gap-3">
                     <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                     <div>
@@ -562,10 +562,10 @@ export default function EnterpriseInnovationSuite() {
         </div>
       )}
 
-      {/* TAB 3: Federated Node Aggregator */}
+      {}
       {subTab === 'federated' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Node updates list */}
+          {}
           <div className="lg:col-span-2 space-y-6">
             <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
               <div className="flex justify-between items-center">
@@ -616,7 +616,7 @@ export default function EnterpriseInnovationSuite() {
             </div>
           </div>
 
-          {/* Global network status */}
+          {}
           <div className="space-y-6">
             <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-6">
               <h3 className="text-base font-bold text-slate-200">Global Aggregated Model</h3>
@@ -644,10 +644,10 @@ export default function EnterpriseInnovationSuite() {
         </div>
       )}
 
-      {/* TAB 4: Synthetic & Compression Lab */}
+      {}
       {subTab === 'assets' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Low-Bandwidth Compression */}
+          {}
           <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
             <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
               <TrendingUp className="text-emerald-400 w-5 h-5" /> Low-Bandwidth Compression Protocol
@@ -702,7 +702,7 @@ export default function EnterpriseInnovationSuite() {
             )}
           </div>
 
-          {/* AI Synthetic Case generator */}
+          {}
           <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
             <h3 className="text-base font-bold text-slate-200">AI-Powered Synthetic Case Generator</h3>
             <p className="text-xs text-slate-400">Synthesize realistic fundus images to train clinicians/students.</p>
@@ -766,10 +766,10 @@ export default function EnterpriseInnovationSuite() {
         </div>
       )}
 
-      {/* TAB 5: Autocapture & CRM Hub */}
+      {}
       {subTab === 'client' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Autocapture loop simulator */}
+          {}
           <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
             <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
               <Smartphone className="text-emerald-400 w-5 h-5" /> Autocapture Edge IQA Simulator
@@ -777,7 +777,7 @@ export default function EnterpriseInnovationSuite() {
             <p className="text-xs text-slate-400">Simulates real-time focus & alignment validations on edge devices.</p>
 
             <div className="relative border border-slate-800 bg-slate-950 rounded-xl h-48 flex flex-col justify-center items-center overflow-hidden">
-              {/* Simulated camera grid */}
+              {}
               <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20 pointer-events-none">
                 {[...Array(9)].map((_, i) => (
                   <div key={i} className="border border-slate-700" />
@@ -827,7 +827,7 @@ export default function EnterpriseInnovationSuite() {
             </button>
           </div>
 
-          {/* CRM Scheduler & Reminders */}
+          {}
           <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">

@@ -13,7 +13,7 @@ from backend.uncertainty import mc_dropout_predict, needs_human_review, build_re
 class TestModelUncertainty(unittest.TestCase):
 
     def test_mc_dropout_predict_swaps_training_mode(self):
-        # Create a mock module that outputs constant logits
+
         class DummyModel(nn.Module):
             def __init__(self):
                 super().__init__()
@@ -22,35 +22,35 @@ class TestModelUncertainty(unittest.TestCase):
                 return torch.tensor([[1.0, 2.0, 3.0]])
 
         model = DummyModel()
-        model.eval()  # Set to eval mode
+        model.eval()  
 
         input_tensor = torch.zeros(1, 5)
         mean_probs, uncertainty = mc_dropout_predict(model, input_tensor, n_passes=4)
 
-        # Check model returns to evaluation mode
+
         self.assertFalse(model.training)
         self.assertEqual(mean_probs.shape, (3,))
         self.assertIsInstance(uncertainty, float)
 
     def test_needs_human_review_low_confidence(self):
-        # Normal diagnosis with low confidence should require review
+
         flagged, reasons = needs_human_review("Normal", 0.60, 0.05)
         self.assertTrue(flagged)
         self.assertTrue(any("Confidence" in r for r in reasons))
 
     def test_needs_human_review_high_uncertainty(self):
-        # Normal diagnosis with high uncertainty should require review
+
         flagged, reasons = needs_human_review("Normal", 0.85, 0.20)
         self.assertTrue(flagged)
         self.assertTrue(any("uncertainty" in r.lower() for r in reasons))
 
     def test_needs_human_review_critical_diagnosis(self):
-        # Uveitis (critical) with 80% confidence should require review (threshold is 90% for critical)
+
         flagged, reasons = needs_human_review("Uveitis", 0.80, 0.05)
         self.assertTrue(flagged)
         self.assertTrue(any("sight-threatening" in r for r in reasons))
 
-        # Jaundice (critical) with 95% confidence should NOT require review
+
         flagged, reasons = needs_human_review("Jaundice", 0.95, 0.05)
         self.assertFalse(flagged)
         self.assertEqual(len(reasons), 0)
@@ -60,7 +60,7 @@ class TestModelUncertainty(unittest.TestCase):
         self.assertIn("requires_human_review", payload)
         self.assertIn("review_reasons", payload)
         self.assertIn("uncertainty", payload)
-        self.assertEqual(payload["uncertainty"], 0.1235)  # Should be rounded to 4 decimals
+        self.assertEqual(payload["uncertainty"], 0.1235)  
         self.assertFalse(payload["requires_human_review"])
 
 if __name__ == "__main__":

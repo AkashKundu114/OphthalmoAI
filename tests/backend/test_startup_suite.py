@@ -55,7 +55,7 @@ class TestStartupInnovationSuite(unittest.TestCase):
         img_byte_arr = io.BytesIO()
         img.save(img_byte_arr, format='JPEG')
         img_byte_arr.seek(0)
-        
+
         files = {'file': ('test.jpg', img_byte_arr, 'image/jpeg')}
         res = self.client.post("/scans/compress", files=files)
         self.assertEqual(res.status_code, 200)
@@ -74,26 +74,26 @@ class TestStartupInnovationSuite(unittest.TestCase):
     def test_triage_queue_and_sign_off(self):
         res_import = self.client.post("/admin/pacs-import")
         scan_id = res_import.json()["scan_id"]
-        
+
         from backend.db import SessionLocal, ScanResult
         session = SessionLocal()
         scan = session.query(ScanResult).filter(ScanResult.id == scan_id).first()
         scan.sign_off_status = "pending"
         session.commit()
         session.close()
-        
+
         res_queue = self.client.get("/admin/triage-queue")
         self.assertEqual(res_queue.status_code, 200)
         queue_data = res_queue.json()
         self.assertGreaterEqual(queue_data["queue_length"], 1)
-        
+
         res_signoff = self.client.post(f"/scans/{scan_id}/sign-off", data={"verified_diagnosis": "Uveitis", "notes": "Confirmed uveitis"})
         self.assertEqual(res_signoff.status_code, 200)
         signoff_data = res_signoff.json()
         self.assertEqual(signoff_data["status"], "overridden")
         self.assertTrue(signoff_data["sync_successful"])
 
-        # Test scan details retrieval (hybrid SQL + NoSQL)
+
         res_details = self.client.get(f"/scans/{scan_id}/details")
         self.assertEqual(res_details.status_code, 200)
         details_data = res_details.json()

@@ -1,20 +1,71 @@
-.git
-.idea
-.vscode
-.codex-run-logs
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-*.log
-venv
-env
-frontend/node_modules
-frontend/dist
-frontend/build
-dataset
-sample
+# ========================
+# Git & Meta
+# ========================
+.git/
+.github/
+.gitignore
+.dockerignore
+README.md
+CHANGELOG.md
+docs/
+
+# ========================
+# IDEs & Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+
+# ========================
+# Python & Backend
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+tests/
+
+# Local environments
+venv/
+env/
+.venv/
+
+# ========================
+# Frontend
+# ========================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# ========================
+# Data & Models
+# ========================
+dataset/
+sample/
+models/
+*.pth
+*.pt
+*.onnx
+*.keras
+*.h5
+*.tflite
+*.safetensors
+*.db
+*.sqlite3
+
+# ========================
+# Env & Logs
+# ========================
 .env
 .env.*
+*.log
 run_*.bat
 start_tunnel.bat
+.codex-run-logs/

@@ -58,7 +58,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-/* Custom Glassmorphism Classes */
+
 .glass-panel {
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(16px);
@@ -103,7 +103,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
 }
 
-/* Gradient Text Effect */
+
 .gradient-text {
   background: linear-gradient(135deg, #38BDF8 0%, #00ADB5 50%, #818CF8 100%);
   -webkit-background-clip: text;
@@ -116,7 +116,7 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-text-fill-color: transparent;
 }
 
-/* Custom Animations */
+
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 15px rgba(0, 173, 181, 0.3); }
   50% { box-shadow: 0 0 30px rgba(0, 173, 181, 0.6); }
@@ -135,12 +135,12 @@ h1, h2, h3, h4, h5, h6 {
   animation: floatSlow 6s infinite ease-in-out;
 }
 
-/* Probability Bar Fill */
+
 .prob-bar-fill {
   transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Custom Scrollbar */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

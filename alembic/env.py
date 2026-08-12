@@ -7,34 +7,34 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Make backend/ importable when alembic is invoked from the repo root.
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.db import Base, DATABASE_URL  # noqa: E402
+from backend.db import Base, DATABASE_URL  
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+
+
 config = context.config
 
-# Override the DATABASE_URL from alembic.ini (which normally holds a placeholder) with
-# whatever backend/db.py itself resolves to - same env var, same default
-# (sqlite:///./ophthalmoai.db) - so `alembic upgrade head` always targets the same
-# database the running app connects to, without maintaining the URL in two places.
+
+
+
+
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+
+
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
+
+
+
 
 
 def run_migrations_offline() -> None:

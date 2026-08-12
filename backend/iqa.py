@@ -41,8 +41,8 @@ def assess_image_quality(image_pil: Image.Image) -> Tuple[bool, List[str]]:
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20, param1=50, param2=30, minRadius=20, maxRadius=200)
         if circles is None:
             issues.append("No clear iris/pupil region was detected.")
-    except Exception:
-        pass
+    except Exception as e:
+        issues.append(f"Could not perform circle detection: {e}")
 
     return (len(issues) == 0, issues)
 

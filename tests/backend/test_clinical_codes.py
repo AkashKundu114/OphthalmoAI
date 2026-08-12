@@ -43,14 +43,14 @@ class TestClinicalCodeMappings(unittest.TestCase):
         self.assertFalse(is_critical("Normal"))
 
     def test_unrecognized_diagnosis_fallback(self):
-        code = get_clinical_code("Glaucoma")  # Not in registry yet
+        code = get_clinical_code("Glaucoma")  
         self.assertEqual(code["icd10"], "Z01.00")
         self.assertEqual(code["urgency_rank"], 2)
         self.assertIn("not recognised by clinical code table", code["referral"])
 
     def test_sort_by_urgency(self):
         diagnoses = ["Normal", "Uveitis", "Cataract", "Jaundice"]
-        # urgency ranks: Jaundice (4), Uveitis (3), Cataract (1), Normal (0)
+
         sorted_list = sort_by_urgency(diagnoses)
         self.assertEqual(sorted_list, ["Jaundice", "Uveitis", "Cataract", "Normal"])
 

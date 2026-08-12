@@ -116,7 +116,7 @@ const SeverityBadge = ({ severity }) => {
 
 const HomePage = ({ onNavigate }) => (
   <div className="space-y-12">
-    {/* Hero Section */}
+    {}
     <section className="relative overflow-hidden py-16 lg:py-24">
       <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
         <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
@@ -196,7 +196,7 @@ const HomePage = ({ onNavigate }) => (
       </div>
     </section>
 
-    {/* Feature Grid */}
+    {}
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
@@ -393,7 +393,7 @@ export default function App() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
 
-  // Symptoms state
+  
   const [painLevel, setPainLevel] = useState('None')
   const [visionLoss, setVisionLoss] = useState('No')
   const [itchiness, setItchiness] = useState('No')
@@ -465,7 +465,7 @@ export default function App() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      // Fallback local FHIR generator if scan not yet saved to DB
+      
       const fhirFallback = {
         resourceType: "DiagnosticReport",
         id: `ophthalmoai-${scanId}`,
@@ -559,7 +559,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#090D16] text-slate-100 font-sans">
-      {/* Global Header */}
+      {}
       <header className="sticky top-0 z-40 glass-panel border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -577,7 +577,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
+            {}
             <nav className="flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
               <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
               <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Diagnostic Tool" />
@@ -596,7 +596,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'home' && <HomePage onNavigate={setActiveTab} />}
 
@@ -618,9 +618,9 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* Left Column: Image Upload & Symptoms */}
+              {}
               <div className="lg:col-span-5 space-y-6">
-                {/* Uploader Card */}
+                {}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
                     <Upload className="w-4 h-4" /> 1. Upload Eye Image
@@ -662,7 +662,7 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Symptom Checklist Card */}
+                {}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
                     <Stethoscope className="w-4 h-4" /> 2. Clinical Symptom Checklist
@@ -699,7 +699,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Right Column: Prediction Results Dashboard */}
+              {}
               <div className="lg:col-span-7 space-y-6">
                 {error && (
                   <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
@@ -713,7 +713,7 @@ export default function App() {
 
                 {result ? (
                     <div className="space-y-6 animate-fade-up">
-                      {/* 1. Primary Diagnosis Header */}
+                      {}
                       <div className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500"></div>
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-800">
@@ -735,7 +735,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* 2. Clinical Impression & Pathophysiology */}
+                        {}
                         {result.condition_details?.pathophysiology && (
                           <div className="pt-6">
                             <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
@@ -748,7 +748,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* 3. Visual Examination Findings & Grad-CAM Heatmap */}
+                      {}
                       <div className="glass-panel p-6 rounded-2xl border border-slate-800">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
                           <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
@@ -793,7 +793,7 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* 4. Recommended Diagnostic Workups */}
+                        {}
                         {result.condition_details?.diagnostic_workup && (
                           <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                             <h4 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
@@ -810,7 +810,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* 5. Treatment Protocols */}
+                        {}
                         {result.condition_details?.treatment && (
                           <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                             <h4 className="text-sm font-bold text-teal-400 flex items-center gap-2">
@@ -828,7 +828,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* 6. Precautions & Doctor Notes */}
+                      {}
                       <div className="glass-panel p-6 rounded-2xl border border-amber-900/30 bg-gradient-to-br from-slate-900 to-slate-950 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {result.condition_details?.precautions && (
@@ -862,7 +862,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Symptom Alerts */}
+                      {}
                       {result.hybrid_warnings_structured && result.hybrid_warnings_structured.length > 0 && (
                         <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
                           <p className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
@@ -888,7 +888,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* 7. Consultation Checklist & Export */}
+                      {}
                       <div className="flex flex-col lg:flex-row gap-4">
                         {result.condition_details?.questions_for_doctor && (
                           <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
@@ -1021,7 +1021,7 @@ export default function App() {
         {activeTab === 'startup' && <EnterpriseInnovationSuite />}
       </main>
 
-      {/* Interactive Image Cropper Modal */}
+      {}
       {cropping && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="glass-panel w-full max-w-lg p-6 rounded-3xl border border-slate-800 space-y-4">
@@ -1045,10 +1045,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Gemini AI Doctor Chatbot */}
+      {}
       <ChatBot diagnosisContext={result ? { diagnosis: result.diagnosis, confidence: result.confidence, group_name: result.group_name, details: result.details } : null} />
 
-      {/* Footer */}
+      {}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-6">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
           OphthalmoAI Retinal Disease Predictor · Clinical AI Screening Platform · Enterprise Security & Gemini Free Tier
