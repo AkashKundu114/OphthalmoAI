@@ -16,10 +16,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './tests/setup.js'
+    },
     server: {
-      
       ...(allowedHosts.length > 0 ? { allowedHosts } : {}),
-
       proxy: {
         

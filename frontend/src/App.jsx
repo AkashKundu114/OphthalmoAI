@@ -18,8 +18,6 @@ import {
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import ChatBot from './ChatBox'
-import EnterpriseInnovationSuite from './EnterpriseInnovationSuite'
-
 const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
@@ -583,8 +581,6 @@ export default function App() {
               <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Diagnostic Tool" />
               <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions" />
               <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<GitBranch className="w-4 h-4" />} label="Workflow" />
-              <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Medical News" />
-              <TabButton active={activeTab === 'startup'} onClick={() => setActiveTab('startup')} icon={<Sparkles className="w-4 h-4 text-emerald-400" />} label="Enterprise Innovation" />
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
@@ -1016,9 +1012,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-        {activeTab === 'news' && <MedicalNewsPage />}
-        {activeTab === 'startup' && <EnterpriseInnovationSuite />}
       </main>
 
       {}

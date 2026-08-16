@@ -12,7 +12,7 @@ torch.backends.cudnn.benchmark = True # Enable cuDNN auto-tuner
 MANIFEST_PATH = './dataset/manifest.csv'
 DATASET_ROOT = './dataset'
 NUM_CLASSES = 12
-BATCH_SIZE = 16 
+BATCH_SIZE = 4 # Reduced from 16 to 4 to prevent 8GB VRAM OOM when running 3 models
 EPOCHS = int(os.environ.get('EPOCHS', 1))
 
 def get_convnext():
@@ -97,7 +97,11 @@ def train_base_model(model_name, model_fn, device, train_loader):
             
             if (i + 1) % 10 == 0:
                 print(f"[{model_name}] Epoch [{epoch}/{EPOCHS}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}, Acc: {100. * correct / total:.2f}%")
-                
+    
+    del optimizer
+    del scaler
+    torch.cuda.empty_cache()
+    
     return model
 
 def train():

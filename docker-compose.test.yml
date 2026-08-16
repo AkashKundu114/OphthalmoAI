@@ -1,0 +1,15 @@
+services:
+  backend-test:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.test
+    environment:
+      - "DATABASE_URL=sqlite:///:memory:"
+      - "JWT_SECRET_KEY=testsecret"
+    command: pytest tests/
+
+  frontend-test:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.test
+    command: npm run test
