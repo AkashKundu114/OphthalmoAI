@@ -1,0 +1,15 @@
+# Use the official NVIDIA PyTorch container which has full CUDA support
+FROM nvcr.io/nvidia/pytorch:26.07-py3
+
+WORKDIR /workspace/app
+
+# Install additional dependencies
+RUN pip install pynvml pandas scikit-learn pillow
+
+# Copy the dataset and scripts
+# We assume the dataset directory is mounted as a volume at runtime to save build time and space
+# But we will copy the code scripts
+COPY scripts/ ./scripts/
+
+# Set the entrypoint to the EfficientNet-B4 training script
+CMD ["python", "scripts/train_efficientnet_b4.py"]
