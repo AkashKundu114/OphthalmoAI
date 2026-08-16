@@ -158,6 +158,8 @@ Use this list to verify a complete local setup from scratch.
 | Docker Compose (healthchecks, depends_on) | Dev | ✅ Done |
 | Kubernetes manifests (namespace, configmap, deployments, services, ingress) | Dev | ✅ Done |
 | Kubernetes liveness + readiness probes | Dev | ✅ Done |
+| Official NVIDIA NGC PyTorch Container (`Dockerfile.gpu`) | Dev | ✅ Done (this session) |
+| Hardware Telemetry & Benchmarking JSON extraction | Dev | ✅ Done (this session) |
 
 ### Phase 7 — Documentation (Day 11–12)
 

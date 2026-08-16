@@ -61,3 +61,6 @@
 - **New gap — async DB path needed new dependencies** (`aiosqlite`, `asyncpg`) not previously in `requirements.txt`. Added.
 - **New capability — three previously-documented-but-missing endpoints implemented** (`POST /scans/{id}/override`, `GET /admin/audit-logs`, `POST /admin/model-registry/activate`), each with tests in `tests/backend/test_routes_admin.py`.
 - **New capability — Alembic migrations scaffolded and verified** (upgrade/downgrade round-trip against the real schema).
+- **New bug (Docker) — NVIDIA PyTorch NGC 26.07 shipped with broken `pandas` dependencies** (`python-dateutil` and `wcwidth`). Fixed by chaining an aggressive `pip install --upgrade --force-reinstall` block directly inside `Dockerfile.gpu`.
+- **New bug (Cross-OS Pathing) — The dataset builder broke inside the Linux Docker container** because the `manifest.csv` was generated on Windows and contained absolute `\\` backslash paths. Fixed by introducing `.replace('\\', '/')` sanitization in `prepare_dataset.py`.
+- **New capability (Telemetry) — `metric_logger.py` completely re-engineered to dump persistent JSON artifacts** to a volume-mounted `dataset/logs/` directory, saving metrics from ephemeral container destruction.
