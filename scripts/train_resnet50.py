@@ -23,7 +23,7 @@ def get_model():
 
 def train():
     print("Initializing ResNet50 Training...")
-    telemetry = HardwareTelemetry()
+    telemetry = HardwareTelemetry(use_gpu=True, model_name="ResNet50")
     
     train_loader, val_loader, test_loader, classes = prepare_dataloaders(
         MANIFEST_PATH, DATASET_ROOT, batch_size=BATCH_SIZE

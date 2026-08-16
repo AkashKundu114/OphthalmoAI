@@ -24,7 +24,8 @@ class RetinalDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_name = os.path.join(self.root_dir, self.data_frame.iloc[idx, 0])
+        img_path = self.data_frame.iloc[idx, 0].replace('\\', '/')
+        img_name = os.path.join(self.root_dir, img_path)
         image = Image.open(img_name).convert('RGB')
         label = self.class_to_idx[self.data_frame.iloc[idx, 1]]
 

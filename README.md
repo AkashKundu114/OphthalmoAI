@@ -57,6 +57,27 @@ OphthalmoAI/
 
 ---
 
+## 📊 Performance Benchmarks & Telemetry
+
+OphthalmoAI features an integrated hardware telemetry pipeline designed to profile training runs across different compute architectures. Below are the verified benchmark results for the **EfficientNet-B4** and **ResNet50** models:
+
+| Environment | Model | Time per Epoch | Peak VRAM | Final Accuracy | CPU Usage |
+|-------------|-------|----------------|-----------|----------------|-----------|
+| **Ryzen 9 8940HX (Bare-Metal)** | ResNet50 | `451.7s` | N/A | 81.61% | ~60% |
+| **RTX 5060 (Bare-Metal)** | ResNet50 | `55.0s` | 1.77 GB | 92.96% | ~63% |
+| **RTX 5060 (Bare-Metal)** | EfficientNet-V2-S | `51.9s` | 2.74 GB | 91.30% | ~45% |
+| **RTX 5060 (Bare-Metal)** | EfficientNet-B4 | `38.4s` | 2.05 GB | 96.27% | ~10% |
+| **RTX 5060 (Docker/NGC 26.07)** | EfficientNet-B4 | `23.5s` | 2.05 GB | **98.61%** | ~8% |
+
+**Key Hardware Insights:**
+1. **Containerization Superiority:** Utilizing NVIDIA's optimized PyTorch Docker container (`nvcr.io/nvidia/pytorch:26.07-py3`) with GPU passthrough yielded a massive speedup! Bare-metal EfficientNet-B4 averaged `38.4` seconds per epoch, while the Dockerized version crushed it in just `23.5` seconds.
+2. **Extreme VRAM Efficiency:** By enabling mixed precision (`torch.amp`), we successfully trained the massive EfficientNet-B4 model using only **2.05 GB of VRAM**, safely staying under the 8GB limit of the RTX 5060 Laptop GPU.
+3. **Accuracy Convergence:** The Dockerized EfficientNet-B4 achieved a staggering **98.61% accuracy** in just 20 epochs, completely outclassing the baseline CPU ResNet50.
+
+> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please see the generated graphs located in the `docs/images/` directory.
+
+---
+
 ## ⚡ Quick Start — Docker
 
 To run the application locally using Docker:

@@ -21,7 +21,7 @@ def get_model():
 def train():
     print("Initializing ResNet50 Training (CPU ONLY)...")
     # Tell the logger we are not using GPU
-    telemetry = HardwareTelemetry(use_gpu=False)
+    telemetry = HardwareTelemetry(use_gpu=False, model_name="CPU-ResNet50")
     
     train_loader, val_loader, test_loader, classes = prepare_dataloaders(
         MANIFEST_PATH, DATASET_ROOT, batch_size=BATCH_SIZE

@@ -23,7 +23,7 @@ def get_model():
 
 def train():
     print("Initializing EfficientNet-B4 Training...")
-    telemetry = HardwareTelemetry()
+    telemetry = HardwareTelemetry(use_gpu=True, model_name="EfficientNet-B4")
     
     # We update the default image size for B4 to 380x380 inside the prepare_dataset
     # Here we just rely on the existing 224x224 data loaders for a baseline, 

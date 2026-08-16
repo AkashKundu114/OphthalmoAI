@@ -4,7 +4,7 @@ FROM nvcr.io/nvidia/pytorch:26.07-py3
 WORKDIR /workspace/app
 
 # Install additional dependencies
-RUN pip install pynvml pandas scikit-learn pillow
+RUN pip install --upgrade --force-reinstall python-dateutil wcwidth tabulate pandas scikit-learn nvidia-ml-py "pillow<12.0"
 
 # Copy the dataset and scripts
 # We assume the dataset directory is mounted as a volume at runtime to save build time and space
