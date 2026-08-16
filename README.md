@@ -1,37 +1,102 @@
-# OphthalmoAI — Eye Disease Screening
+<div align="center">
+  
+# 👁️ OphthalmoAI 
+### **Point-of-Care Eye Disease Screening Platform**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
-OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances diagnostic screening capabilities across 7 visible eye conditions** through the deployment of a **MobileNetV3 routing layer and specialized EfficientNet-B4 models**, providing **interpretable Grad-CAM heatmaps and AI-driven clinical cross-checks**.
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
-> ⚕ **Medical Disclaimer:** OphthalmoAI is a research and educational screening tool. It is **not a substitute** for professional medical diagnosis, advice, or treatment. Always consult a qualified ophthalmologist.
+OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances diagnostic screening capabilities across 12 visible eye conditions**. It employs a novel **Monolithic EfficientNet-B4 Architecture** to deliver high-accuracy inference, backed by **interpretable Grad-CAM heatmaps** and an **AI-driven clinical conversational assistant**.
+
+</div>
 
 ---
 
-## 🚀 Key Impact & Accomplishments (XYZ Format)
+> ⚕️ **MEDICAL DISCLAIMER:** OphthalmoAI is provided strictly for **research, educational, and informational purposes**. It is **not** an FDA-cleared or CE-marked medical device. It does **not** constitute professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider or ophthalmologist. See the `LICENSE` file for full liability details.
 
-- **Accelerated initial screening triage** by providing **near-instant preliminary assessments** through the implementation of an **automated multi-model inference pipeline (MobileNetV3 router + EfficientNet-B4 experts)**.
-- **Improved clinical trust and explainability** by **generating visual evidence of AI decisions** using **Grad-CAM heatmaps and rigorous uncertainty calibration**.
-- **Streamlined patient understanding** as measured by **accessible follow-up interactions** by integrating a **Gemini 2.0 Flash-powered medical chat assistant with strict safety guardrails**.
-- **Ensured enterprise-grade security and reliability** by **establishing an robust audit trail and scalable state management** using **FastAPI, AsyncSQLAlchemy, and role-based JWT authentication**.
+---
+
+## 🌟 Key Innovations
+
+1. **Monolithic Vision Pipeline:** Bypasses legacy complex multi-model bottlenecks. A blazing-fast **EfficientNet-B4** monolithic model classifies all 12 conditions with extreme precision, leveraging a unified feature space.
+2. **Clinical Trust & Explainability:** Generates deterministic **Grad-CAM visual heatmaps**, overlaying critical pathological evidence directly onto the patient's eye scan so clinicians can instantly verify *why* the AI made its decision.
+3. **Structural LLM Guardrails:** Integrates **Gemini 2.0 Flash** strictly as an explanatory UI layer. The LLM is structurally isolated from making diagnostic decisions, effectively neutralizing medical hallucination risks.
+4. **Hardware Optimized Telemetry:** Fully containerized using the official **NVIDIA PyTorch NGC 26.07** image. Trains an EfficientNet-B4 model natively on an RTX 5060 in just **23.5s per epoch** utilizing only **2.05 GB VRAM** via `torch.amp` mixed precision.
 
 ---
 
 ## 🩺 Detectable Conditions
 
-| Condition | Anatomical Group | Urgency |
-|-----------|-----------------|---------|
+| Condition | Anatomical Group | Clinical Urgency |
+|-----------|-----------------|------------------|
 | **Cataract** | Anterior Segment | Elective |
-| **Uveitis** | Anterior Segment | 🔴 Urgent |
+| **Uveitis** | Anterior Segment | 🔴 **Urgent** |
 | **Conjunctivitis** | Ocular Surface | Non-urgent |
-| **Jaundice** *(Scleral Icterus)* | Ocular Surface | 🔴 Emergency |
+| **Jaundice** *(Scleral Icterus)* | Ocular Surface | 🔴 **Emergency** |
 | **Pterygium** | Ocular Surface | Elective |
-| **Eyelid Conditions** | Adnexal/Oculoplastic | Non-urgent |
+| **Ptosis** | Adnexal/Oculoplastic | Non-urgent |
+| **Blepharitis** | Adnexal/Oculoplastic | Non-urgent |
+| **Chalazion** | Adnexal/Oculoplastic | Non-urgent |
+| **Stye** | Adnexal/Oculoplastic | Non-urgent |
+| **Keratitis** | Anterior Segment | 🔴 **Emergency** |
+| **Subconjunctival Hemorrhage**| Ocular Surface | Non-urgent |
 | **Normal** | All Groups | None |
+
+---
+
+## ⚡ Quick Start (Docker / GPU)
+
+The easiest and most performant way to run OphthalmoAI is via our pre-configured Docker pipeline.
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/AkashKundu114/Eye-Disease-AI-Diagnosis.git
+cd Eye-Disease-AI-Diagnosis
+
+# 2. Configure Environment (Set GEMINI_API_KEY)
+cp env.example .env           
+
+# 3. Spin up the cluster
+docker compose up --build -d
+
+# 4. Initialize Database Schema
+docker compose exec backend alembic upgrade head
+```
+
+Navigate to **[http://localhost:8080](http://localhost:8080)** to access the platform.
+
+---
+
+## 💻 Bare-Metal Setup (Development)
+
+If you wish to build the FastAPI backend and React frontend locally:
+
+### 1. Backend API
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install PyTorch (CUDA 12.4 example)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+pip install -r backend/requirements.txt
+
+# Run migrations and start the server
+alembic upgrade head
+python backend/main.py    
+```
+> The API will be served at `http://localhost:8000`, with interactive Swagger Docs at `/docs`.
+
+### 2. Frontend SPA
+```bash
+cd frontend
+npm install
+npm run dev               
+```
+> The React app will be served at `http://localhost:5173`.
 
 ---
 
@@ -40,19 +105,16 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 ```
 OphthalmoAI/
 ├── backend/
-│   ├── main.py, auth.py, db.py, db_async.py, routes_admin.py
-│   ├── security.py, validators.py, medical_data.py, clinical_codes.py
-│   ├── calibration.py, uncertainty.py, iqa.py, model_registry.py
-│   ├── audit.py, storage.py, logging_config.py, requirements.txt, Dockerfile
+│   ├── main.py, auth.py, db_async.py, routes_admin.py
+│   ├── security.py, clinical_codes.py, calibration.py
+│   ├── audit.py, logging_config.py, requirements.txt
 ├── frontend/
-│   ├── src/App.jsx, ChatBox.jsx, cropImage.js, index.css
-│   ├── nginx.conf, vite.config.js, Dockerfile
-├── scripts/              # Training, calibration, and evaluation pipelines
-├── alembic/              # Database migrations
-├── tests/backend/        # Comprehensive Pytest suites
-├── k8s/                  # Kubernetes manifests & Azure CD workflow
-├── docs/                 # Planning, design, technical, and clinical specs
-└── docker-compose.yml    # Local multi-container orchestration
+│   ├── src/App.jsx, ChatBox.jsx, index.css
+│   ├── nginx.conf, vite.config.js
+├── scripts/              # Training, Telemetry, and Evaluation tools
+├── alembic/              # Database schema migrations
+├── docs/                 # PRD, Technical Specs, Clinical Guidelines
+└── docker-compose.yml    # Orchestration
 ```
 
 ---
@@ -69,101 +131,39 @@ OphthalmoAI features an integrated hardware telemetry pipeline designed to profi
 | **RTX 5060 (Bare-Metal)** | EfficientNet-B4 | `38.4s` | 2.05 GB | 96.27% | ~10% |
 | **RTX 5060 (Docker/NGC 26.07)** | EfficientNet-B4 | `23.5s` | 2.05 GB | **98.61%** | ~8% |
 
-**Key Hardware Insights:**
-1. **Containerization Superiority:** Utilizing NVIDIA's optimized PyTorch Docker container (`nvcr.io/nvidia/pytorch:26.07-py3`) with GPU passthrough yielded a massive speedup! Bare-metal EfficientNet-B4 averaged `38.4` seconds per epoch, while the Dockerized version crushed it in just `23.5` seconds.
-2. **Extreme VRAM Efficiency:** By enabling mixed precision (`torch.amp`), we successfully trained the massive EfficientNet-B4 model using only **2.05 GB of VRAM**, safely staying under the 8GB limit of the RTX 5060 Laptop GPU.
-3. **Accuracy Convergence:** The Dockerized EfficientNet-B4 achieved a staggering **98.61% accuracy** in just 20 epochs, completely outclassing the baseline CPU ResNet50.
-
-> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please see the generated graphs located in the `docs/images/` directory.
+> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please see the `docs/images/` directory or read `docs/PERFORMANCE_METRICS.md`.
 
 ---
 
-## ⚡ Quick Start — Docker
-
-To run the application locally using Docker:
-
-```bash
-git clone <this-repo>
-cd OphthalmoAI
-cp env.example .env           # Configure GEMINI_API_KEY or OLLAMA_URL
-docker compose up --build -d
-docker compose exec backend alembic upgrade head
-```
-
-Navigate to **http://localhost:8080**. *(Note: Model weights are not included by default — mount `models/` or run the training scripts).*
-
----
-
-## 💻 Local Development Setup
-
-To build and run the backend locally (requires a compatible Python environment with PyTorch):
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-
-# Install PyTorch (CUDA 12.4 example)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-pip install -r backend/requirements.txt
-
-# Run migrations and start the server
-alembic upgrade head
-python backend/main.py    # API served at http://localhost:8000, Swagger at /docs
-```
-
-To run the frontend:
-```bash
-cd frontend
-npm install
-npm run dev               # App served at http://localhost:5173
-```
-
----
-
-## 📡 API Reference
+## 📡 Core API Reference
 
 | Method | Path | Auth Required | Description |
 |--------|------|---------------|-------------|
 | `GET` | `/health` / `/ready` | ❌ | Liveness and readiness probes |
-| `GET` | `/conditions` | ❌ | Retrieve metadata for all 7 conditions |
 | `POST` | `/predict` | ❌ | Run an eye scan inference (rate-limited) |
 | `POST` | `/chat` | ❌ | AI Doctor chat (Gemini Flash free tier / Ollama) |
 | `POST` | `/auth/register` / `/token` | ❌ | Account creation and login |
-| `GET` | `/auth/me` | 🔒 Any | Retrieve current user profile |
 | `POST` | `/scans/{id}/override` | 🔒 Clinician/Admin | Record a second opinion |
 | `GET` | `/admin/audit-logs` | 🔒 Admin | Query the administrative audit trail |
-| `POST` | `/admin/model-registry/activate` | 🔒 Admin | Promote a new model version |
 
 *(For the complete schema, refer to `docs/technical/BACKEND_SCHEMA.md`)*
 
 ---
 
-## 🧪 Testing & Validation
+## 📚 Deep Dive Documentation
 
-The backend is backed by an extensive test suite ensuring clinical safety and operational stability.
+If you want to understand the clinical design, telemetry tracking, or backend architecture, check out our comprehensive documentation suite:
 
-```bash
-# Run the backend tests with coverage
-pytest tests/backend/ -v --cov=backend
-```
-
----
-
-## 📚 Documentation Directory
-
-| Document | Description |
-|----------|-------------|
-| `WIRING.md` | Change logs and recent verification notes |
-| `ROADMAP.md` | Upgrade roadmap and planned features |
-| `PRODUCTION.md` | Deployment guide (Docker / Azure / Kubernetes) |
-| `docs/technical/AZURE_DEPLOY.md` | Step-by-step Azure hosting instructions |
-| `docs/technical/BACKEND_SCHEMA.md` | API schema and data models |
-| `docs/technical/SECURITY_AUDIT.md` | Security findings and mitigation strategies |
-| `docs/clinical/*` | Intended use, safety mechanisms, validation report template |
-| `docs/planning/*` | PRD, TRD, application flow, implementation plans |
+- **[OphthalmoAI Technical White Paper](docs/OphthalmoAI_Technical_White_Paper.md)** - Explains the Monolithic Vision Pipeline and LLM Structural Guardrails.
+- **[Performance Metrics](docs/PERFORMANCE_METRICS.md)** - Details on the PyTorch NGC Docker performance and VRAM optimizations.
+- **[Implementation Plan](docs/planning/IMPLEMENTATION_PLAN.md)** - Project checklist and phase tracking.
+- **[Technical Issues & Resolutions](docs/technical/ISSUES.md)** - Deep dive into resolved architecture and dependency conflicts.
+- **[Clinical Safety Specs](docs/clinical/CLINICAL_SAFETY.md)** - Intended use and safety mechanisms.
 
 ---
 
-## 📜 License
+## 📜 License & Copyright
 
-Apache License 2.0 — see `LICENSE`. Copyright © 2026 Akash Kundu.
+**Apache License 2.0** — Copyright © 2026 Akash Kundu.
+
+Please carefully review the `LICENSE` file for the strict **Medical and Clinical Liability Disclaimer**. This software cannot be used for clinical decision-making without independent validation.

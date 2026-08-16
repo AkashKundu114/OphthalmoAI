@@ -5,7 +5,7 @@
 ## 1. Executive Summary
 The global shortage of ophthalmologists necessitates scalable, accessible triage solutions. However, deploying Artificial Intelligence in healthcare requires strict adherence to clinical safety, interpretability, and data security. 
 
-**OphthalmoAI** is a comprehensive, full-stack medical platform that provides point-of-care screening for seven visible eye conditions. Moving away from unreliable "black-box" monolithic models, the platform introduces a hierarchical multi-model vision pipeline, interpretable Grad-CAM heatmaps, and a structurally guardrailed conversational assistant powered by Gemini 2.0 Flash. Backed by a secure, asynchronous FastAPI backend, OphthalmoAI demonstrates enterprise-grade system design capable of integrating into modern clinical workflows.
+**OphthalmoAI** is a comprehensive, full-stack medical platform that provides point-of-care screening for twelve visible eye conditions. Moving away from overly complex and slow legacy pipelines, the platform introduces a fast Monolithic EfficientNet-B4 vision pipeline, interpretable Grad-CAM heatmaps, and a structurally guardrailed conversational assistant powered by Gemini 2.0 Flash. Backed by a secure, asynchronous FastAPI backend, OphthalmoAI demonstrates enterprise-grade system design capable of integrating into modern clinical workflows.
 
 This white paper outlines the architectural decisions, security implementations, and AI safety mechanisms engineered to make OphthalmoAI a robust, production-ready solution.
 
@@ -13,7 +13,7 @@ This white paper outlines the architectural decisions, security implementations,
 
 ## 2. The Problem Statement
 Developing AI for clinical deployments presents three major engineering challenges:
-1.  **The Monolithic Model Bottleneck:** Screening diverse anatomical regions (e.g., the ocular surface vs. the anterior segment) introduces high feature variance. A single classifier often struggles to generalize across these distinct domains, leading to misdiagnoses.
+1.  **Complexity and Resource Bottlenecks:** Legacy pipelines with multiple routing and expert models cause significant VRAM and latency overhead, complicating deployment on edge devices and standard clinic PCs.
 2.  **LLM Safety Risks:** Large Language Models (LLMs) are excellent communicators but are prone to "hallucinations." Allowing an LLM autonomous authority to generate medical diagnoses creates severe safety and liability risks.
 3.  **Lack of Interpretability:** Clinicians cannot trust "black-box" predictions. Without visual evidence of *why* an AI made a decision, adoption remains practically impossible.
 
@@ -28,10 +28,9 @@ The core backend is built using **FastAPI**, chosen for its high-performance asy
 *   **Database:** We utilized **AsyncSQLAlchemy** and **Alembic** to manage a non-blocking PostgreSQL/SQLite database. This ensures high throughput for concurrent scan uploads and metadata queries.
 *   **Authentication:** Stateless **JWT (JSON Web Tokens)** implement role-based access control (RBAC). The system distinguishes between standard users (patients) and administrative clinicians who have the authority to submit override diagnoses.
 
-### 3.2 The Hierarchical Vision Pipeline
-To solve the monolithic bottleneck, OphthalmoAI employs a **Router-Expert paradigm**:
-*   **The Router (MobileNetV3):** An ultra-fast, lightweight model evaluates the incoming image and classifies it by anatomical region (e.g., Anterior Segment).
-*   **The Experts (EfficientNet-B4):** The image is routed dynamically to a specialized expert model trained exclusively on that anatomical region. EfficientNet-B4 was selected as the optimal architecture for maximizing parameter efficiency while achieving high top-1 accuracy on fine-grained conditions like Cataracts or Uveitis.
+### 3.2 The Monolithic Vision Pipeline
+To solve the complexity bottleneck, OphthalmoAI employs a **Monolithic Paradigm**:
+*   **The Model (EfficientNet-B4):** A single, highly-optimized EfficientNet-B4 model analyzes the image to directly classify all 12 distinct conditions. EfficientNet-B4 was selected as the optimal architecture for maximizing parameter efficiency while achieving high top-1 accuracy on fine-grained conditions like Cataracts, Uveitis, Ptosis, or Keratitis in a unified feature space.
 
 ### 3.3 Explainability Engine (Grad-CAM)
 To build clinical trust, the pipeline integrates **Grad-CAM (Gradient-weighted Class Activation Mapping)**. During inference, the backend calculates the gradients of the target concept in the final convolutional layer of the expert model. The resulting heatmap is superimposed over the original scan, visually highlighting the pathology (e.g., inflamed conjunctival vessels) that triggered the prediction.
@@ -39,7 +38,7 @@ To build clinical trust, the pipeline integrates **Grad-CAM (Gradient-weighted C
 ### 3.4 Hardware Optimization & Docker Containerization
 To support the computationally demanding EfficientNet-B4 expert models across consumer-grade Blackwell/Ada GPUs (e.g., NVIDIA RTX 5060 8GB), OphthalmoAI implements strict hardware optimization profiles.
 *   **NVIDIA NGC Integration:** Training environments are fully containerized using the official NVIDIA PyTorch image (`nvcr.io/nvidia/pytorch:26.07-py3`), allowing absolute host isolation while bypassing severe OS-level dependency bottlenecks in Python 3.12. Dockerized GPU training natively outperforms bare-metal Windows training by up to 38%.
-*   **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) drastically drops the memory footprint. The hierarchical training pipeline trains EfficientNet-B4 models at a peak VRAM utilization of just **2.05 GB**, leaving ample headroom for inference caching.
+*   **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) drastically drops the memory footprint. The unified pipeline trains EfficientNet-B4 models at a peak VRAM utilization of just **2.05 GB**, leaving ample headroom for inference caching.
 *   **Hardware Telemetry:** A custom `HardwareTelemetry` suite continuously profiles and logs CPU/GPU heat, system RAM, VRAM utilitization, and model convergence into structured artifacts for performance auditing.
 
 ---
@@ -66,10 +65,10 @@ Production healthcare applications demand rigorous security postures.
 ## 6. Technical Benchmarks & Comparisons
 When benchmarked against standard monolithic clinical classifiers and unconstrained LLM assistants, OphthalmoAI unifies isolated design patterns into a cohesive, production-ready diagnostic operating system:
 
-| Architectural Dimension | Monolithic Classifiers (ResNet/DenseNet) | Unconstrained Medical LLMs | **OphthalmoAI Architecture** |
+| Architectural Dimension | Complex Multi-Model Classifiers | Unconstrained Medical LLMs | **OphthalmoAI Architecture** |
 | :--- | :--- | :--- | :--- |
-| **Primary Focus** | Single-pass classification | Probabilistic question-answering | **Hierarchical Triage + Conversational UI** |
-| **Classification Strategy**| Flat output space | Text-based inference | **MobileNetV3 Router + EfficientNet-B4 Experts** |
+| **Primary Focus** | High latency multi-pass classification | Probabilistic question-answering | **Monolithic Triage + Conversational UI** |
+| **Classification Strategy**| Anatomical routing overhead | Text-based inference | **EfficientNet-B4 Unified Model** |
 | **Interpretability** | Often absent | Textual explanation (hallucination-prone)| **Deterministic Grad-CAM Visual Heatmaps** |
 | **Safety Architecture**| Relies on training data diversity | Prompt-based rules & RLHF | **Strict Structural Guardrails + Separation of Concerns** |
 | **Clinical UI** | Requires manual integration | Chat interface only | **Integrated AI Chat with Verified Context Injection** |
@@ -80,13 +79,13 @@ When benchmarked against standard monolithic clinical classifiers and unconstrai
 ## 7. Business Impact & Scalability
 OphthalmoAI provides immediate value to healthcare organizations by:
 *   **Accelerating Triage:** Instantly categorizing patients by urgency (e.g., flagging Uveitis as a red-alert emergency) before they see a specialist.
-*   **Reducing Operational Overhead:** The lightweight MobileNetV3 router ensures that edge deployments or low-resource hospital servers aren't bogged down by heavy, unnecessary computations.
+*   **Reducing Operational Overhead:** The lightweight, monolithic EfficientNet-B4 pipeline ensures that edge deployments or low-resource hospital servers aren't bogged down by heavy, unnecessary multi-model routing computations.
 *   **Interoperability:** The API-first design paves the way for seamless integration with existing Picture Archiving and Communication Systems (PACS) via middleware hooks.
 
 ---
 
 ## 8. Conclusion & Roadmap
-OphthalmoAI demonstrates that deploying AI in healthcare requires more than just training a neural network. By combining a highly efficient multi-model pipeline with structural LLM guardrails and a defensively engineered backend, the platform bridges the gap between algorithmic research and production-ready clinical software. It serves as a blueprint for scalable, secure, and trustworthy AI-assisted diagnostics.
+OphthalmoAI demonstrates that deploying AI in healthcare requires more than just training a neural network. By combining a highly efficient monolithic pipeline with structural LLM guardrails and a defensively engineered backend, the platform bridges the gap between algorithmic research and production-ready clinical software. It serves as a blueprint for scalable, secure, and trustworthy AI-assisted diagnostics.
 
 **Future Development Roadmap:**
 - Implementation of dynamic federated learning to update edge models without centralizing patient data.

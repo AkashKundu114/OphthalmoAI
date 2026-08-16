@@ -117,16 +117,13 @@ ENABLE_UNCERTAINTY  = os.getenv("ENABLE_UNCERTAINTY", "true").lower() in {"1", "
 ENABLE_IQA          = os.getenv("ENABLE_IQA", "true").lower() in {"1", "true", "yes"}
 PERSIST_SCANS       = os.getenv("PERSIST_SCANS", "true").lower() in {"1", "true", "yes"}
 
-GROUP_KEY_BY_IDX = {0: "eyelid", 1: "anterior", 2: "surface"}
+MONOLITHIC_CLASSES = [
+    "Blepharitis", "Cataract", "Chalazion", "Conjunctivitis", 
+    "Jaundice", "Keratitis", "Normal", "Ptosis", 
+    "Pterygium", "Stye", "Subconjunctival Hemorrhage", "Uveitis"
+]
 
-HIERARCHY = {
-    0: {"name": "Adnexal Oculoplastic",      "model_file": "specialist_eyelid.pth",    "classes": ["Eyelid"]},
-    1: {"name": "Anterior Segment Pathology", "model_file": "specialist_anterior.pth",  "classes": ["Cataract", "Uveitis"]},
-    2: {"name": "Ocular Surface Disorders",   "model_file": "specialist_surface.pth",   "classes": ["Conjunctivitis", "Jaundice", "Normal", "Pterygium"]},
-}
-
-ROUTER_MODEL: Optional[nn.Module] = None
-SPECIALIST_MODELS: Dict[int, Any] = {}
+MONOLITHIC_MODEL: Optional[nn.Module] = None
 
 OPHTHALMOLOGY_SYSTEM_PROMPT = """You are OphthalmoAI Doctor, a specialized AI educational assistant focused exclusively on ophthalmology and eye health.
 
@@ -142,14 +139,7 @@ preprocess = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
 ])
 
-
-def build_router() -> nn.Module:
-    model = models.mobilenet_v3_large(weights=None)
-    model.classifier[3] = nn.Linear(model.classifier[3].in_features, len(HIERARCHY))
-    return model
-
-
-def build_specialist(num_classes: int) -> nn.Module:
+def build_monolithic_model(num_classes: int) -> nn.Module:
     model = models.efficientnet_b4(weights=None)
     model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
     return model
@@ -175,58 +165,26 @@ async def lifespan(app: FastAPI):
         raise
 
     try:
-
-
-
-
-
-
-
         create_tables()
         logger.info("startup.db_ready")
     except Exception as exc:
         logger.error("startup.db_failed", error=str(exc))
 
-    router = build_router()
-    router_path = os.path.join(MODELS_DIR, "router.pth")
-    if os.path.exists(router_path):
+    monolith = build_monolithic_model(len(MONOLITHIC_CLASSES))
+    model_path = os.path.join(MODELS_DIR, "efficientnet_b4.pth")
+    if os.path.exists(model_path):
         try:
-            router.load_state_dict(
-                torch.load(router_path, map_location=DEVICE, weights_only=True),
+            monolith.load_state_dict(
+                torch.load(model_path, map_location=DEVICE, weights_only=True),
                 strict=False,
             )
-            router.to(DEVICE).eval()
-            ROUTER_MODEL = router
-            logger.info("startup.router_loaded")
+            monolith.to(DEVICE).eval()
+            MONOLITHIC_MODEL = monolith
+            logger.info("startup.monolithic_model_loaded")
         except Exception as exc:
-            logger.error("startup.router_load_failed", error=str(exc))
+            logger.error("startup.monolithic_model_load_failed", error=str(exc))
     else:
-        logger.warning("startup.router_missing", path=router_path)
-
-    for idx, info in HIERARCHY.items():
-        classes = info["classes"]
-        if len(classes) <= 1:
-            SPECIALIST_MODELS[idx] = {
-                "type": "direct", "class": classes[0], "group_name": info["name"]
-            }
-            continue
-        model_path = os.path.join(MODELS_DIR, info["model_file"])
-        model = build_specialist(len(classes))
-        if os.path.exists(model_path):
-            try:
-                model.load_state_dict(
-                    torch.load(model_path, map_location=DEVICE, weights_only=True)
-                )
-                model.to(DEVICE).eval()
-                SPECIALIST_MODELS[idx] = {
-                    "type": "model", "model": model,
-                    "classes": classes, "group_name": info["name"],
-                }
-                logger.info("startup.specialist_loaded", group=info["name"])
-            except Exception as exc:
-                logger.error("startup.specialist_load_failed", group=info["name"], error=str(exc))
-        else:
-            logger.warning("startup.specialist_missing", path=model_path)
+        logger.warning("startup.monolithic_model_missing", path=model_path)
 
     yield
 
@@ -428,10 +386,10 @@ def health_check():
 
 @app.get("/ready")
 def readiness_check(response: Response):
-    ready = ROUTER_MODEL is not None
+    ready = MONOLITHIC_MODEL is not None
     if not ready:
         response.status_code = 503
-    return {"ok": ready, "router_loaded": ready, "specialists_loaded": len(SPECIALIST_MODELS)}
+    return {"ok": ready, "model_loaded": ready}
 
 @app.get("/conditions")
 def get_conditions():
@@ -464,7 +422,12 @@ def generate_spatial_description(diagnosis: str) -> str:
         "Jaundice": f"bilirubin yellow-scleral coloration density concentrated at the outer peripheral limbus ring",
         "Pterygium": f"triangular fibrovascular growth advancing from nasal conjunctiva onto the corneal limbus",
         "Conjunctivitis": f"diffuse microvascular congestion (injection) spread symmetrically across the scleral surface",
-        "Eyelid": f"focal chalazion inflammation swelling localized at the upper tarsal plate",
+        "Ptosis": f"superior palpebral fissure narrowing consistent with levator aponeurosis dehiscence",
+        "Blepharitis": f"diffuse eyelid margin erythema with meibomian gland inspissation",
+        "Chalazion": f"focal lipogranulomatous nodule within the tarsal plate",
+        "Stye": f"acute pyogenic nodule at the eyelash follicle base",
+        "Keratitis": f"focal corneal epithelial defect with underlying stromal infiltrate",
+        "Subconjunctival Hemorrhage": f"sharply demarcated confluent sub-bulbar hemorrhage without limbal involvement",
         "Normal": f"No pathologic abnormalities or localized lesions observed across any macular or peripheral quadrant"
     }
     return patterns.get(diagnosis, f"mild focal anomalies noted near the {random.choice(quadrants)}")
@@ -495,15 +458,8 @@ async def predict(
     user_id   = current_user.id if current_user else None
     req_id    = getattr(request.state, "request_id", None)
 
-    if ROUTER_MODEL is None:
-        raise HTTPException(503, detail="AI diagnostic system offline. Train and load models first.")
-
-    if file.content_type and file.content_type.lower() not in ALLOWED_MIMES | {"application/octet-stream"}:
-        log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
-                  error_detail=f"rejected content-type: {file.content_type}")
-        raise HTTPException(415, detail=f"Unsupported file type '{file.content_type}'.")
-
-    contents = await file.read()
+        if MONOLITHIC_MODEL is None:
+            raise HTTPException(503, detail="Monolithic model not loaded.")
 
     if len(contents) > MAX_FILE_SIZE:
         log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
@@ -536,57 +492,41 @@ async def predict(
         input_tensor = preprocess(image).to(DEVICE).unsqueeze(0)
 
         with torch.no_grad():
-            router_out   = ROUTER_MODEL(input_tensor)
-            router_probs = torch.nn.functional.softmax(router_out[0], dim=0)
-            group_idx    = int(torch.argmax(router_probs).item())
-            group_conf   = float(router_probs[group_idx].item())
+            out            = MONOLITHIC_MODEL(input_tensor)
+            # Use calibration if available for the monolith model, otherwise raw logits
+            calibration_temperature = CALIBRATION_REGISTRY.get("monolith")
+            is_calibrated         = CALIBRATION_REGISTRY.is_calibrated("monolith")
+            calibrated_out = apply_temperature(out[0], calibration_temperature)
+            probs          = torch.nn.functional.softmax(calibrated_out, dim=0)
+            class_idx      = int(torch.argmax(probs).item())
 
-        spec_data = SPECIALIST_MODELS.get(group_idx)
-        if not spec_data:
-            raise HTTPException(503, detail=f"Specialist model for group {group_idx} not loaded.")
-
-        group_key             = GROUP_KEY_BY_IDX.get(group_idx, "unknown")
-        calibration_temperature = CALIBRATION_REGISTRY.get(group_key)
-        is_calibrated         = CALIBRATION_REGISTRY.is_calibrated(group_key)
-        heatmap_base64        = None
+        diagnosis  = MONOLITHIC_CLASSES[class_idx]
+        confidence = float(probs[class_idx].item()) * 100
+        probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item())
+                      for i in range(len(MONOLITHIC_CLASSES))}
+        
+        heatmap_base64 = None
         uncertainty_value: Optional[float] = None
 
-        if spec_data["type"] == "direct":
-            diagnosis   = spec_data["class"]
-            confidence  = group_conf * 100
-            probs_dict  = {diagnosis: 1.0}
-        else:
-            model_for_cam = spec_data["model"]
-            with torch.no_grad():
-                out            = model_for_cam(input_tensor)
-                calibrated_out = apply_temperature(out[0], calibration_temperature)
-                probs          = torch.nn.functional.softmax(calibrated_out, dim=0)
-                class_idx      = int(torch.argmax(probs).item())
+        if ENABLE_UNCERTAINTY:
+            try:
+                _, uncertainty_value = mc_dropout_predict(
+                    MONOLITHIC_MODEL, input_tensor, n_passes=MC_DROPOUT_PASSES
+                )
+            except Exception as unc_err:
+                logger.warning("predict.uncertainty_failed", error=str(unc_err))
 
-            diagnosis  = spec_data["classes"][class_idx]
-            confidence = float(probs[class_idx].item()) * 100
-            probs_dict = {spec_data["classes"][i]: float(probs[i].item())
-                          for i in range(len(spec_data["classes"]))}
-
-            if ENABLE_UNCERTAINTY:
-                try:
-                    _, uncertainty_value = mc_dropout_predict(
-                        model_for_cam, input_tensor, n_passes=MC_DROPOUT_PASSES
-                    )
-                except Exception as unc_err:
-                    logger.warning("predict.uncertainty_failed", error=str(unc_err))
-
-            if GRADCAM_AVAILABLE:
-                try:
-                    cam        = GradCAM(model=model_for_cam, target_layers=[model_for_cam.features[-1]])
-                    grayscale  = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
-                    rgb_img    = np.float32(image.resize((380, 380))) / 255
-                    vis        = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
-                    buff       = io.BytesIO()
-                    Image.fromarray(vis).save(buff, format="JPEG", quality=85)
-                    heatmap_base64 = base64.b64encode(buff.getvalue()).decode("utf-8")
-                except Exception as cam_err:
-                    logger.warning("predict.gradcam_failed", error=str(cam_err))
+        if GRADCAM_AVAILABLE:
+            try:
+                cam        = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
+                grayscale  = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
+                rgb_img    = np.float32(image.resize((380, 380))) / 255
+                vis        = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
+                buff       = io.BytesIO()
+                Image.fromarray(vis).save(buff, format="JPEG", quality=85)
+                heatmap_base64 = base64.b64encode(buff.getvalue()).decode("utf-8")
+            except Exception as cam_err:
+                logger.warning("predict.gradcam_failed", error=str(cam_err))
 
         hybrid_warnings            = analyze_symptoms(
             diagnosis, pain, vision, itch,
@@ -614,7 +554,7 @@ async def predict(
         spatial_desc = generate_spatial_description(diagnosis)
 
         response_body: Dict[str, Any] = {
-            "group_name":               spec_data.get("group_name", "Unknown"),
+            "group_name":               "Monolithic 12-Class Model",
             "diagnosis":                diagnosis,
             "confidence":               round(confidence, 2),
             "heatmap":                  f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,

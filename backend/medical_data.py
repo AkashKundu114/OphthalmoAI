@@ -131,63 +131,239 @@ MEDICAL_INFO: Dict[str, Dict[str, Any]] = {
         'severity': "Low to Moderate (Highly contagious)",
         'advice': "Maintain strict hand hygiene. Consult a primary care physician or optometrist for targeted eye drops.",
     },
-    'Eyelid': {
-        'name': 'Eyelid Conditions',
+    'Ptosis': {
+        'name': 'Ptosis (Drooping Eyelid)',
         'group': 'Adnexal/Oculoplastic',
         'color': '#06B6D4',
-        'pathophysiology': (
-            "Adnexal eyelid pathologies involve acute focal infection (Hordeolum/Stye of the glands of Zeis or Meibomian glands), "
-            "granulomatous chronic inflammation (Chalazion), or diffusal eyelid margin inflammation (Blepharitis) associated with Meibomian gland dysfunction."
-        ),
-        'analysis': (
-            "Focal focal erythematous nodule along the lid margin (Hordeolum), a firm painless tarsal nodule (Chalazion), or "
-            "collarettes and oily debris along eyelash roots with lid margin telangiectasia (Blepharitis)."
-        ),
-        'description': (
-            "Eyelid conditions range from acute painful styes to non-tender chalazia and chronic blepharitis. "
-            "They frequently cause localized swelling, tenderness, ocular grittiness, and secondary tear film instability."
-        ),
+        'pathophysiology': "Ptosis is the abnormal drooping of the upper eyelid margin, which can be congenital or acquired. It typically results from dysfunction of the levator palpebrae superioris muscle or its aponeurosis, or Muller's muscle.",
+        'analysis': "Upper eyelid margin rests abnormally low, covering more than 2mm of the superior cornea. The margin-reflex distance 1 (MRD-1) is reduced.",
+        'description': "A drooping of the upper eyelid that can sometimes obstruct the visual field if it falls below the pupil.",
         'symptoms': [
-            "Tender, localized red lump along the eyelash margin or within the eyelid body",
-            "Firm, non-tender sub-epithelial nodule (Chalazion)",
-            "Crusting, flaking debris ('collarettes') at the base of eyelashes upon awakening",
-            "Eyelid margin redness, burning, and recurrent dry eye symptoms",
-            "Sensation of a eyelash or grain of sand lodged under the eyelid",
+            "Drooping upper eyelid",
+            "Obstructed superior visual field",
+            "Need to tilt head back to see clearly",
+            "Eyestrain or fatigue from lifting eyebrows"
         ],
         'treatment': [
-            "Warm Compresses: 10-15 minutes applied 3-4 times daily (Essential for liquefying meibum)",
-            "Commercial Eyelid Lid Wipes or Hypochlorous Acid Lid Scrubs",
-            "Topical Antibiotic/Steroid Ointments (e.g., Tobradex for infected styes)",
-            "Oral Doxycycline or Azithromycin (for recalcitrant Meibomian Gland Dysfunction)",
-            "In-office Incision & Curettage for non-resolving chronic chalazia",
+            "Observation for mild, non-visually significant cases",
+            "Surgical correction (Levator advancement, Muller's muscle resection, or Frontalis sling)"
         ],
         'precautions': [
-            "NEVER attempt to squeeze, pop, or pierce an eyelid lump",
-            "Discontinue eyelid cosmetics and eyeliner while inflammation is active",
-            "Perform daily warm compresses and hygiene rituals",
-            "Avoid wearing contact lenses if the eyelid swelling rubs against the cornea",
+            "Monitor for sudden onset ptosis, especially if accompanied by pupil changes (Horner's syndrome or CN III palsy)"
         ],
         'diagnostic_workup': [
-            "High-Magnification Slit-Lamp Lid Examination: Inspection of Meibomian gland orifices and lash follicles",
-            "Meibography: Infrared imaging of Meibomian gland architecture",
-            "Tear Break-Up Time (TBUT): Evaluation of secondary evaporative dry eye",
+            "Visual field testing (superior field)",
+            "Measurement of MRD-1, levator function, and palpebral fissure height",
+            "Neurological evaluation if acute onset"
         ],
         'differential_diagnoses': [
-            "Preseptal or Orbital Cellulitis",
-            "Basal Cell Carcinoma / Sebaceous Gland Carcinoma of the lid",
-            "Dacryocystitis",
+            "Dermatochalasis",
+            "Horner's syndrome",
+            "Myasthenia gravis",
+            "Oculomotor nerve palsy"
         ],
-        'doctor_notes': (
-            "Consistent heat therapy is the cornerstone of resolution. If eyelid redness spreads to the surrounding cheek or eyebrow, "
-            "or if the eye becomes swollen shut with fever, urgent evaluation for preseptal cellulitis is mandatory."
-        ),
+        'doctor_notes': "Surgical intervention is indicated when ptosis causes a functional visual field defect or significant cosmetic concern.",
         'questions_for_doctor': [
-            "Is this lesion an acute stye or a chronic chalazion?",
-            "Would a prescription antibiotic ointment or in-office procedure help speed up recovery?",
-            "What daily eyelid hygiene routine will prevent future recurrences?",
+            "Is my ptosis affecting my field of vision?",
+            "Am I a candidate for surgical correction?"
         ],
-        'severity': "Low (Painful but manageable)",
-        'advice': "Apply warm compresses consistently. Consult an eye specialist if swelling worsens or persists beyond 2 weeks.",
+        'severity': "Low to Moderate",
+        'advice': "Consult an oculoplastic surgeon if the drooping obstructs your vision.",
+    },
+    'Blepharitis': {
+        'name': 'Blepharitis',
+        'group': 'Adnexal/Oculoplastic',
+        'color': '#06B6D4',
+        'pathophysiology': "Chronic inflammation of the eyelid margins, often associated with bacterial overgrowth (Staphylococcus) or skin conditions like rosacea and seborrheic dermatitis. Leads to meibomian gland dysfunction and tear film instability.",
+        'analysis': "Eyelid margins appear erythematous and thickened. Collarettes or crusting may be visible at the base of the eyelashes. Inspissated meibomian glands are common.",
+        'description': "A chronic inflammatory condition of the eyelids causing red, swollen, and itchy eyelids with crusty debris at the base of the eyelashes.",
+        'symptoms': [
+            "Red, swollen, or itchy eyelids",
+            "Gritty or burning sensation in the eyes",
+            "Crusting at the eyelash base, worse upon waking",
+            "Flaking of skin around eyes"
+        ],
+        'treatment': [
+            "Daily warm compresses and eyelid scrubs",
+            "Artificial tears for associated dry eye",
+            "Topical or oral antibiotics for severe or rosacea-associated cases (e.g., Doxycycline)"
+        ],
+        'precautions': [
+            "Maintain strict daily eyelid hygiene",
+            "Avoid eye makeup during flare-ups"
+        ],
+        'diagnostic_workup': [
+            "Slit-lamp examination of eyelid margins and meibomian glands",
+            "Assessment of tear break-up time (TBUT)"
+        ],
+        'differential_diagnoses': [
+            "Dry eye syndrome",
+            "Allergic conjunctivitis",
+            "Ocular rosacea"
+        ],
+        'doctor_notes': "Blepharitis is a chronic condition that cannot be 'cured' but can be effectively managed with consistent eyelid hygiene.",
+        'questions_for_doctor': [
+            "What type of eyelid scrub or cleanser is best for me?",
+            "Do I need an oral antibiotic for this inflammation?"
+        ],
+        'severity': "Low",
+        'advice': "Start a daily routine of warm compresses and eyelid scrubs.",
+    },
+    'Chalazion': {
+        'name': 'Chalazion',
+        'group': 'Adnexal/Oculoplastic',
+        'color': '#06B6D4',
+        'pathophysiology': "A sterile, focal, lipogranulomatous inflammation of the eyelid resulting from an obstructed meibomian gland. Unlike a stye, it is typically non-infectious and chronic.",
+        'analysis': "A firm, painless, immobile sub-epithelial nodule within the tarsal plate of the eyelid. No acute signs of infection (erythema, warmth) are typically present unless secondarily infected.",
+        'description': "A painless, firm lump inside the eyelid caused by a blocked oil gland. It usually develops slowly over weeks.",
+        'symptoms': [
+            "Firm, painless lump in the eyelid",
+            "Mild cosmetic disfigurement",
+            "Possible blurred vision if the lump presses on the cornea (inducing astigmatism)"
+        ],
+        'treatment': [
+            "Frequent warm compresses (10-15 mins, 4x daily) to liquefy meibum",
+            "Gentle massage over the nodule",
+            "In-office incision and curettage if unresolved after several weeks",
+            "Intralesional steroid injection"
+        ],
+        'precautions': [
+            "Do NOT attempt to pop or squeeze the lump"
+        ],
+        'diagnostic_workup': [
+            "Slit-lamp examination to differentiate from malignant lesions",
+            "Eversion of the eyelid to evaluate the palpebral conjunctiva"
+        ],
+        'differential_diagnoses': [
+            "Hordeolum (Stye)",
+            "Sebaceous gland carcinoma (if recurrent in the same spot)",
+            "Epidermal inclusion cyst"
+        ],
+        'doctor_notes': "Most chalazia resolve with conservative heat therapy, but it can take weeks to months. Persistent lesions may require minor surgery.",
+        'questions_for_doctor': [
+            "Is this lump ready to be drained surgically?",
+            "Could this be something more serious than a blocked gland?"
+        ],
+        'severity': "Low",
+        'advice': "Apply warm compresses consistently. Consult an eye doctor if the lump persists for months.",
+    },
+    'Stye': {
+        'name': 'Stye (Hordeolum)',
+        'group': 'Adnexal/Oculoplastic',
+        'color': '#06B6D4',
+        'pathophysiology': "An acute focal pyogenic infection (usually Staphylococcal) of an eyelash follicle or gland of Zeis/Moll (external hordeolum) or a meibomian gland (internal hordeolum).",
+        'analysis': "Focal, erythematous, tender, and warm nodule on the eyelid margin, often with a visible purulent punctum.",
+        'description': "An acute, painful, red bump near the edge of the eyelid, similar to a pimple, caused by a bacterial infection.",
+        'symptoms': [
+            "Painful, tender, red bump on the eyelid margin",
+            "Localized swelling and erythema",
+            "Foreign body sensation or tearing"
+        ],
+        'treatment': [
+            "Warm compresses to promote pointing and spontaneous drainage",
+            "Topical antibiotic ointment (e.g., Erythromycin) if spreading",
+            "Epilation of the involved eyelash (for external hordeolum)"
+        ],
+        'precautions': [
+            "Do NOT squeeze or pop the stye, as this can spread the infection into the surrounding tissue (preseptal cellulitis)",
+            "Discard old eye makeup and avoid wearing contacts until resolved"
+        ],
+        'diagnostic_workup': [
+            "Clinical inspection via slit-lamp"
+        ],
+        'differential_diagnoses': [
+            "Chalazion",
+            "Preseptal cellulitis",
+            "Acute blepharitis"
+        ],
+        'doctor_notes': "Styes are acute infections that typically drain spontaneously within a week with the aid of warm compresses. Watch for signs of spreading redness.",
+        'questions_for_doctor': [
+            "Do I need an antibiotic ointment for this infection?",
+            "When should I be concerned about the infection spreading?"
+        ],
+        'severity': "Low to Moderate",
+        'advice': "Apply warm compresses and keep the area clean. Seek care if the entire eyelid becomes swollen or red.",
+    },
+    'Keratitis': {
+        'name': 'Keratitis',
+        'group': 'Anterior Segment',
+        'color': '#EF4444',
+        'pathophysiology': "Inflammation of the cornea, which can be infectious (bacterial, viral [HSV, VZV], fungal, amoebic) or non-infectious (exposure, auto-immune, UV radiation). Infectious cases often involve epithelial defects and stromal infiltration.",
+        'analysis': "Corneal epithelial defect visible with fluorescein staining. Stromal infiltrate (white opacity) may be present. Associated with conjunctival injection (ciliary flush) and anterior chamber reaction.",
+        'description': "A serious inflammation or ulceration of the clear front surface of the eye (cornea). It is a sight-threatening emergency that can cause rapid tissue damage.",
+        'symptoms': [
+            "Severe eye pain and redness",
+            "Extreme sensitivity to light (photophobia)",
+            "Decreased or blurry vision",
+            "Excessive tearing or discharge",
+            "Sensation of something in the eye"
+        ],
+        'treatment': [
+            "Intensive topical fortified antibiotics (for bacterial ulcers)",
+            "Topical antivirals (e.g., Trifluridine or Ganciclovir for HSV)",
+            "Discontinuation of all contact lens wear",
+            "Cycloplegic drops for pain control"
+        ],
+        'precautions': [
+            "SEEK IMMEDIATE OPHTHALMIC CARE",
+            "Never sleep in contact lenses or expose them to tap water/swimming pools",
+            "Do NOT use steroid drops unless specifically prescribed by an ophthalmologist for this condition, as they can worsen certain infections."
+        ],
+        'diagnostic_workup': [
+            "Slit-lamp examination with fluorescein staining",
+            "Corneal scraping for culture and sensitivity (in cases of large or central ulcers)"
+        ],
+        'differential_diagnoses': [
+            "Corneal abrasion",
+            "Acute angle-closure glaucoma",
+            "Uveitis"
+        ],
+        'doctor_notes': "Infectious keratitis (especially Pseudomonas in contact lens wearers) can rapidly perforate the cornea. Urgent, aggressive antimicrobial therapy is required.",
+        'questions_for_doctor': [
+            "Is the infection close to the center of my vision?",
+            "Will this leave a permanent scar on my cornea?"
+        ],
+        'severity': "Urgent Sight-Threatening Emergency",
+        'advice': "URGENT: Remove contact lenses immediately and seek emergency eye care.",
+    },
+    'Subconjunctival Hemorrhage': {
+        'name': 'Subconjunctival Hemorrhage',
+        'group': 'Ocular Surface',
+        'color': '#10B981',
+        'pathophysiology': "Rupture of a small conjunctival or episcleral blood vessel, leading to the pooling of blood in the potential space between the conjunctiva and the episclera. It can be triggered by a Valsalva maneuver (coughing, sneezing), minor trauma, hypertension, or coagulopathy.",
+        'analysis': "Sharply demarcated area of dense, bright red blood beneath the bulbar conjunctiva. The underlying sclera is obscured. No discharge, chemosis, or anterior chamber involvement.",
+        'description': "A benign, painless accumulation of bright red blood under the clear membrane of the eye. It looks alarming but is typically harmless, akin to a bruise on the skin.",
+        'symptoms': [
+            "Bright red patch on the white of the eye",
+            "Completely painless",
+            "No change in vision",
+            "No discharge"
+        ],
+        'treatment': [
+            "Reassurance and observation (resolves spontaneously in 1-3 weeks)",
+            "Artificial tears if mild surface irritation is present"
+        ],
+        'precautions': [
+            "Avoid rubbing the eye",
+            "Check blood pressure if recurrent",
+            "Review use of blood thinners with primary care provider if recurrent"
+        ],
+        'diagnostic_workup': [
+            "Clinical inspection",
+            "Blood pressure measurement"
+        ],
+        'differential_diagnoses': [
+            "Conjunctivitis (viral/bacterial)",
+            "Episcleritis (has inflamed vessels, not pooled blood)",
+            "Kaposi sarcoma (rare, raised)"
+        ],
+        'doctor_notes': "While visually striking, a subconjunctival hemorrhage is usually idiopathic and benign. It clears much like a cutaneous bruise, shifting from red to yellow over time.",
+        'questions_for_doctor': [
+            "Is there any sign of damage to the inside of my eye?",
+            "Should I have my blood pressure or bleeding times checked?"
+        ],
+        'severity': "Low / Benign",
+        'advice': "Reassurance. The blood will absorb naturally over 1-3 weeks. No specific eye drops are needed.",
     },
     'Jaundice': {
         'name': 'Jaundice (Scleral Icterus)',

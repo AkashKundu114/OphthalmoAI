@@ -199,3 +199,30 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+========================================================================
+MEDICAL AND CLINICAL LIABILITY DISCLAIMER
+========================================================================
+
+OphthalmoAI is provided strictly for EDUCATIONAL, RESEARCH, AND 
+INFORMATIONAL PURPOSES ONLY. 
+
+This software, its underlying machine learning models, and its outputs 
+do NOT constitute medical advice, diagnosis, or treatment. OphthalmoAI 
+is NOT an FDA-cleared or CE-marked medical device. 
+
+By using, distributing, or modifying this software, you acknowledge 
+and agree that:
+1. You will not use this software for clinical decision-making, patient 
+   triage, or diagnosing human diseases in a live medical environment 
+   without obtaining the necessary regulatory approvals and conducting 
+   independent clinical validation.
+2. The author(s), contributor(s), and copyright holder(s) of this 
+   software shall NOT be held liable for any direct, indirect, 
+   incidental, special, exemplary, or consequential damages (including, 
+   but not limited to, medical malpractice claims, misdiagnosis, or 
+   loss of life) arising in any way out of the use of this software, 
+   even if advised of the possibility of such damage.
+
+Always consult a qualified healthcare provider or ophthalmologist for 
+medical advice.

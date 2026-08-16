@@ -74,8 +74,10 @@ def train():
         
         telemetry.end_epoch(epoch, epoch_loss, epoch_acc)
 
+    print("Saving monolithic 12-class model to models/efficientnet_b4.pth...")
+    os.makedirs('models', exist_ok=True)
+    torch.save(model.state_dict(), 'models/efficientnet_b4.pth')
+    print("Training Complete & Model Saved!")
+
 if __name__ == '__main__':
     train()
-
-
-
