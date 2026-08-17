@@ -6,13 +6,12 @@ from torchvision import models
 from prepare_dataset import prepare_dataloaders
 from metric_logger import HardwareTelemetry
 
-# RTX 5060 8GB Optimizations
-torch.backends.cudnn.benchmark = True # Enable cuDNN auto-tuner
+torch.backends.cudnn.benchmark = True
 
 MANIFEST_PATH = './dataset/manifest.csv'
 DATASET_ROOT = './dataset'
 NUM_CLASSES = 12
-BATCH_SIZE = 16 # B4 is quite large, lowering batch size to 16 to fit perfectly in 8GB VRAM
+BATCH_SIZE = 16
 EPOCHS = int(os.environ.get('EPOCHS', 10))
 
 def get_model():
@@ -25,9 +24,6 @@ def train():
     print("Initializing EfficientNet-B4 Training...")
     telemetry = HardwareTelemetry(use_gpu=True, model_name="EfficientNet-B4")
     
-    # We update the default image size for B4 to 380x380 inside the prepare_dataset
-    # Here we just rely on the existing 224x224 data loaders for a baseline, 
-    # but in a production setup we would upscale the transforms for B4 natively.
     train_loader, val_loader, test_loader, classes = prepare_dataloaders(
         MANIFEST_PATH, DATASET_ROOT, batch_size=BATCH_SIZE
     )
@@ -37,7 +33,6 @@ def train():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     
-    # Mixed Precision Scaler for RTX Tensor Cores
     scaler = torch.amp.GradScaler('cuda')
 
     for epoch in range(1, EPOCHS + 1):

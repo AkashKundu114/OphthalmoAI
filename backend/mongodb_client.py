@@ -31,9 +31,7 @@ class OphthalmoMongoDocumentStore:
             os.makedirs(self.mock_dir, exist_ok=True)
 
     def insert_document(self, doc_id: str, document: Dict[str, Any]) -> str:
-        """
-        Inserts a diagnostic document. Maps to a MongoDB insert or Mock File write.
-        """
+        
         payload = {"_id": doc_id, **document}
 
         if self.use_real_mongo and self.collection is not None:
@@ -46,9 +44,7 @@ class OphthalmoMongoDocumentStore:
         return doc_id
 
     def get_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieves a document by its ID.
-        """
+        
         if self.use_real_mongo and self.collection is not None:
             return self.collection.find_one({"_id": doc_id})
         else:
@@ -59,9 +55,7 @@ class OphthalmoMongoDocumentStore:
             return None
 
     def delete_document(self, doc_id: str) -> bool:
-        """
-        Deletes a document by ID.
-        """
+        
         if self.use_real_mongo and self.collection is not None:
             res = self.collection.delete_one({"_id": doc_id})
             return res.deleted_count > 0

@@ -20,7 +20,6 @@ class HardwareTelemetry:
                 pynvml.nvmlInit()
                 self.handle = pynvml.nvmlDeviceGetHandleByIndex(0)
                 self.gpu_name = pynvml.nvmlDeviceGetName(self.handle)
-                # Decode bytes to string if needed
                 if isinstance(self.gpu_name, bytes):
                     self.gpu_name = self.gpu_name.decode('utf-8')
                 print(f"Hardware Telemetry Initialized on: {self.gpu_name}")
@@ -30,11 +29,8 @@ class HardwareTelemetry:
         else:
             print("Hardware Telemetry Initialized for CPU-Only execution.")
             
-        # Initialize psutil cpu percent
         psutil.cpu_percent(interval=None)
         
-        # Setup JSON logging
-        # Save directly to the dataset folder so Docker passes it through to Windows
         self.log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dataset', 'logs')
         os.makedirs(self.log_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -54,15 +50,12 @@ class HardwareTelemetry:
     def end_epoch(self, epoch, loss, acc):
         epoch_time = time.time() - self.start_time
         
-        # System RAM usage (GB)
         mem_info = self.process.memory_info()
         ram_usage = mem_info.rss / (1024 ** 3)
         sys_ram_percent = psutil.virtual_memory().percent
         
-        # System CPU usage (%)
         cpu_usage = psutil.cpu_percent(interval=None)
         
-        # CPU Heat
         cpu_temp = 0.0
         try:
             temps = psutil.sensors_temperatures()
@@ -85,12 +78,10 @@ class HardwareTelemetry:
         gpu_temp = 0.0
 
         if self.use_gpu and self.handle:
-            # GPU VRAM usage
-            peak_vram = torch.cuda.max_memory_allocated() / (1024 ** 2) # MB
+            peak_vram = torch.cuda.max_memory_allocated() / (1024 ** 2)
             peak_vram_gb = peak_vram / 1024
             vram_utilization = (peak_vram / 8192) * 100
             
-            # GPU Temp & Utilization
             gpu_temp = pynvml.nvmlDeviceGetTemperature(self.handle, pynvml.NVML_TEMPERATURE_GPU)
             utilization = pynvml.nvmlDeviceGetUtilizationRates(self.handle)
             gpu_util = utilization.gpu
@@ -101,7 +92,6 @@ class HardwareTelemetry:
             
         print(f"---------------------------\n")
         
-        # Save to JSON history
         epoch_data = {
             "epoch": epoch,
             "time_seconds": epoch_time,
@@ -116,6 +106,5 @@ class HardwareTelemetry:
         }
         self.history["epochs"].append(epoch_data)
         
-        # Write to disk at end of each epoch (in case of crash)
         with open(self.log_file, 'w') as f:
             json.dump(self.history, f, indent=4)

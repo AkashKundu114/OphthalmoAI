@@ -7,12 +7,7 @@ export default defineConfig(({ mode }) => {
     .map(h => h.trim())
     .filter(Boolean)
 
-  /**
-   * Backend target for the /api proxy in development.
-   * Override in frontend/.env.local:
-   *   VITE_DEV_BACKEND_URL=http://localhost:8000
-   */
-  const backendTarget = process.env.VITE_DEV_BACKEND_URL || 'http:
+  const backendTarget = process.env.VITE_DEV_BACKEND_URL || 'http://localhost:8000';
 
   return {
     plugins: [react()],
@@ -24,4 +19,12 @@ export default defineConfig(({ mode }) => {
     server: {
       ...(allowedHosts.length > 0 ? { allowedHosts } : {}),
       proxy: {
-        
+        '/api': {
+          target: backendTarget,
+          changeOrigin: true,
+          secure: false,
+        }
+      }
+    }
+  }
+})

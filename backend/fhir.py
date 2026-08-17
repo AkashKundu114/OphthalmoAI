@@ -1,10 +1,4 @@
-"""
-HL7 FHIR R4 Exporter Module for OphthalmoAI.
 
-Exports AI eye disease screening results into official HL7 FHIR R4 DiagnosticReport
-JSON documents for seamless integration with enterprise Electronic Health Record (EHR)
-systems like Epic, Cerner, and Allscripts.
-"""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -12,9 +6,7 @@ from typing import Any, Dict, Optional
 
 
 def export_to_fhir_diagnostic_report(scan: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Convert an OphthalmoAI ScanResult into a valid HL7 FHIR R4 DiagnosticReport JSON structure.
-    """
+    
     scan_id = str(scan.get("scan_id") or scan.get("id") or "UNKNOWN")
     patient_ref = f"Patient/{scan.get('user_id') or 'ANONYMOUS'}"
     effective_dt = scan.get("timestamp") or datetime.now(timezone.utc).isoformat()

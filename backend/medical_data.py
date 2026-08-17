@@ -1,10 +1,4 @@
-"""
-Comprehensive Clinical Medical Knowledge Base for OphthalmoAI.
 
-Provides doctor-level medical insights, pathophysiology explanations, visual findings,
-recommended diagnostic workups (Slit-lamp, Tonometry, OCT), precautions, treatment protocols,
-differential diagnoses, and clinical consultation notes for eye conditions.
-"""
 from __future__ import annotations
 
 from typing import Any, Dict

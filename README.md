@@ -21,11 +21,11 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 ---
 
 ## 🌟 Key Innovations
-
-1. **Monolithic Vision Pipeline:** Bypasses legacy complex multi-model bottlenecks. A blazing-fast **EfficientNet-B4** monolithic model classifies all 12 conditions with extreme precision, leveraging a unified feature space.
-2. **Clinical Trust & Explainability:** Generates deterministic **Grad-CAM visual heatmaps**, overlaying critical pathological evidence directly onto the patient's eye scan so clinicians can instantly verify *why* the AI made its decision.
-3. **Structural LLM Guardrails:** Integrates **Gemini 2.0 Flash** strictly as an explanatory UI layer. The LLM is structurally isolated from making diagnostic decisions, effectively neutralizing medical hallucination risks.
-4. **Hardware Optimized Telemetry:** Fully containerized using the official **NVIDIA PyTorch NGC 26.07** image. Trains an EfficientNet-B4 model natively on an RTX 5060 in just **23.5s per epoch** utilizing only **2.05 GB VRAM** via `torch.amp` mixed precision.
+1. **Meta-Classifier Ensemble Architecture:** Uses a state-of-the-art meta-classifier to intelligently combine predictions from three massive Vision models (ConvNeXt-Small, DenseNet-201, and EfficientNet-V2). This allows for near-perfect point-of-care clinical diagnostics by capturing both fine-grained vascular anomalies and robust structural features.
+2. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
+3. **Hardware Optimized for 8GB VRAM:** Employs Automatic Mixed Precision (AMP), gradient scaling, and aggressive VRAM garbage collection to train three SOTA models natively on a single NVIDIA RTX 5060 Laptop GPU.
+4. **LLM Structural Guardrails:** Integrates Gemini 2.0 Flash into the point-of-care interface, restricted strictly to answering questions and contextualizing the deterministic vision pipeline results, preventing clinical hallucination.
+5. **Comprehensive Dockerized Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration testing, running entirely in isolated ephemeral Docker containers to ensure zero environment pollution.
 
 ---
 

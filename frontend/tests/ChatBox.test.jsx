@@ -5,6 +5,6 @@ import ChatBot from '../src/ChatBox';
 describe('ChatBox Component', () => {
   it('renders without crashing', () => {
     render(<ChatBot chatHistory={[]} />);
-    expect(screen.getByText(/Ask follow-up questions/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Open AI Doctor chat/i })).toBeInTheDocument();
   });
 });

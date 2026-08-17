@@ -1,4 +1,5 @@
 import os
+import gc
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,13 +7,12 @@ from torchvision import models
 from prepare_dataset import prepare_dataloaders
 from metric_logger import HardwareTelemetry
 
-# RTX 5060 8GB Optimizations
-torch.backends.cudnn.benchmark = True # Enable cuDNN auto-tuner
+torch.backends.cudnn.benchmark = True
 
 MANIFEST_PATH = './dataset/manifest.csv'
 DATASET_ROOT = './dataset'
 NUM_CLASSES = 12
-BATCH_SIZE = 4 # Reduced from 16 to 4 to prevent 8GB VRAM OOM when running 3 models
+BATCH_SIZE = 4
 EPOCHS = int(os.environ.get('EPOCHS', 1))
 
 def get_convnext():
@@ -40,7 +40,6 @@ class MetaEnsemble(nn.Module):
         self.model2 = model2
         self.model3 = model3
         
-        # Freeze base models
         for param in self.model1.parameters():
             param.requires_grad = False
         for param in self.model2.parameters():
@@ -48,7 +47,6 @@ class MetaEnsemble(nn.Module):
         for param in self.model3.parameters():
             param.requires_grad = False
             
-        # Meta-Classifier: takes logits from 3 models (12 * 3 = 36) and outputs 12
         self.meta_classifier = nn.Sequential(
             nn.Linear(NUM_CLASSES * 3, 64),
             nn.ReLU(),
@@ -69,7 +67,7 @@ def train_base_model(model_name, model_fn, device, train_loader):
     print(f"--- Training Base Model: {model_name} ---")
     model = model_fn().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=1e-4)
     scaler = torch.amp.GradScaler('cuda')
     
     for epoch in range(1, EPOCHS + 1):
@@ -87,6 +85,10 @@ def train_base_model(model_name, model_fn, device, train_loader):
                 loss = criterion(outputs, labels)
             
             scaler.scale(loss).backward()
+            
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             scaler.step(optimizer)
             scaler.update()
             
@@ -98,8 +100,10 @@ def train_base_model(model_name, model_fn, device, train_loader):
             if (i + 1) % 10 == 0:
                 print(f"[{model_name}] Epoch [{epoch}/{EPOCHS}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}, Acc: {100. * correct / total:.2f}%")
     
+    model.to('cpu')
     del optimizer
     del scaler
+    gc.collect()
     torch.cuda.empty_cache()
     
     return model
@@ -114,23 +118,19 @@ def train():
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    # Phase 1: Train Base Models
     convnext = train_base_model("ConvNeXt-Small", get_convnext, device, train_loader)
     densenet = train_base_model("DenseNet-201", get_densenet, device, train_loader)
     effnet = train_base_model("EfficientNet-V2", get_efficientnet_v2, device, train_loader)
     
-    # Save base models
     os.makedirs('models', exist_ok=True)
     torch.save(convnext.state_dict(), 'models/convnext_small.pth')
     torch.save(densenet.state_dict(), 'models/densenet201.pth')
     torch.save(effnet.state_dict(), 'models/efficientnet_v2_m.pth')
     print("Base models saved successfully.")
     
-    # Phase 2: Train Meta Classifier
     print("--- Training Meta-Classifier ---")
     ensemble = MetaEnsemble(convnext, densenet, effnet).to(device)
     criterion = nn.CrossEntropyLoss()
-    # Only optimizing meta_classifier parameters
     optimizer = optim.Adam(ensemble.meta_classifier.parameters(), lr=1e-3)
     
     for epoch in range(1, EPOCHS + 1):
@@ -145,12 +145,11 @@ def train():
             inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
             
-            # Autocast for meta classifier
             with torch.amp.autocast('cuda'):
                 outputs = ensemble(inputs)
                 loss = criterion(outputs, labels)
             
-            loss.backward() # Scaler optional for simple linear layers, but works fine
+            loss.backward()
             optimizer.step()
             
             running_loss += loss.item()

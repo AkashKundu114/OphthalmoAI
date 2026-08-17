@@ -1,16 +1,4 @@
-"""
-Evaluate OphthalmoAI specialist models on held-out validation data.
 
-Run after training (and optionally after calibration):
-    python scripts/evaluate_models.py
-
-Produces:
-  - Console table of sensitivity / specificity / AUC / ECE per class
-  - models/validation_report.json with machine-readable metrics
-
-The JSON report is what you reference in docs/CLINICAL_VALIDATION.md and what
-register_model() in backend/model_registry.py stores alongside each checkpoint.
-"""
 import argparse
 import json
 import os
@@ -66,8 +54,7 @@ def build_efficientnet(num_classes: int) -> nn.Module:
 
 
 def expected_calibration_error(probs: np.ndarray, labels: np.ndarray, n_bins: int = 10) -> float:
-    """Computes ECE: mean |accuracy - confidence| across probability bins.
-    Lower is better (0.0 = perfectly calibrated)."""
+    
     bin_boundaries = np.linspace(0, 1, n_bins + 1)
     ece = 0.0
     confidences = probs.max(axis=1)

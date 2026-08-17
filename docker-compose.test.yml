@@ -6,7 +6,7 @@ services:
     environment:
       - "DATABASE_URL=sqlite:///:memory:"
       - "JWT_SECRET_KEY=testsecret"
-    command: pytest tests/
+    command: pytest backend/tests/
 
   frontend-test:
     build:

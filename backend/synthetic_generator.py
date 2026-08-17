@@ -5,12 +5,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 def generate_synthetic_fundus(condition: str, severity: str = "moderate") -> Tuple[str, str]:
-    """
-    Generates a realistic mock fundus retinal photograph with simulated pathological features,
-    and returns (image_file_path, heatmap_file_path).
-
-    Acts as the AI-Powered Synthetic Case Generator for junior clinicians/students.
-    """
+    
 
     img = Image.new("RGB", (512, 512), color=(10, 10, 10))
     draw = ImageDraw.Draw(img)

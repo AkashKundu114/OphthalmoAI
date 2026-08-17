@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import gc
 import io
 import os
@@ -125,13 +123,7 @@ MONOLITHIC_CLASSES = [
 
 MONOLITHIC_MODEL: Optional[nn.Module] = None
 
-OPHTHALMOLOGY_SYSTEM_PROMPT = """You are OphthalmoAI Doctor, a specialized AI educational assistant focused exclusively on ophthalmology and eye health.
-
-STRICT CLINICAL & SAFETY BOUNDARIES:
-1. Focus strictly on eye health, eye conditions, symptoms, and eye care education.
-2. Politely refuse all off-topic requests (such as coding, general tasks, essays, math, or roleplay) with: "I am specialized strictly in eye health and eye conditions. Please ask an eye-health question."
-3. NEVER provide a definitive diagnosis or generate drug prescriptions or exact dosage instructions. Always frame outputs as AI screening guidance.
-4. For acute emergencies (sudden vision loss, chemical exposure, eye trauma), instruct the user to contact emergency services (911 / 112 / Emergency Eye Care) immediately."""
+OPHTHALMOLOGY_SYSTEM_PROMPT = 
 
 preprocess = transforms.Compose([
     transforms.Resize((380, 380)),
@@ -340,14 +332,7 @@ async def _log_audit_async(
     db: AsyncSession, action: str, success: bool = True, user_id: Optional[str] = None,
     ip_address: Optional[str] = None, error_detail: Optional[str] = None,
 ) -> None:
-    """Async counterpart to audit.log_event() for the two endpoints (register, login)
-    that were converted to AsyncSession as part of the auth.py async migration.
-    audit.log_event() itself still expects a sync Session and is unmodified - every
-    other call site in this file (predict, chat) still uses it unchanged. This function
-    exists specifically so register()/login() don't silently stop writing to the
-    audit_logs table, which docs/clinical/CLINICAL_SAFETY.md documents as covering every
-    login and registration - dropping that quietly would be a real regression, not a
-    cosmetic one, so it gets its own async-safe path rather than being skipped."""
+    
     log_fn = logger.info if success else logger.warning
     log_fn("audit.event", action=action, success=success, user_id=user_id, ip=ip_address)
     try:
@@ -411,9 +396,7 @@ def get_conditions():
 
 
 def generate_spatial_description(diagnosis: str) -> str:
-    """
-    Generates simulated clinical spatial annotation for Grad-CAM activations.
-    """
+    
     import random
     quadrants = ["superotemporal macular arcade", "inferonasal quadrant near optic disc", "foveal center", "peripapillary region", "inferotemporal retinal periphery"]
     patterns = {
@@ -458,8 +441,8 @@ async def predict(
     user_id   = current_user.id if current_user else None
     req_id    = getattr(request.state, "request_id", None)
 
-        if MONOLITHIC_MODEL is None:
-            raise HTTPException(503, detail="Monolithic model not loaded.")
+    if MONOLITHIC_MODEL is None:
+        raise HTTPException(503, detail="Monolithic model not loaded.")
 
     if len(contents) > MAX_FILE_SIZE:
         log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
@@ -493,7 +476,6 @@ async def predict(
 
         with torch.no_grad():
             out            = MONOLITHIC_MODEL(input_tensor)
-            # Use calibration if available for the monolith model, otherwise raw logits
             calibration_temperature = CALIBRATION_REGISTRY.get("monolith")
             is_calibrated         = CALIBRATION_REGISTRY.is_calibrated("monolith")
             calibrated_out = apply_temperature(out[0], calibration_temperature)
@@ -992,9 +974,7 @@ class AppointmentCreate(BaseModel):
 
 @app.post("/predict/multimodal")
 def predict_multimodal_risk(req: MultimodalRiskRequest):
-    """
-    Calculate joint cardiovascular and progression threats (Multi-Modal Clinical Fusion).
-    """
+    
     bp_ratio = req.systolic_bp / 120.0
     hba1c_risk = max(1.0, req.hba1c / 5.7)
 
@@ -1014,9 +994,7 @@ def predict_multimodal_risk(req: MultimodalRiskRequest):
 
 @app.get("/scans/history/{user_id}")
 def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
-    """
-    Calculate and project time-series diagnostics (Longitudinal Progression Tracking).
-    """
+    
 
     scans = db.query(ScanResult).filter(ScanResult.user_id == user_id).order_by(ScanResult.created_at.asc()).all()
     history = []
@@ -1052,9 +1030,7 @@ def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
 
 @app.post("/admin/pacs-import")
 def pacs_import_dicom(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user)):
-    """
-    Simulates importing raw DICOM files from hospital PACS (Epic/Cerner Middleware).
-    """
+    
     from .pacs_middleware import parse_simulated_dicom
 
     mock_bytes = b"MOCK-DICOM-IMAGE-PIXELS"
@@ -1092,9 +1068,7 @@ def pacs_import_dicom(db: Session = Depends(get_db), current_user: Optional[User
 
 @app.get("/admin/triage-queue")
 def get_triage_queue(db: Session = Depends(get_db)):
-    """
-    Clinician verification worklist (Human-in-the-Loop Triage Network).
-    """
+    
     pending = db.query(ScanResult).filter(ScanResult.sign_off_status == "pending").all()
     return {
         "queue_length": len(pending),
@@ -1120,9 +1094,7 @@ def sign_off_scan(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user)
 ):
-    """
-    Locks diagnosis or applies clinician override (Human-in-the-Loop Triage Network).
-    """
+    
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan result not found")
@@ -1161,9 +1133,7 @@ def sign_off_scan(
 
 @app.get("/scans/{scan_id}/details")
 def get_scan_details(scan_id: str, db: Session = Depends(get_db)):
-    """
-    Get composite diagnostic results (combines SQL metadata + MongoDB document payloads).
-    """
+    
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan result not found")
@@ -1185,9 +1155,7 @@ def get_scan_details(scan_id: str, db: Session = Depends(get_db)):
 
 @app.post("/admin/federated/sync")
 def sync_federated_nodes():
-    """
-    Secure local gradient updates aggregator (Federated Learning).
-    """
+    
     from .federated import FederatedServer
     server = FederatedServer()
     result = server.trigger_aggregation_round()
@@ -1195,9 +1163,7 @@ def sync_federated_nodes():
 
 @app.post("/admin/synthetic/generate")
 def generate_synthetic_case(condition: str, severity: str = Form(default="moderate")):
-    """
-    Generates educational fundus mock cases (Synthetic Case Generator).
-    """
+    
     from .synthetic_generator import generate_synthetic_fundus
     img_url, heatmap_url = generate_synthetic_fundus(condition, severity)
     return {
@@ -1210,9 +1176,7 @@ def generate_synthetic_case(condition: str, severity: str = Form(default="modera
 
 @app.post("/scans/compress")
 async def compress_uploaded_image(file: UploadFile = File(...)):
-    """
-    Shrinks high-res images down preserving diagnosis shape (Low-Bandwidth Compression).
-    """
+    
     from .iqa import compress_retinal_image
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
@@ -1229,9 +1193,7 @@ async def compress_uploaded_image(file: UploadFile = File(...)):
 
 @app.post("/appointments")
 def schedule_appointment(appt: AppointmentCreate, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user)):
-    """
-    Logs appointments and schedules reminders (Patient CRM Adherence).
-    """
+    
     if not current_user:
         current_user = db.query(User).first()
         if not current_user:

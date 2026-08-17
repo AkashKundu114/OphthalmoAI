@@ -6,13 +6,12 @@ from torchvision import models
 from prepare_dataset import prepare_dataloaders
 from metric_logger import HardwareTelemetry
 
-# RTX 5060 8GB Optimizations
-torch.backends.cudnn.benchmark = True # Enable cuDNN auto-tuner
+torch.backends.cudnn.benchmark = True
 
 MANIFEST_PATH = './dataset/manifest.csv'
 DATASET_ROOT = './dataset'
 NUM_CLASSES = 12
-BATCH_SIZE = 32 # V2-S is memory efficient, 32 should fit in 8GB with Mixed Precision
+BATCH_SIZE = 32
 EPOCHS = 10
 
 def get_model():
@@ -34,7 +33,6 @@ def train():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     
-    # Mixed Precision Scaler for RTX Tensor Cores
     scaler = torch.amp.GradScaler('cuda')
 
     for epoch in range(1, EPOCHS + 1):

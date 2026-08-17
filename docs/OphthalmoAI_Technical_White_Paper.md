@@ -5,7 +5,7 @@
 ## 1. Executive Summary
 The global shortage of ophthalmologists necessitates scalable, accessible triage solutions. However, deploying Artificial Intelligence in healthcare requires strict adherence to clinical safety, interpretability, and data security. 
 
-**OphthalmoAI** is a comprehensive, full-stack medical platform that provides point-of-care screening for twelve visible eye conditions. Moving away from overly complex and slow legacy pipelines, the platform introduces a fast Monolithic EfficientNet-B4 vision pipeline, interpretable Grad-CAM heatmaps, and a structurally guardrailed conversational assistant powered by Gemini 2.0 Flash. Backed by a secure, asynchronous FastAPI backend, OphthalmoAI demonstrates enterprise-grade system design capable of integrating into modern clinical workflows.
+**OphthalmoAI** is a comprehensive, full-stack medical platform that provides point-of-care screening for twelve visible eye conditions. Moving away from single-model limitations, the platform introduces a state-of-the-art **Meta-Classifier Ensemble Pipeline** (incorporating ConvNeXt, DenseNet, and EfficientNet-V2), interpretable Grad-CAM heatmaps, and a structurally guardrailed conversational assistant powered by Gemini 2.0 Flash. Backed by a secure, asynchronous FastAPI backend, OphthalmoAI demonstrates enterprise-grade system design capable of integrating into modern clinical workflows.
 
 This white paper outlines the architectural decisions, security implementations, and AI safety mechanisms engineered to make OphthalmoAI a robust, production-ready solution.
 
@@ -28,9 +28,10 @@ The core backend is built using **FastAPI**, chosen for its high-performance asy
 *   **Database:** We utilized **AsyncSQLAlchemy** and **Alembic** to manage a non-blocking PostgreSQL/SQLite database. This ensures high throughput for concurrent scan uploads and metadata queries.
 *   **Authentication:** Stateless **JWT (JSON Web Tokens)** implement role-based access control (RBAC). The system distinguishes between standard users (patients) and administrative clinicians who have the authority to submit override diagnoses.
 
-### 3.2 The Monolithic Vision Pipeline
-To solve the complexity bottleneck, OphthalmoAI employs a **Monolithic Paradigm**:
-*   **The Model (EfficientNet-B4):** A single, highly-optimized EfficientNet-B4 model analyzes the image to directly classify all 12 distinct conditions. EfficientNet-B4 was selected as the optimal architecture for maximizing parameter efficiency while achieving high top-1 accuracy on fine-grained conditions like Cataracts, Uveitis, Ptosis, or Keratitis in a unified feature space.
+### 3.2 The Meta-Classifier Ensemble Pipeline
+To achieve state-of-the-art clinical accuracy across diverse pathologies, OphthalmoAI employs a **Weighted Ensemble Paradigm**:
+*   **The Base Models (ConvNeXt, DenseNet-201, EfficientNet-V2):** Rather than relying on a single architecture, the pipeline extracts deep spatial features using three distinct, highly-optimized neural networks. DenseNet captures fine-grained vascular anomalies, while ConvNeXt and EfficientNet-V2 provide robust structural classification.
+*   **The Meta-Classifier:** The predictions from all three base models are concatenated and passed through a highly optimized Linear Meta-Classifier, which mathematically weights the models based on their historical accuracy, producing a single, highly confident clinical prediction across all 12 conditions.
 
 ### 3.3 Explainability Engine (Grad-CAM)
 To build clinical trust, the pipeline integrates **Grad-CAM (Gradient-weighted Class Activation Mapping)**. During inference, the backend calculates the gradients of the target concept in the final convolutional layer of the expert model. The resulting heatmap is superimposed over the original scan, visually highlighting the pathology (e.g., inflamed conjunctival vessels) that triggered the prediction.
@@ -38,7 +39,7 @@ To build clinical trust, the pipeline integrates **Grad-CAM (Gradient-weighted C
 ### 3.4 Hardware Optimization & Docker Containerization
 To support the computationally demanding EfficientNet-B4 expert models across consumer-grade Blackwell/Ada GPUs (e.g., NVIDIA RTX 5060 8GB), OphthalmoAI implements strict hardware optimization profiles.
 *   **NVIDIA NGC Integration:** Training environments are fully containerized using the official NVIDIA PyTorch image (`nvcr.io/nvidia/pytorch:26.07-py3`), allowing absolute host isolation while bypassing severe OS-level dependency bottlenecks in Python 3.12. Dockerized GPU training natively outperforms bare-metal Windows training by up to 38%.
-*   **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) drastically drops the memory footprint. The unified pipeline trains EfficientNet-B4 models at a peak VRAM utilization of just **2.05 GB**, leaving ample headroom for inference caching.
+*   **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) allows the sequential training and execution of three massive deep learning models on consumer hardware. The pipeline trains base models at a highly optimized batch configuration, managing garbage collection to prevent memory fragmentation on an 8GB NVIDIA RTX 5060.
 *   **Hardware Telemetry:** A custom `HardwareTelemetry` suite continuously profiles and logs CPU/GPU heat, system RAM, VRAM utilitization, and model convergence into structured artifacts for performance auditing.
 
 ---

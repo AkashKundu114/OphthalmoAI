@@ -4,10 +4,7 @@ from typing import Dict, Any, Tuple
 from datetime import datetime, timezone
 
 def parse_simulated_dicom(image_bytes: bytes) -> Dict[str, Any]:
-    """
-    Simulate parsing DICOM metadata from binary files received from a PACS server.
-    This acts as the Epic/Cerner middleware parser.
-    """
+    
 
     patient_id = f"PAT-{uuid.uuid4().hex[:6].upper()}"
     study_uid = f"1.2.840.10008.5.1.4.1.1.7.{uuid.uuid4().hex[:12].upper()}"
@@ -25,9 +22,7 @@ def parse_simulated_dicom(image_bytes: bytes) -> Dict[str, Any]:
     }
 
 def sync_to_ehr_middleware(scan_id: str, report_data: Dict[str, Any]) -> Tuple[bool, str]:
-    """
-    Simulates FHIR bundle synchronization over HL7 FHIR interface to Epic/Cerner EHR systems.
-    """
+    
 
     ehr_provider = "Epic Systems Interconnect (OAuth2)" if len(scan_id) % 2 == 0 else "Cerner Millennium (HL7 v2)"
     return True, f"Successfully synchronised report {scan_id} to EHR provider: {ehr_provider}"

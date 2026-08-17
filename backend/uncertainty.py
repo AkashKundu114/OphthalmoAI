@@ -14,19 +14,7 @@ def mc_dropout_predict(
     input_tensor: torch.Tensor,
     n_passes: int = 8,
 ) -> Tuple[torch.Tensor, float]:
-    """
-    Perform Monte Carlo Dropout predictions to estimate model epistemic uncertainty.
-
-    Args:
-        model: The trained PyTorch neural network model.
-        input_tensor: The preprocessed input image tensor.
-        n_passes: Number of forward passes to perform with dropout active.
-
-    Returns:
-        A tuple containing:
-            - The mean probability distribution tensor over the classes.
-            - The epistemic uncertainty (variance sum across classes) as a float.
-    """
+    
     was_training = model.training
     model.train()
     try:
@@ -50,23 +38,7 @@ def needs_human_review(
     uncertainty_threshold: float = DEFAULT_UNCERTAINTY_THRESHOLD,
     critical_confidence_threshold: float = CRITICAL_CONFIDENCE_THRESHOLD,
 ) -> Tuple[bool, List[str]]:
-    """
-    Evaluate if an AI classification requires human review based on confidence, uncertainty,
-    and clinical criticality guidelines.
-
-    Args:
-        diagnosis: The predicted classification label.
-        confidence_fraction: The calibrated prediction probability (0.0 to 1.0).
-        uncertainty: Estimated epistemic uncertainty.
-        confidence_threshold: Review threshold for standard diagnoses.
-        uncertainty_threshold: Max uncertainty allowed before requiring review.
-        critical_confidence_threshold: Review threshold for sight-threatening diagnoses.
-
-    Returns:
-        A tuple containing:
-            - A boolean indicating if review is required.
-            - A list of string reasons explaining why review is required (if any).
-    """
+    
     reasons: List[str] = []
     if confidence_fraction < confidence_threshold:
         reasons.append(f"Confidence ({confidence_fraction*100:.1f}%) is below the {confidence_threshold*100:.0f}% review threshold.")
@@ -82,16 +54,6 @@ def build_review_payload(
     confidence_fraction: float,
     uncertainty: float,
 ) -> Dict[str, Any]:
-    """
-    Construct the database clinician review payload for an AI screening task.
-
-    Args:
-        diagnosis: The predicted eye condition.
-        confidence_fraction: Calibrated probability.
-        uncertainty: Epistemic uncertainty value.
-
-    Returns:
-        A dictionary containing keys: 'requires_human_review', 'review_reasons', and 'uncertainty'.
-    """
+    
     flagged, reasons = needs_human_review(diagnosis, confidence_fraction, uncertainty)
     return {"requires_human_review": flagged, "review_reasons": reasons, "uncertainty": round(uncertainty, 4)}

@@ -9,8 +9,8 @@ from metric_logger import HardwareTelemetry
 MANIFEST_PATH = './dataset/manifest.csv'
 DATASET_ROOT = './dataset'
 NUM_CLASSES = 12
-BATCH_SIZE = 16 # Keep it small for CPU
-EPOCHS = 5 # Fewer epochs since CPU is slow
+BATCH_SIZE = 16
+EPOCHS = 5
 
 def get_model():
     model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
@@ -20,7 +20,6 @@ def get_model():
 
 def train():
     print("Initializing ResNet50 Training (CPU ONLY)...")
-    # Tell the logger we are not using GPU
     telemetry = HardwareTelemetry(use_gpu=False, model_name="CPU-ResNet50")
     
     train_loader, val_loader, test_loader, classes = prepare_dataloaders(

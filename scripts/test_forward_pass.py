@@ -12,7 +12,6 @@ def test_forward_pass():
     model = models.resnet50().to(device)
     model.eval()
     
-    # Create a dummy batch of 1 image
     inputs = torch.randn(1, 3, 224, 224).to(device)
     
     print("Executing forward pass...")

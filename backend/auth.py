@@ -54,7 +54,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 def hash_password(plain: str) -> str:
-    """Hash a password using bcrypt (if available) or PBKDF2-HMAC-SHA256."""
+    
     if BCRYPT_AVAILABLE:
         pwd_bytes = plain.encode("utf-8")
         salt = bcrypt.gensalt(rounds=12)
@@ -65,7 +65,7 @@ def hash_password(plain: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verify a password against a bcrypt or PBKDF2 hash."""
+    
     try:
         if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
             if BCRYPT_AVAILABLE:
@@ -200,7 +200,7 @@ def require_role(*roles: str):
 
 
 def revoke_token(token: str) -> None:
-    """In-memory blacklist write only — no DB — stays sync."""
+    
     try:
         payload = jwt.decode(
             token, SECRET_KEY, algorithms=[ALGORITHM],

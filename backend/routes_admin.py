@@ -1,9 +1,4 @@
-"""
-Router module for administrative and clinician endpoints:
-- Clinician overrides
-- Model registry management
-- Audit logging access
-"""
+
 from __future__ import annotations
 
 from typing import List, Optional

@@ -1,16 +1,4 @@
-"""
-Calibrate confidence scores for OphthalmoAI's specialist models.
 
-Run once after training, before production deployment:
-    python scripts/calibrate_models.py
-
-Reads your dataset split from dataset/ (or a --val-dir override), runs each
-trained specialist model's validation set through the TemperatureScaler, and
-writes models/calibration.json with the optimal temperature per group.
-
-After calibration, the /predict endpoint's confidence figures will actually reflect
-the model's measured accuracy rather than being systematically overconfident.
-"""
 import argparse
 import json
 import os

@@ -1,21 +1,4 @@
-"""
-Async database engine/session, additive to backend/db.py.
 
-backend/db.py's engine, SessionLocal, and get_db() are synchronous SQLAlchemy and are left
-untouched here — audit.py, model_registry.py, and every other module that already depends on
-the sync session keep working exactly as before. This module exists solely so that
-backend/auth.py's request-hot-path functions (get_current_user, require_role, authenticate_user)
-can use a real async engine instead of blocking the event loop on every login/token check.
-
-Driver note: DATABASE_URL as written in db.py ("sqlite:///./ophthalmoai.db",
-"postgresql://...") is a *sync* DBAPI URL. Async SQLAlchemy needs an async driver:
-  - sqlite:///           -> sqlite+aiosqlite:///
-  - postgresql://        -> postgresql+asyncpg://
-_to_async_url() below does that translation automatically so operators don't need to
-maintain two separate DATABASE_URL-shaped env vars. Requires `aiosqlite` (dev) and/or
-`asyncpg` (prod) to be installed - neither is currently in backend/requirements.txt,
-see the note added there.
-"""
 from __future__ import annotations
 
 import os

@@ -175,7 +175,7 @@ _EMERGENCY_RE = re.compile("|".join(_EMERGENCY_PATTERNS), re.IGNORECASE)
 
 
 def detect_medical_emergency(text: str) -> Tuple[bool, Optional[str]]:
-    """Scan text for acute, sight-threatening medical emergency keywords."""
+    
     if not text or not isinstance(text, str):
         return False, None
     match = _EMERGENCY_RE.search(text)
