@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
-    const allowedHosts = (process.env.VITE_ALLOWED_HOSTS || '')
+  const allowedHosts = (process.env.VITE_ALLOWED_HOSTS || '')
     .split(',')
     .map(h => h.trim())
     .filter(Boolean)
@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
           target: backendTarget,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api/, ''),
         }
       }
     }

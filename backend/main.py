@@ -123,7 +123,14 @@ MONOLITHIC_CLASSES = [
 
 MONOLITHIC_MODEL: Optional[nn.Module] = None
 
-OPHTHALMOLOGY_SYSTEM_PROMPT = 
+OPHTHALMOLOGY_SYSTEM_PROMPT = (
+    "You are OphthalmoAI Doctor, a specialized AI educational assistant focused exclusively on ophthalmology and eye health.\n\n"
+    "STRICT CLINICAL & SAFETY BOUNDARIES:\n"
+    "1. Focus strictly on eye health, eye conditions, symptoms, and eye care education.\n"
+    "2. Politely refuse all off-topic requests.\n"
+    "3. NEVER provide a definitive diagnosis or generate drug prescriptions or exact dosage instructions.\n"
+    "4. For acute emergencies, instruct the user to contact emergency services immediately."
+)
 
 preprocess = transforms.Compose([
     transforms.Resize((380, 380)),
@@ -139,7 +146,7 @@ def build_monolithic_model(num_classes: int) -> nn.Module:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ROUTER_MODEL, SPECIALIST_MODELS
+    global MONOLITHIC_MODEL
 
     logger.info("startup.begin", device=str(DEVICE), environment=_ENV)
 
@@ -288,29 +295,88 @@ _SEVERITY_ICON = {"info": "✅", "warning": "⚠️", "urgent": "🚨"}
 
 def _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness,
                            halos="No", discharge="None", light_sensitivity="No",
-                           floaters="No", duration="Not Sure"):
+                           floaters="No", duration="Not Sure", **kwargs):
     alerts = []
-    if diagnosis == "Conjunctivitis" and pain_level == "Severe":
-        alerts.append(("warning", "Pain Mismatch: Severe pain is unusual for Pink Eye. Rule out Glaucoma or Keratitis."))
-    if vision_loss == "Yes" and diagnosis in ["Conjunctivitis", "Eyelid"]:
-        alerts.append(("warning", "Vision Loss Warning: Surface/Eyelid conditions rarely affect vision."))
-    if itchiness == "Yes" and diagnosis == "Conjunctivitis":
-        alerts.append(("info", "Symptom Match: Itchiness strongly supports Allergic Conjunctivitis."))
-    if diagnosis == "Jaundice":
-        alerts.append(("urgent", "URGENT: Scleral Icterus is a systemic emergency. Seek immediate evaluation."))
-    if diagnosis == "Uveitis" and pain_level in ["Mild", "Severe"]:
-        alerts.append(("urgent", "URGENT: Uveitis with pain is sight-threatening. Seek ophthalmologist immediately."))
-    if halos == "Yes" and diagnosis == "Cataract":
-        alerts.append(("info", "Symptom Match: Halos around lights strongly support a Cataract diagnosis."))
-    if floaters == "Yes" and diagnosis not in ["Uveitis", "Normal"]:
-        alerts.append(("warning", "Floaters Reported: Consider ruling out Vitreous Detachment or Retinal Tear."))
-    if light_sensitivity == "Yes" and diagnosis == "Uveitis":
-        alerts.append(("urgent", "URGENT: Light sensitivity with Uveitis is sight-threatening."))
-    if discharge == "Thick/Yellow" and diagnosis == "Conjunctivitis":
-        alerts.append(("info", "Symptom Match: Thick/yellow discharge supports Bacterial Conjunctivitis."))
-    if duration == ">1 month" and diagnosis in ["Conjunctivitis", "Eyelid"]:
-        alerts.append(("warning", "Chronic Duration: Symptoms lasting over a month warrant further evaluation."))
+    p_lower = str(pain_level).lower()
+    v_lower = str(vision_loss).lower()
+    i_lower = str(itchiness).lower()
+    h_lower = str(halos).lower()
+    d_lower = str(discharge).lower()
+    l_lower = str(light_sensitivity).lower()
+    f_lower = str(floaters).lower()
+    dur_lower = str(duration).lower()
+
+    # Cataract cross-checks
+    if diagnosis == "Cataract":
+        if "yes" in h_lower or "rainbow" in h_lower:
+            alerts.append(("info", "Symptom Concordance: Light halos & glare strongly correlate with lenticular opacification."))
+        if "severe" in p_lower or "throbbing" in p_lower:
+            alerts.append(("urgent", "Atypical Presentation: Severe pain is NOT typical for uncomplicated cataract. Rule out secondary phacolytic glaucoma or acute angle closure."))
+        if "yes" in v_lower or "blur" in v_lower:
+            alerts.append(("info", "Clinical Match: Progressive painless visual acuity reduction is consistent with cataract formation."))
+
+    # Uveitis cross-checks
+    elif diagnosis == "Uveitis":
+        if "severe" in p_lower or "moderate" in p_lower or "throbbing" in p_lower:
+            alerts.append(("urgent", "URGENT TRIAGE: Deep ciliary/ocular pain with suspected Uveitis represents a sight-threatening inflammatory condition."))
+        if "yes" in l_lower or "severe" in l_lower:
+            alerts.append(("urgent", "Photophobia Alert: Severe light sensitivity reflects acute ciliary spasm and anterior chamber inflammation."))
+        if "yes" in f_lower:
+            alerts.append(("warning", "Vitreous Floaters: Vitritis or intermediate/posterior uveitis must be evaluated with dilated fundoscopy."))
+
+    # Keratitis cross-checks
+    elif diagnosis == "Keratitis":
+        alerts.append(("urgent", "CRITICAL CORNEAL EMERGENCY: Suspected Keratitis requires immediate same-day slit-lamp examination to rule out bacterial/fungal corneal ulceration."))
+        if "severe" in p_lower or "foreign" in p_lower:
+            alerts.append(("info", "Corneal Reflex: Sharp pain and foreign body sensation directly match corneal epithelial compromise."))
+        if "purulent" in d_lower or "yellow" in d_lower:
+            alerts.append(("urgent", "Bacterial Infiltration: Purulent discharge warrants urgent corneal scraping and fortified antimicrobial therapy."))
+
+    # Conjunctivitis cross-checks
+    elif diagnosis == "Conjunctivitis":
+        if "severe" in p_lower or "throbbing" in p_lower:
+            alerts.append(("warning", "Pain Discrepancy: Severe pain is atypical for simple pink eye. Rule out acute keratitis, scleritis, or acute glaucoma."))
+        if "yes" in v_lower or "significant" in v_lower:
+            alerts.append(("warning", "Vision Threat Alert: Significant vision loss is NOT expected in conjunctivitis. Urgent ophthalmic evaluation recommended."))
+        if "yes" in i_lower or "itch" in i_lower:
+            alerts.append(("info", "Allergic Phenotype: Prominent pruritus (itching) indicates allergic conjunctivitis etiology."))
+        if "purulent" in d_lower or "yellow" in d_lower or "crust" in d_lower:
+            alerts.append(("info", "Bacterial Phenotype: Purulent/mucopurulent discharge and crusting strongly suggest bacterial conjunctivitis."))
+
+    # Jaundice (Scleral Icterus) cross-checks
+    elif diagnosis == "Jaundice":
+        alerts.append(("urgent", "SYSTEMIC EMERGENCY: Scleral icterus reflects elevated serum bilirubin (hepatic/biliary pathology). Immediate comprehensive metabolic panel & systemic evaluation required."))
+
+    # Subconjunctival Hemorrhage cross-checks
+    elif diagnosis == "Subconjunctival Hemorrhage":
+        if "none" in p_lower and "no" in v_lower:
+            alerts.append(("info", "Benign Reassurance: Painless, sharply demarcated hemorrhage with preserved visual acuity is typical of benign subconjunctival bleeding."))
+        if "severe" in p_lower or "yes" in v_lower:
+            alerts.append(("warning", "Trauma / Coagulopathy Concern: Pain or vision deficit with subconjunctival bleeding warrants ruling out globe rupture or retrobulbar hemorrhage."))
+
+    # Ptosis cross-checks
+    elif diagnosis == "Ptosis":
+        if "acute" in dur_lower or "<24" in dur_lower:
+            alerts.append(("urgent", "Neurological Alert: Sudden acute onset ptosis requires immediate evaluation to rule out 3rd cranial nerve palsy or Horner's syndrome."))
+
+    # Blepharitis cross-checks
+    elif diagnosis == "Blepharitis":
+        if "yes" in i_lower or "crust" in d_lower:
+            alerts.append(("info", "Clinical Concordance: Lid margin pruritus and collarette debris are hallmark signs of anterior/posterior blepharitis."))
+
+    # Chalazion vs Stye cross-checks
+    elif diagnosis in ["Chalazion", "Stye"]:
+        if diagnosis == "Stye" and ("mild" in p_lower or "moderate" in p_lower or "severe" in p_lower):
+            alerts.append(("info", "Infectious Match: Acute focal tenderness and lid margin erythema correspond to hordeolum (stye)."))
+        elif diagnosis == "Chalazion" and "none" in p_lower:
+            alerts.append(("info", "Granulomatous Match: Chronic painless focal meibomian granuloma is characteristic of a chalazion."))
+
+    # General / Floater Cross-Checks
+    if "shower" in f_lower or ("yes" in f_lower and diagnosis not in ["Uveitis", "Normal"]):
+        alerts.append(("warning", "Posterior Segment Warning: New-onset floaters or flashes warrant dilated peripheral retinal examination to rule out retinal tear or detachment."))
+
     return alerts
+
 
 def analyze_symptoms(diagnosis, pain_level, vision_loss, itchiness, **kwargs):
     alerts = _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness, **kwargs)
@@ -359,8 +425,8 @@ def read_root():
     return {
         "status": "OphthalmoAI System Ready",
         "device": str(DEVICE),
-        "router_loaded": ROUTER_MODEL is not None,
-        "specialists_loaded": len(SPECIALIST_MODELS),
+        "model_loaded": MONOLITHIC_MODEL is not None,
+        "classes_count": len(MONOLITHIC_CLASSES),
         "chat_backend": chat_backend,
         "version": "2.1.0",
     }
@@ -443,6 +509,13 @@ async def predict(
 
     if MONOLITHIC_MODEL is None:
         raise HTTPException(503, detail="Monolithic model not loaded.")
+
+    if file.content_type and file.content_type.lower() not in ALLOWED_MIMES | {"application/octet-stream"}:
+        log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
+                  error_detail=f"rejected content-type: {file.content_type}")
+        raise HTTPException(415, detail=f"Unsupported file type '{file.content_type}'.")
+
+    contents = await file.read()
 
     if len(contents) > MAX_FILE_SIZE:
         log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
