@@ -121,17 +121,34 @@ OphthalmoAI/
 
 ## 📊 Performance Benchmarks & Telemetry
 
-OphthalmoAI features an integrated hardware telemetry pipeline designed to profile training runs across different compute architectures. Below are the verified benchmark results for the **EfficientNet-B4** and **ResNet50** models:
+OphthalmoAI features an integrated hardware telemetry pipeline designed to profile training runs across different compute architectures and precision formats. Below are the verified benchmark results:
 
-| Environment | Model | Time per Epoch | Peak VRAM | Final Accuracy | CPU Usage |
-|-------------|-------|----------------|-----------|----------------|-----------|
-| **Ryzen 9 8940HX (Bare-Metal)** | ResNet50 | `451.7s` | N/A | 81.61% | ~60% |
-| **RTX 5060 (Bare-Metal)** | ResNet50 | `55.0s` | 1.77 GB | 92.96% | ~63% |
-| **RTX 5060 (Bare-Metal)** | EfficientNet-V2-S | `51.9s` | 2.74 GB | 91.30% | ~45% |
-| **RTX 5060 (Bare-Metal)** | EfficientNet-B4 | `38.4s` | 2.05 GB | 96.27% | ~10% |
-| **RTX 5060 (Docker/NGC 26.07)** | EfficientNet-B4 | `23.5s` | 2.05 GB | **98.61%** | ~8% |
+| Model Architecture | Precision | Batch Size | Time per Epoch | Peak VRAM | Final Accuracy |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Meta-Classifier Ensemble (SOTA)** | **FP16** | **32** | **20.62s** | **0.96 GB** | **99.72%** |
+| **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51s** | **1.21 GB** | **99.67%** |
+| **ConvNeXt-Small** | **FP16** | **32** | **19.32s** | **3.64 GB** | **99.32%** |
+| **DenseNet-201** | **BF16** | **32** | **25.00s** | **3.45 GB** | **99.49%** |
+| **EfficientNet-V2-M** | **FP16** | **32** | **24.91s** | **4.62 GB** | **99.21%** |
+| *EfficientNet-B4 (Docker Single)* | *FP16* | *16* | *33.68s* | *2.00 GB* | *98.61%* |
+| *ResNet50 (Bare-Metal GPU)* | *FP32* | *16* | *52.09s* | *1.73 GB* | *92.96%* |
+| *ResNet50 (CPU Baseline)* | *FP32* | *16* | *460.79s* | *0.00 GB* | *81.61%* |
 
-> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please see the `docs/images/` directory or read `docs/PERFORMANCE_METRICS.md`.
+<p align="center">
+  <img src="docs/images/architecture_evolution_summary.png" alt="Architecture Evolution Summary" width="95%" />
+</p>
+
+### 🔬 Detailed Comparative Analysis
+* **Base Monolith Models (ConvNeXt vs DenseNet vs EfficientNet):**
+  <p align="center">
+    <img src="docs/images/base_monolith_models_comparison.png" alt="Base Monolith Comparison" width="95%" />
+  </p>
+* **Meta-Classifier Ensemble Optimization (BS=4 vs BS=32 Scaling):**
+  <p align="center">
+    <img src="docs/images/meta_classifier_comparison.png" alt="Meta Classifier Comparison" width="90%" />
+  </p>
+
+> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please read [`docs/PERFORMANCE_METRICS.md`](docs/PERFORMANCE_METRICS.md).
 
 ---
 

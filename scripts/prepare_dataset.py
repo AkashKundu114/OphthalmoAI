@@ -58,9 +58,9 @@ def prepare_dataloaders(csv_file, root_dir, batch_size=16, test_size=0.2, val_si
     val_dataset = RetinalDataset(val_df, root_dir, transform=val_test_transform)
     test_dataset = RetinalDataset(test_df, root_dir, transform=val_test_transform)
     
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=False, drop_last=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=False)
     
     print(f"Prepared DataLoaders:")
     print(f"Training: {len(train_dataset)} images")
