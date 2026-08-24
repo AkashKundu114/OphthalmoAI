@@ -90,8 +90,8 @@ az ad sp create-for-rbac \
 ## 5. Verify
 
 ```bash
-curl https://<backend-fqdn>/health      # {"ok": true, "device": "cpu"}
-curl https://<backend-fqdn>/ready       # 503 until router_loaded is true
+curl https://<backend-fqdn>/health # {"ok": true, "device": "cpu"}
+curl https://<backend-fqdn>/ready # 503 until router_loaded is true
 curl https://<backend-fqdn>/ | python3 -m json.tool
 ```
 
@@ -105,7 +105,7 @@ verify, rebuild, and push again.
 ```bash
 az postgres flexible-server stop --name <pg-server> --resource-group ophthalmoai-rg
 az containerapp update --name ophthalmoai-backend --resource-group ophthalmoai-rg --min-replicas 0 --max-replicas 0
-az group delete --name ophthalmoai-rg --yes --no-wait   # permanent — dump data first if needed
+az group delete --name ophthalmoai-rg --yes --no-wait # permanent — dump data first if needed
 ```
 
 ---

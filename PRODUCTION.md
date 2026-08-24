@@ -21,11 +21,11 @@ Copy `env.example` to `.env` and fill in real values. Never commit `.env`. Key o
 
 ```env
 JWT_SECRET_KEY=<32-byte hex>
-ENVIRONMENT=production                  # enables startup guards, HSTS, safe errors
+ENVIRONMENT=production # enables startup guards, HSTS, safe errors
 GEMINI_API_KEY=AIza...
-GEMINI_MODEL=gemini-2.0-flash            # free-tier Flash — see backend/main.py comment
+GEMINI_MODEL=gemini-2.0-flash # free-tier Flash — see backend/main.py comment
 DATABASE_URL=postgresql://user:pass@host:5432/ophthalmoai?sslmode=require
-CORS_ORIGINS=https://yourdomain.com      # never "*" in production
+CORS_ORIGINS=https://yourdomain.com # never "*" in production
 ```
 
 **Added this session:** `ASYNC_DATABASE_URL` — normally left unset; `backend/db_async.py`
@@ -117,5 +117,5 @@ CUDA-based image (not included).
 ```bash
 git pull origin main
 docker compose up --build -d
-docker compose exec backend alembic upgrade head   # added this session
+docker compose exec backend alembic upgrade head # added this session
 ```

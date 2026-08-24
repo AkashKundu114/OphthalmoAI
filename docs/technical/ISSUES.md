@@ -8,14 +8,14 @@
 
 | Severity | Resolved | Open |
 |---|---|---|
-| 🔴 Critical | 5 | 0 |
-| 🟠 High | 4 | 1 |
-| 🟡 Medium | 7 | 2 |
-| 🟢 Low | 5 | 0 |
+| Critical | 5 | 0 |
+| High | 4 | 1 |
+| Medium | 7 | 2 |
+| Low | 5 | 0 |
 
 ---
 
-## 🔴 Critical — Security & Correctness (all resolved)
+## Critical — Security & Correctness (all resolved)
 
 - **C1. CORS wildcard + credentials.** Resolved — startup guard in `main.py` rejects the combination.
 - **C2. No request validation on `/predict`.** Resolved — `security.py`'s `validate_magic_bytes()`/`validate_image_dimensions()`.
@@ -23,7 +23,7 @@
 - **C4. No authentication on inference endpoints.** Resolved — JWT + RBAC (`patient`/`clinician`/`admin`).
 - **C5. LICENSE inconsistency (MIT vs Apache).** Resolved — all references now say Apache 2.0.
 
-## 🟠 High — Functional Bugs & Reliability
+## High — Functional Bugs & Reliability
 
 - **H1. Only 3 of 8 symptoms reached `/predict`.** Resolved — all 8 fields sent and used.
 - **H2. Hardcoded LLM model snapshot.** Resolved — `GEMINI_MODEL` env var, defaults to `gemini-2.0-flash` (Google's free-tier Flash model).
@@ -31,7 +31,7 @@
 - **H4. Backend dependencies unpinned.** Resolved — `backend/requirements.txt` pins exact versions.
 - **H5. Broken `<meta description>` tag.** Resolved.
 
-## 🟡 Medium — Code Quality & Consistency
+## Medium — Code Quality & Consistency
 
 - **M1. Dead `App.css` file.** Resolved (removed).
 - **M2. No Vite dev proxy.** Resolved.
@@ -43,7 +43,7 @@
 - **M8. `ChatBox` only rendered `**bold**` markdown.** Resolved — `renderMarkdown()` handles bullet lists, code, italics, all DOMPurify-sanitised.
 - **M9. Frontend version stuck at `0.0.0`.** **Open**, low priority.
 
-## 🟢 Low — Polish (all resolved)
+## Low — Polish (all resolved)
 
 - **L1. Default Vite favicon.** Resolved (custom eye-mark SVG).
 - **L2. No `.env.example`.** Resolved.

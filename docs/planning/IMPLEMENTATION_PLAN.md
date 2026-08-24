@@ -76,103 +76,103 @@ Use this list to verify a complete local setup from scratch.
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Repository structure defined | Dev | ✅ Done |
-| Python virtual environment + PyTorch install | Dev | ✅ Done |
-| FastAPI skeleton with lifespan + CORS | Dev | ✅ Done |
-| Vite + React + Tailwind setup | Dev | ✅ Done |
-| Docker Compose (backend + frontend) | Dev | ✅ Done |
-| `.gitignore` / `.dockerignore` | Dev | ✅ Done |
+| Repository structure defined | Dev | Done |
+| Python virtual environment + PyTorch install | Dev | Done |
+| FastAPI skeleton with lifespan + CORS | Dev | Done |
+| Vite + React + Tailwind setup | Dev | Done |
+| Docker Compose (backend + frontend) | Dev | Done |
+| `.gitignore` / `.dockerignore` | Dev | Done |
 
 ### Phase 2 — Model Architecture & Training (Days 2–5)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Dataset directory structure defined | Dev | ✅ Done |
-| `verify_dataset.py` + `explore_data.py` | Dev | ✅ Done |
-| `train_router.py` (MobileNetV3, 3 classes) | Dev | ✅ Done |
-| `train_anterior.py` (EfficientNet-B4, 2 classes) | Dev | ✅ Done |
-| `train_surface.py` (EfficientNet-B4, 4 classes) | Dev | ✅ Done |
-| `train_eyelid.py` (single-class helper) | Dev | ✅ Done |
-| WeightedRandomSampler class balancing | Dev | ✅ Done |
-| AMP mixed precision + gradient accumulation | Dev | ✅ Done |
+| Dataset directory structure defined | Dev | Done |
+| `verify_dataset.py` + `explore_data.py` | Dev | Done |
+| `train_router.py` (MobileNetV3, 3 classes) | Dev | Done |
+| `train_anterior.py` (EfficientNet-B4, 2 classes) | Dev | Done |
+| `train_surface.py` (EfficientNet-B4, 4 classes) | Dev | Done |
+| `train_eyelid.py` (single-class helper) | Dev | Done |
+| WeightedRandomSampler class balancing | Dev | Done |
+| AMP mixed precision + gradient accumulation | Dev | Done |
 
 ### Phase 3 — Backend Inference API (Days 3–6)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Model loading via lifespan context manager | Dev | ✅ Done |
-| `/predict` endpoint — full inference pipeline | Dev | ✅ Done |
-| Grad-CAM integration (pytorch-grad-cam) | Dev | ✅ Done |
-| Heatmap → base64 JPEG encoding | Dev | ✅ Done |
-| Symptom cross-check logic | Dev | ✅ Done |
-| `MEDICAL_INFO` dictionary (7 conditions) | Dev | ✅ Done |
-| `/chat` endpoint — Gemini + Ollama support | Dev | ✅ Done |
-| Ophthalmology system prompt | Dev | ✅ Done |
-| `/health` and `/ready` probes | Dev | ✅ Done |
-| GPU cache cleanup per request | Dev | ✅ Done |
-| Async DB path for auth (`db_async.py`) | Dev | ✅ Done (this session) |
-| Admin endpoints (`routes_admin.py`) | Dev | ✅ Done (this session) |
-| Alembic migrations | Dev | ✅ Done (this session) |
+| Model loading via lifespan context manager | Dev | Done |
+| `/predict` endpoint — full inference pipeline | Dev | Done |
+| Grad-CAM integration (pytorch-grad-cam) | Dev | Done |
+| Heatmap → base64 JPEG encoding | Dev | Done |
+| Symptom cross-check logic | Dev | Done |
+| `MEDICAL_INFO` dictionary (7 conditions) | Dev | Done |
+| `/chat` endpoint — Gemini + Ollama support | Dev | Done |
+| Ophthalmology system prompt | Dev | Done |
+| `/health` and `/ready` probes | Dev | Done |
+| GPU cache cleanup per request | Dev | Done |
+| Async DB path for auth (`db_async.py`) | Dev | Done (this session) |
+| Admin endpoints (`routes_admin.py`) | Dev | Done (this session) |
+| Alembic migrations | Dev | Done (this session) |
 
 ### Phase 4 — Frontend Core (Days 4–8)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Design system (tokens, fonts, Tailwind config) | Dev | ✅ Done |
-| Navigation (5-tab SPA, mobile + desktop) | Dev | ✅ Done |
-| Home page (hero, quick-access grid, features) | Dev | ✅ Done |
-| DiagnosticPage — file upload + crop modal | Dev | ✅ Done |
-| Symptom form (8 dropdowns) | Dev | ✅ Done |
-| API call to `/predict` | Dev | ✅ Done |
-| Result card (diagnosis, confidence, severity) | Dev | ✅ Done |
-| Clinical alerts strip | Dev | ✅ Done |
-| Heatmap toggle | Dev | ✅ Done |
-| Tabbed detail panel (4 tabs) | Dev | ✅ Done |
-| Probability bars (`<ProbabilityBar>`) | Dev | ✅ Done |
-| TTS (Web Speech API) | Dev | ✅ Done |
-| `ChatBox.jsx` — floating chat widget | Dev | ✅ Done |
-| Quick question chips | Dev | ✅ Done |
-| How It Works page | Dev | ✅ Done |
-| Conditions page + modal | Dev | ✅ Done |
-| Medical News page + category filter | Dev | ✅ Done |
+| Design system (tokens, fonts, Tailwind config) | Dev | Done |
+| Navigation (5-tab SPA, mobile + desktop) | Dev | Done |
+| Home page (hero, quick-access grid, features) | Dev | Done |
+| DiagnosticPage — file upload + crop modal | Dev | Done |
+| Symptom form (8 dropdowns) | Dev | Done |
+| API call to `/predict` | Dev | Done |
+| Result card (diagnosis, confidence, severity) | Dev | Done |
+| Clinical alerts strip | Dev | Done |
+| Heatmap toggle | Dev | Done |
+| Tabbed detail panel (4 tabs) | Dev | Done |
+| Probability bars (`<ProbabilityBar>`) | Dev | Done |
+| TTS (Web Speech API) | Dev | Done |
+| `ChatBox.jsx` — floating chat widget | Dev | Done |
+| Quick question chips | Dev | Done |
+| How It Works page | Dev | Done |
+| Conditions page + modal | Dev | Done |
+| Medical News page + category filter | Dev | Done |
 
 ### Phase 5 — PDF Report (Days 7–9)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| 4-page jsPDF layout | Dev | ✅ Done |
-| Patient scan + heatmap images in PDF | Dev | ✅ Done |
-| `autoTable` for symptoms, treatment, precautions | Dev | ✅ Done |
-| Differential diagnosis bar chart | Dev | ✅ Done |
-| Emergency signs section (Page 4) | Dev | ✅ Done |
-| "Find an Ophthalmologist" links (Page 4) | Dev | ✅ Done |
-| Clinical disclaimer footer (all pages) | Dev | ✅ Done |
+| 4-page jsPDF layout | Dev | Done |
+| Patient scan + heatmap images in PDF | Dev | Done |
+| `autoTable` for symptoms, treatment, precautions | Dev | Done |
+| Differential diagnosis bar chart | Dev | Done |
+| Emergency signs section (Page 4) | Dev | Done |
+| "Find an Ophthalmologist" links (Page 4) | Dev | Done |
+| Clinical disclaimer footer (all pages) | Dev | Done |
 
 ### Phase 6 — Infrastructure & Production (Days 9–11)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| Backend Dockerfile (CPU torch wheel) | Dev | ✅ Done |
-| Frontend Dockerfile (multi-stage build) | Dev | ✅ Done |
-| Nginx config (proxy, SPA, cache, healthz) | Dev | ✅ Done |
-| Docker Compose (healthchecks, depends_on) | Dev | ✅ Done |
-| Kubernetes manifests (namespace, configmap, deployments, services, ingress) | Dev | ✅ Done |
-| Kubernetes liveness + readiness probes | Dev | ✅ Done |
-| Official NVIDIA NGC PyTorch Container (`Dockerfile.gpu`) | Dev | ✅ Done (this session) |
-| Hardware Telemetry & Benchmarking JSON extraction | Dev | ✅ Done (this session) |
+| Backend Dockerfile (CPU torch wheel) | Dev | Done |
+| Frontend Dockerfile (multi-stage build) | Dev | Done |
+| Nginx config (proxy, SPA, cache, healthz) | Dev | Done |
+| Docker Compose (healthchecks, depends_on) | Dev | Done |
+| Kubernetes manifests (namespace, configmap, deployments, services, ingress) | Dev | Done |
+| Kubernetes liveness + readiness probes | Dev | Done |
+| Official NVIDIA NGC PyTorch Container (`Dockerfile.gpu`) | Dev | Done (this session) |
+| Hardware Telemetry & Benchmarking JSON extraction | Dev | Done (this session) |
 
 ### Phase 7 — Documentation (Day 11–12)
 
 | Task | Owner | Status |
 |------|-------|--------|
-| README.md | Dev | ✅ Done |
-| PRODUCTION.md | Dev | ✅ Done |
-| `docs/PRD.md` | Dev | ✅ Done |
-| `docs/TRD.md` | Dev | ✅ Done |
-| `docs/APP_FLOW.md` | Dev | ✅ Done |
-| `docs/UI_UX_BRIEF.md` | Dev | ✅ Done |
-| `docs/BACKEND_SCHEMA.md` | Dev | ✅ Done |
-| `docs/IMPLEMENTATION_PLAN.md` | Dev | ✅ Done |
+| README.md | Dev | Done |
+| PRODUCTION.md | Dev | Done |
+| `docs/PRD.md` | Dev | Done |
+| `docs/TRD.md` | Dev | Done |
+| `docs/APP_FLOW.md` | Dev | Done |
+| `docs/UI_UX_BRIEF.md` | Dev | Done |
+| `docs/BACKEND_SCHEMA.md` | Dev | Done |
+| `docs/IMPLEMENTATION_PLAN.md` | Dev | Done |
 
 ---
 

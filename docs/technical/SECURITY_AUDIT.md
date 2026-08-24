@@ -1,7 +1,7 @@
 # OphthalmoAI — Security Audit Report
 **Classification:** Internal — Engineering
 **Scope:** Full codebase (`backend/`, `frontend/`, `k8s/`, `.github/`)
-**Remediation status:** ✅ All 20 original findings fixed; 3 additional bugs found and fixed this session (see §3).
+**Remediation status:** All 20 original findings fixed; 3 additional bugs found and fixed this session (see §3).
 
 *(Condensed from the original full audit narrative — this version preserves the finding table and remediation map, which is the operationally useful part; the original per-finding prose walkthroughs, CVSS breakdowns, and PoC snippets are omitted here for length but the substance — what was wrong and how it was fixed — is unchanged.)*
 
@@ -42,9 +42,9 @@ These were found by actually importing and running the app (not static review), 
 
 | Severity | Finding | Fix |
 |---|---|---|
-| 🔴 Would break every deployment | `security.py`'s `SecurityHeadersMiddleware` called `response.headers.pop(h, None)` — Starlette's `MutableHeaders` has no `.pop()`. Since this middleware wraps every response, the app would 500 on every single request in production. | `if h in response.headers: del response.headers[h]` |
-| 🔴 Would break every startup | `logging_config.py` paired `structlog.stdlib.add_logger_name` with `PrintLoggerFactory()`; `PrintLogger` has no `.name`, crashing on the first log call. | Dropped the incompatible processor; bind the logger name explicitly instead |
-| 🟠 Would break import | `main.py` imported `JWT_SECRET_KEY` from `auth.py`, which only defined `SECRET_KEY`. | Added an alias in `auth.py` |
+| Would break every deployment | `security.py`'s `SecurityHeadersMiddleware` called `response.headers.pop(h, None)` — Starlette's `MutableHeaders` has no `.pop()`. Since this middleware wraps every response, the app would 500 on every single request in production. | `if h in response.headers: del response.headers[h]` |
+| Would break every startup | `logging_config.py` paired `structlog.stdlib.add_logger_name` with `PrintLoggerFactory()`; `PrintLogger` has no `.name`, crashing on the first log call. | Dropped the incompatible processor; bind the logger name explicitly instead |
+| Would break import | `main.py` imported `JWT_SECRET_KEY` from `auth.py`, which only defined `SECRET_KEY`. | Added an alias in `auth.py` |
 
 None of these three were introduced by this session's async/endpoint changes — all three are present verbatim in the pre-existing pasted source and would have surfaced on the very first real request/startup regardless of any other change.
 

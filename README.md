@@ -1,6 +1,6 @@
 <div align="center">
   
-# 👁️ OphthalmoAI 
+# OphthalmoAI 
 ### **Point-of-Care Eye Disease Screening Platform**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -16,39 +16,39 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 
 ---
 
-> ⚕️ **MEDICAL DISCLAIMER:** OphthalmoAI is provided strictly for **research, educational, and informational purposes**. It is **not** an FDA-cleared or CE-marked medical device. It does **not** constitute professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider or ophthalmologist. See the `LICENSE` file for full liability details.
+> **MEDICAL DISCLAIMER:** OphthalmoAI is provided strictly for **research, educational, and informational purposes**. It is **not** an FDA-cleared or CE-marked medical device. It does **not** constitute professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider or ophthalmologist. See the `LICENSE` file for full liability details.
 
 ---
 
-## 🌟 Key Innovations
-1. **Meta-Classifier Ensemble Architecture:** Uses a state-of-the-art meta-classifier to intelligently combine predictions from three massive Vision models (ConvNeXt-Small, DenseNet-201, and EfficientNet-V2). This allows for near-perfect point-of-care clinical diagnostics by capturing both fine-grained vascular anomalies and robust structural features.
+## Architecture & Design Principles
+1. **Meta-Classifier Ensemble Architecture:** Uses a state-of-the-art meta-classifier to intelligently combine predictions from three vision models (ConvNeXt-Small, DenseNet-201, and EfficientNet-V2). This allows for robust clinical diagnostic capabilities by capturing both fine-grained vascular anomalies and robust structural features.
 2. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
-3. **Hardware Optimized for 8GB VRAM:** Employs Automatic Mixed Precision (AMP), gradient scaling, and aggressive VRAM garbage collection to train three SOTA models natively on a single NVIDIA RTX 5060 Laptop GPU.
+3. **Hardware Optimized for 8GB VRAM:** Employs Automatic Mixed Precision (AMP), gradient scaling, and aggressive VRAM garbage collection to train three state-of-the-art models natively on a single NVIDIA RTX 5060 Laptop GPU.
 4. **LLM Structural Guardrails:** Integrates Gemini 2.0 Flash into the point-of-care interface, restricted strictly to answering questions and contextualizing the deterministic vision pipeline results, preventing clinical hallucination.
 5. **Comprehensive Dockerized Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration testing, running entirely in isolated ephemeral Docker containers to ensure zero environment pollution.
 
 ---
 
-## 🩺 Detectable Conditions
+## Detectable Conditions
 
 | Condition | Anatomical Group | Clinical Urgency |
 |-----------|-----------------|------------------|
 | **Cataract** | Anterior Segment | Elective |
-| **Uveitis** | Anterior Segment | 🔴 **Urgent** |
+| **Uveitis** | Anterior Segment | **Urgent** |
 | **Conjunctivitis** | Ocular Surface | Non-urgent |
-| **Jaundice** *(Scleral Icterus)* | Ocular Surface | 🔴 **Emergency** |
+| **Jaundice** *(Scleral Icterus)* | Ocular Surface | **Emergency** |
 | **Pterygium** | Ocular Surface | Elective |
 | **Ptosis** | Adnexal/Oculoplastic | Non-urgent |
 | **Blepharitis** | Adnexal/Oculoplastic | Non-urgent |
 | **Chalazion** | Adnexal/Oculoplastic | Non-urgent |
 | **Stye** | Adnexal/Oculoplastic | Non-urgent |
-| **Keratitis** | Anterior Segment | 🔴 **Emergency** |
+| **Keratitis** | Anterior Segment | **Emergency** |
 | **Subconjunctival Hemorrhage**| Ocular Surface | Non-urgent |
 | **Normal** | All Groups | None |
 
 ---
 
-## ⚡ Quick Start (Docker / GPU)
+## Getting Started (Docker / GPU)
 
 The easiest and most performant way to run OphthalmoAI is via our pre-configured Docker pipeline.
 
@@ -71,14 +71,14 @@ Navigate to **[http://localhost:8080](http://localhost:8080)** to access the pla
 
 ---
 
-## 💻 Bare-Metal Setup (Development)
+## Local Development Environment (Development)
 
 If you wish to build the FastAPI backend and React frontend locally:
 
 ### 1. Backend API
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+source venv/bin/activate # On Windows: .\venv\Scripts\activate
 
 # Install PyTorch (CUDA 12.4 example)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
@@ -100,32 +100,32 @@ npm run dev
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```
 OphthalmoAI/
-├── backend/
-│   ├── main.py, auth.py, db_async.py, routes_admin.py
-│   ├── security.py, clinical_codes.py, calibration.py
-│   ├── audit.py, logging_config.py, requirements.txt
-├── frontend/
-│   ├── src/App.jsx, ChatBox.jsx, index.css
-│   ├── nginx.conf, vite.config.js
-├── scripts/              # Training, Telemetry, and Evaluation tools
-├── alembic/              # Database schema migrations
-├── docs/                 # PRD, Technical Specs, Clinical Guidelines
-└── docker-compose.yml    # Orchestration
+ backend/
+    main.py, auth.py, db_async.py, routes_admin.py
+    security.py, clinical_codes.py, calibration.py
+    audit.py, logging_config.py, requirements.txt
+ frontend/
+    src/App.jsx, ChatBox.jsx, index.css
+    nginx.conf, vite.config.js
+ scripts/ # Training, Telemetry, and Evaluation tools
+ alembic/ # Database schema migrations
+ docs/ # PRD, Technical Specs, Clinical Guidelines
+ docker-compose.yml # Orchestration
 ```
 
 ---
 
-## 📊 Performance Benchmarks & Telemetry
+## Performance Benchmarks & Telemetry
 
 OphthalmoAI features an integrated hardware telemetry pipeline designed to profile training runs across different compute architectures and precision formats. Below are the verified benchmark results:
 
 | Model Architecture | Precision | Batch Size | Time per Epoch | Peak VRAM | Final Accuracy |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Meta-Classifier Ensemble (SOTA)** | **FP16** | **32** | **20.62s** | **0.96 GB** | **99.72%** |
+| **Meta-Classifier Ensemble (state-of-the-art)** | **FP16** | **32** | **20.62s** | **0.96 GB** | **99.72%** |
 | **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51s** | **1.21 GB** | **99.67%** |
 | **ConvNeXt-Small** | **FP16** | **32** | **19.32s** | **3.64 GB** | **99.32%** |
 | **DenseNet-201** | **BF16** | **32** | **25.00s** | **3.45 GB** | **99.49%** |
@@ -138,7 +138,7 @@ OphthalmoAI features an integrated hardware telemetry pipeline designed to profi
   <img src="docs/images/architecture_evolution_summary.png" alt="Architecture Evolution Summary" width="95%" />
 </p>
 
-### 🔬 Detailed Comparative Analysis
+### Detailed Comparative Analysis
 * **Base Monolith Models (ConvNeXt vs DenseNet vs EfficientNet):**
   <p align="center">
     <img src="docs/images/base_monolith_models_comparison.png" alt="Base Monolith Comparison" width="95%" />
@@ -152,22 +152,22 @@ OphthalmoAI features an integrated hardware telemetry pipeline designed to profi
 
 ---
 
-## 📡 Core API Reference
+## Core API Reference
 
 | Method | Path | Auth Required | Description |
 |--------|------|---------------|-------------|
-| `GET` | `/health` / `/ready` | ❌ | Liveness and readiness probes |
-| `POST` | `/predict` | ❌ | Run an eye scan inference (rate-limited) |
-| `POST` | `/chat` | ❌ | AI Doctor chat (Gemini Flash free tier / Ollama) |
-| `POST` | `/auth/register` / `/token` | ❌ | Account creation and login |
-| `POST` | `/scans/{id}/override` | 🔒 Clinician/Admin | Record a second opinion |
-| `GET` | `/admin/audit-logs` | 🔒 Admin | Query the administrative audit trail |
+| `GET` | `/health` / `/ready` | | Liveness and readiness probes |
+| `POST` | `/predict` | | Run an eye scan inference (rate-limited) |
+| `POST` | `/chat` | | AI Doctor chat (Gemini Flash free tier / Ollama) |
+| `POST` | `/auth/register` / `/token` | | Account creation and login |
+| `POST` | `/scans/{id}/override` | Clinician/Admin | Record a second opinion |
+| `GET` | `/admin/audit-logs` | Admin | Query the administrative audit trail |
 
 *(For the complete schema, refer to `docs/technical/BACKEND_SCHEMA.md`)*
 
 ---
 
-## 📚 Deep Dive Documentation
+## Technical Documentation
 
 If you want to understand the clinical design, telemetry tracking, or backend architecture, check out our comprehensive documentation suite:
 
@@ -179,7 +179,7 @@ If you want to understand the clinical design, telemetry tracking, or backend ar
 
 ---
 
-## 📜 License & Copyright
+## License & Copyright
 
 **Apache License 2.0** — Copyright © 2026 Akash Kundu.
 

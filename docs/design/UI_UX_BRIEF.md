@@ -179,7 +179,7 @@ border: 1px solid #E2E8F0;
 border-radius: 8px;
 padding: 8px 10px;
 font-size: 14px;
-appearance: none;  /* custom ChevronDown icon */
+appearance: none; /* custom ChevronDown icon */
 ```
 
 Focus: `border-color: #0891B2; box-shadow: 0 0 0 2px rgba(8,145,178,0.12)`.

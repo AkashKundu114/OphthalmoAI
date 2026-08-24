@@ -38,7 +38,7 @@ HIERARCHY = {
     0: {
         'name': 'Adnexal Oculoplastic',
         'model_file': 'specialist_eyelid.pth',
-        'classes': ['Eyelid']          # Single class → direct pass-through
+        'classes': ['Eyelid'] # Single class → direct pass-through
     },
     1: {
         'name': 'Anterior Segment Pathology',
@@ -140,7 +140,7 @@ Promotes a `ModelVersion` to active for its group, deactivating any other active
 
 ## 5. Symptom Cross-Check Rules
 
-The `analyze_symptoms()` / `analyze_symptoms_structured()` functions implement 10 rules across all 8 symptom fields — see `backend/main.py: _build_symptom_alerts()` for the authoritative logic. Each rule's severity (`info` | `warning` | `urgent`) maps to an emoji prefix (`✅` | `⚠️` | `🚨`) in the legacy `hybrid_warnings` string list, and to a `{"severity", "message"}` object in `hybrid_warnings_structured`.
+The `analyze_symptoms()` / `analyze_symptoms_structured()` functions implement 10 rules across all 8 symptom fields — see `backend/main.py: _build_symptom_alerts()` for the authoritative logic. Each rule's severity (`info` | `warning` | `urgent`) maps to an emoji prefix (`` | `` | ``) in the legacy `hybrid_warnings` string list, and to a `{"severity", "message"}` object in `hybrid_warnings_structured`.
 
 ---
 

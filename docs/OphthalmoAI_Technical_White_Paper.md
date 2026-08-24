@@ -13,9 +13,9 @@ This white paper outlines the architectural decisions, security implementations,
 
 ## 2. The Problem Statement
 Developing AI for clinical deployments presents three major engineering challenges:
-1.  **Complexity and Resource Bottlenecks:** Legacy pipelines with multiple routing and expert models cause significant VRAM and latency overhead, complicating deployment on edge devices and standard clinic PCs.
-2.  **LLM Safety Risks:** Large Language Models (LLMs) are excellent communicators but are prone to "hallucinations." Allowing an LLM autonomous authority to generate medical diagnoses creates severe safety and liability risks.
-3.  **Lack of Interpretability:** Clinicians cannot trust "black-box" predictions. Without visual evidence of *why* an AI made a decision, adoption remains practically impossible.
+1. **Complexity and Resource Bottlenecks:** Legacy pipelines with multiple routing and expert models cause significant VRAM and latency overhead, complicating deployment on edge devices and standard clinic PCs.
+2. **LLM Safety Risks:** Large Language Models (LLMs) are excellent communicators but are prone to "hallucinations." Allowing an LLM autonomous authority to generate medical diagnoses creates severe safety and liability risks.
+3. **Lack of Interpretability:** Clinicians cannot trust "black-box" predictions. Without visual evidence of *why* an AI made a decision, adoption remains practically impossible.
 
 ---
 
@@ -25,22 +25,22 @@ OphthalmoAI utilizes a microservice-inspired, modular architecture to ensure sca
 
 ### 3.1 Backend Engineering (FastAPI & AsyncSQLAlchemy)
 The core backend is built using **FastAPI**, chosen for its high-performance asynchronous capabilities and automatic OpenAPI schema generation. 
-*   **Database:** We utilized **AsyncSQLAlchemy** and **Alembic** to manage a non-blocking PostgreSQL/SQLite database. This ensures high throughput for concurrent scan uploads and metadata queries.
-*   **Authentication:** Stateless **JWT (JSON Web Tokens)** implement role-based access control (RBAC). The system distinguishes between standard users (patients) and administrative clinicians who have the authority to submit override diagnoses.
+* **Database:** We utilized **AsyncSQLAlchemy** and **Alembic** to manage a non-blocking PostgreSQL/SQLite database. This ensures high throughput for concurrent scan uploads and metadata queries.
+* **Authentication:** Stateless **JWT (JSON Web Tokens)** implement role-based access control (RBAC). The system distinguishes between standard users (patients) and administrative clinicians who have the authority to submit override diagnoses.
 
 ### 3.2 The Meta-Classifier Ensemble Pipeline
 To achieve state-of-the-art clinical accuracy across diverse pathologies, OphthalmoAI employs a **Weighted Ensemble Paradigm**:
-*   **The Base Models (ConvNeXt, DenseNet-201, EfficientNet-V2):** Rather than relying on a single architecture, the pipeline extracts deep spatial features using three distinct, highly-optimized neural networks. DenseNet captures fine-grained vascular anomalies, while ConvNeXt and EfficientNet-V2 provide robust structural classification.
-*   **The Meta-Classifier:** The predictions from all three base models are concatenated and passed through a highly optimized Linear Meta-Classifier, which mathematically weights the models based on their historical accuracy, producing a single, highly confident clinical prediction across all 12 conditions.
+* **The Base Models (ConvNeXt, DenseNet-201, EfficientNet-V2):** Rather than relying on a single architecture, the pipeline extracts deep spatial features using three distinct, highly-optimized neural networks. DenseNet captures fine-grained vascular anomalies, while ConvNeXt and EfficientNet-V2 provide robust structural classification.
+* **The Meta-Classifier:** The predictions from all three base models are concatenated and passed through a highly optimized Linear Meta-Classifier, which mathematically weights the models based on their historical accuracy, producing a single, highly confident clinical prediction across all 12 conditions.
 
 ### 3.3 Explainability Engine (Grad-CAM)
 To build clinical trust, the pipeline integrates **Grad-CAM (Gradient-weighted Class Activation Mapping)**. During inference, the backend calculates the gradients of the target concept in the final convolutional layer of the expert model. The resulting heatmap is superimposed over the original scan, visually highlighting the pathology (e.g., inflamed conjunctival vessels) that triggered the prediction.
 
 ### 3.4 Hardware Optimization & Docker Containerization
 To support the computationally demanding EfficientNet-B4 expert models across consumer-grade Blackwell/Ada GPUs (e.g., NVIDIA RTX 5060 8GB), OphthalmoAI implements strict hardware optimization profiles.
-*   **NVIDIA NGC Integration:** Training environments are fully containerized using the official NVIDIA PyTorch image (`nvcr.io/nvidia/pytorch:26.07-py3`), allowing absolute host isolation while bypassing severe OS-level dependency bottlenecks in Python 3.12. Dockerized GPU training natively outperforms bare-metal Windows training by up to 38%.
-*   **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) allows the sequential training and execution of three massive deep learning models on consumer hardware. The pipeline trains base models at a highly optimized batch configuration, managing garbage collection to prevent memory fragmentation on an 8GB NVIDIA RTX 5060.
-*   **Hardware Telemetry:** A custom `HardwareTelemetry` suite continuously profiles and logs CPU/GPU heat, system RAM, VRAM utilitization, and model convergence into structured artifacts for performance auditing.
+* **NVIDIA NGC Integration:** Training environments are fully containerized using the official NVIDIA PyTorch image (`nvcr.io/nvidia/pytorch:26.07-py3`), allowing absolute host isolation while bypassing severe OS-level dependency bottlenecks in Python 3.12. Dockerized GPU training natively outperforms bare-metal Windows training by up to 38%.
+* **VRAM Efficiency (Mixed Precision):** Implementing PyTorch `torch.amp` (Automatic Mixed Precision) allows the sequential training and execution of three large-scale deep learning models on consumer hardware. The pipeline trains base models at a highly optimized batch configuration, managing garbage collection to prevent memory fragmentation on an 8GB NVIDIA RTX 5060.
+* **Hardware Telemetry:** A custom `HardwareTelemetry` suite continuously profiles and logs CPU/GPU heat, system RAM, VRAM utilitization, and model convergence into structured artifacts for performance auditing.
 
 ---
 
@@ -48,18 +48,18 @@ To support the computationally demanding EfficientNet-B4 expert models across co
 
 Integrating the **Gemini 2.0 Flash** LLM required rigorous safety engineering. Instead of relying on fragile prompt engineering to prevent the LLM from hallucinating diagnoses, OphthalmoAI implements **Structural Guardrails**:
 
-1.  **Separation of Computation and Reasoning:** The deterministic vision models maintain absolute authority over the clinical prediction. The LLM is structurally isolated from making diagnostic decisions.
-2.  **Contextual Confinement:** The verified prediction from the vision models is injected into the LLM's context window by the backend. The LLM is strictly constrained to *explaining* the verified data and guiding the user on next steps, functioning as a conversational interface rather than a doctor.
-3.  **Human-in-the-Loop:** The platform includes an `/override` endpoint, allowing clinicians to review the AI's prediction and the LLM's explanation, providing a critical feedback loop for continuous model calibration.
+1. **Separation of Computation and Reasoning:** The deterministic vision models maintain absolute authority over the clinical prediction. The LLM is structurally isolated from making diagnostic decisions.
+2. **Contextual Confinement:** The verified prediction from the vision models is injected into the LLM's context window by the backend. The LLM is strictly constrained to *explaining* the verified data and guiding the user on next steps, functioning as a conversational interface rather than a doctor.
+3. **Human-in-the-Loop:** The platform includes an `/override` endpoint, allowing clinicians to review the AI's prediction and the LLM's explanation, providing a critical feedback loop for continuous model calibration.
 
 ---
 
 ## 5. Security & Compliance
 
 Production healthcare applications demand rigorous security postures. 
-*   **SAST Integration:** The codebase was audited using `bandit` and `safety` tools. Vulnerable anti-patterns, such as silent `try-except-pass` blocks, were identified and remediated to prevent silent application failures.
-*   **Global Exception Handling:** The FastAPI backend implements centralized `RequestValidationError` and `Exception` handlers. This guarantees that unhandled internal errors never leak stack traces to the client. Instead, errors are logged comprehensively with unique Request IDs, and the client receives a sanitized, standardized JSON response.
-*   **Audit Trailing:** Every interaction—from image uploads to LLM queries and clinician overrides—is immutably logged in the database, laying the groundwork for HIPAA/GDPR compliance.
+* **SAST Integration:** The codebase was audited using `bandit` and `safety` tools. Vulnerable anti-patterns, such as silent `try-except-pass` blocks, were identified and remediated to prevent silent application failures.
+* **Global Exception Handling:** The FastAPI backend implements centralized `RequestValidationError` and `Exception` handlers. This guarantees that unhandled internal errors never leak stack traces to the client. Instead, errors are logged comprehensively with unique Request IDs, and the client receives a sanitized, standardized JSON response.
+* **Audit Trailing:** Every interaction—from image uploads to LLM queries and clinician overrides—is immutably logged in the database, laying the groundwork for HIPAA/GDPR compliance.
 
 ---
 
@@ -79,9 +79,9 @@ When benchmarked against standard monolithic clinical classifiers and unconstrai
 
 ## 7. Business Impact & Scalability
 OphthalmoAI provides immediate value to healthcare organizations by:
-*   **Accelerating Triage:** Instantly categorizing patients by urgency (e.g., flagging Uveitis as a red-alert emergency) before they see a specialist.
-*   **Reducing Operational Overhead:** The lightweight, monolithic EfficientNet-B4 pipeline ensures that edge deployments or low-resource hospital servers aren't bogged down by heavy, unnecessary multi-model routing computations.
-*   **Interoperability:** The API-first design paves the way for seamless integration with existing Picture Archiving and Communication Systems (PACS) via middleware hooks.
+* **Accelerating Triage:** Instantly categorizing patients by urgency (e.g., flagging Uveitis as a red-alert emergency) before they see a specialist.
+* **Reducing Operational Overhead:** The lightweight, monolithic EfficientNet-B4 pipeline ensures that edge deployments or low-resource hospital servers aren't bogged down by heavy, unnecessary multi-model routing computations.
+* **Interoperability:** The API-first design paves the way for seamless integration with existing Picture Archiving and Communication Systems (PACS) via middleware hooks.
 
 ---
 
