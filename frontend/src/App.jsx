@@ -194,7 +194,7 @@ const TabButton = ({ active, onClick, icon, label }) => (
     }`}
   >
     <span>{icon}</span>
-    <span className="hidden sm:inline">{label}</span>
+    <span className="hidden md:inline whitespace-nowrap">{label}</span>
   </button>
 )
 
@@ -799,7 +799,6 @@ export default function App() {
   const [conditions, setConditions] = useState(FALLBACK_CONDITIONS)
   const [searchQuery, setSearchQuery] = useState('')
   const [conditionGroup, setConditionGroup] = useState('All')
-  const [expandedCondition, setExpandedCondition] = useState(null)
 
   // Clinical Quick Presets
   const applyPreset = (type) => {
@@ -1281,8 +1280,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Main Navigation */}
-            <nav className="flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+            <nav className="flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto scrollbar-hide">
               <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
               <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Diagnostic Tool" />
               <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions (12)" />
@@ -1300,7 +1298,7 @@ export default function App() {
       </header>
 
       {}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
         {activeTab === 'home' && <HomePage onNavigate={setActiveTab} />}
 
         {activeTab === 'diagnostic' && (
@@ -1320,9 +1318,9 @@ export default function App() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="space-y-6">
                 {}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
@@ -1605,7 +1603,7 @@ export default function App() {
               </div>
 
               {}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="space-y-6">
                 {error && (
                   <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
@@ -1831,7 +1829,7 @@ export default function App() {
                       </div>
                     </div>
                 ) : (
-                  <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
+                  <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4 h-full flex flex-col justify-center min-h-[500px]">
                     <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
                       <ScanEye className="w-8 h-8" />
                     </div>

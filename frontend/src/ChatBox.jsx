@@ -240,7 +240,7 @@ const ChatBot = ({ diagnosisContext }) => {
           className="fixed z-50 flex flex-col overflow-hidden border border-slate-700/60 bottom-24 right-6 rounded-2xl glass-panel"
           style={{
             width: 'min(400px, calc(100vw - 32px))',
-            height: isMinimized ? 'auto' : '560px',
+            height: isMinimized ? 'auto' : 'min(560px, calc(100vh - 120px))',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 173, 181, 0.2)',
           }}
         >
