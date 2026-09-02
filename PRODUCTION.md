@@ -1,4 +1,4 @@
-# PRODUCTION.md — OphthalmoAI Production Deployment Guide
+# PRODUCTION.md - OphthalmoAI Production Deployment Guide
 
 Three deployment paths: **Docker Compose** (single VM), **Azure Container Apps**
 (`docs/technical/AZURE_DEPLOY.md`), or **Kubernetes/AKS** (`k8s/`).
