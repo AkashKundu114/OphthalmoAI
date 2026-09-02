@@ -41,7 +41,7 @@ point somewhere different from the sync one.
 docker compose up --build -d
 ```
 
-**Added this session — run once after the backend container is healthy:**
+**Added this session - run once after the backend container is healthy:**
 
 ```bash
 docker compose exec backend alembic upgrade head
