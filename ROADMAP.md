@@ -82,7 +82,7 @@ with `del response.headers[h]`. See `docs/technical/SECURITY_AUDIT.md`.
 
 ## 8–9. Frontend Improvements, FHIR/EHR Integration
 
-Not started this session — frontend patient history dashboard, offline ONNX mode,
+Not started this session - frontend patient history dashboard, offline ONNX mode,
 clinician portal UI, FHIR export API all remain future work as originally scoped.
 
 ---
