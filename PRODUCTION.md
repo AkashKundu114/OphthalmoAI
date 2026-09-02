@@ -49,7 +49,7 @@ docker compose exec backend alembic upgrade head
 
 The app's `create_tables()` call at startup still creates tables on a fresh database (a
 no-op against existing ones), but it cannot apply schema *changes*. `alembic upgrade
-head` is the real migration path now — see `alembic/` and `backend/main.py`'s comment
+head` is the real migration path now - see `alembic/` and `backend/main.py`'s comment
 at the `create_tables()` call site.
 
 ### Startup guards (production)
@@ -92,8 +92,8 @@ CUDA-based image (not included).
 
 | Endpoint | Type |
 |----------|------|
-| `GET /health` | Liveness — always 200 if process alive |
-| `GET /ready` | Readiness — 503 if router model not loaded |
+| `GET /health` | Liveness - always 200 if process alive |
+| `GET /ready` | Readiness - 503 if router model not loaded |
 
 ---
 
@@ -108,7 +108,7 @@ CUDA-based image (not included).
 | Security headers | CSP, HSTS (prod), X-Frame-Options via `SecurityHeadersMiddleware` — **a bug in this middleware that crashed every response was found and fixed this session; see `docs/technical/SECURITY_AUDIT.md`** |
 | Login | 5 failures → 15-minute lockout |
 | Dependency scanning | `pip-audit` + `npm audit` in CI |
-| DB migrations | **Alembic, added this session** — was previously `create_all()` only |
+| DB migrations | **Alembic, added this session** - was previously `create_all()` only |
 
 ---
 
