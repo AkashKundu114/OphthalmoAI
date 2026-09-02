@@ -181,6 +181,6 @@ If you want to understand the clinical design, telemetry tracking, or backend ar
 
 ## License & Copyright
 
-**Apache License 2.0** — Copyright © 2026 Akash Kundu.
+**Apache License 2.0** - Copyright © 2026 Akash Kundu.
 
 Please carefully review the `LICENSE` file for the strict **Medical and Clinical Liability Disclaimer**. This software cannot be used for clinical decision-making without independent validation.
