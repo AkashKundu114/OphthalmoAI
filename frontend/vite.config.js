@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   const allowedHosts = (process.env.VITE_ALLOWED_HOSTS || '')
     .split(',')
     .map(h => h.trim())

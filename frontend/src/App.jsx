@@ -169,21 +169,6 @@ const FALLBACK_CONDITIONS = [
   },
 ]
 
-const urlToBase64 = (url) =>
-  new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.naturalWidth
-      canvas.height = img.naturalHeight
-      canvas.getContext('2d').drawImage(img, 0, 0)
-      resolve(canvas.toDataURL('image/jpeg', 0.85))
-    }
-    img.onerror = reject
-    img.src = url
-  })
-
 const TabButton = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
@@ -236,14 +221,18 @@ const ProbabilityBar = ({ label, value }) => {
 
 const SeverityBadge = ({ severity }) => {
   const s = (severity || '').toLowerCase()
-  const isHigh = s.includes('high') || s.includes('severe') || s.includes('emergency')
-  const isLow = s.includes('low') || s === 'none'
+  const isEmergency = s.includes('emergency') || s.includes('sight-threatening')
+  const isUrgent = s.includes('urgent') || s.includes('high') || s.includes('severe')
+  const isLow = s.includes('low') || s.includes('none') || s.includes('benign') || s.includes('normal')
+  const badgeClass = isEmergency
+    ? 'badge-emergency'
+    : isUrgent
+    ? 'badge-urgent'
+    : isLow
+    ? 'badge-normal'
+    : 'badge-elective'
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase border ${
-      isHigh ? 'bg-red-950/60 text-red-400 border-red-800/60'
-      : isLow ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60'
-      : 'bg-amber-950/60 text-amber-400 border-amber-800/60'
-    }`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-wide uppercase transition-all ${badgeClass}`}>
       {severity}
     </span>
   )
@@ -904,7 +893,7 @@ export default function App() {
       a.download = `FHIR_Report_${scanId.slice(0, 8)}.json`
       a.click()
       URL.revokeObjectURL(url)
-    } catch (e) {
+    } catch {
       const fhirFallback = {
         resourceType: "DiagnosticReport",
         id: `ophthalmoai-${scanId}`,

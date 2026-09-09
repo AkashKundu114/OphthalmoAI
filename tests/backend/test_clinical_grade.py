@@ -279,8 +279,11 @@ class TestClinicalCodes(unittest.TestCase):
 
     def test_all_diagnoses_have_entries(self):
         from backend.clinical_codes import CLINICAL_CODES
-        expected = {"Cataract", "Conjunctivitis", "Eyelid", "Jaundice",
-                    "Uveitis", "Normal", "Pterygium"}
+        expected = {
+            "Cataract", "Conjunctivitis", "Eyelid", "Jaundice",
+            "Uveitis", "Normal", "Pterygium", "Ptosis", "Blepharitis",
+            "Chalazion", "Stye", "Keratitis", "Subconjunctival Hemorrhage"
+        }
         self.assertEqual(set(CLINICAL_CODES.keys()), expected)
 
     def test_icd10_codes_non_empty(self):
@@ -458,31 +461,25 @@ class TestPredictResponseShape(unittest.TestCase):
         fake_router_logits = torch.zeros(1, 3)
         fake_router_logits[0, 2] = 5.0  
 
-        class FakeRouter(nn.Module):
+        fake_mono_logits = torch.zeros(1, len(bm.MONOLITHIC_CLASSES))
+        fake_mono_logits[0, 3] = 5.0  
+
+        class FakeMonolith(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.features = nn.Sequential(nn.Conv2d(3, 16, 3, padding=1), nn.ReLU())
             def forward(self, x):
-                return fake_router_logits
+                return fake_mono_logits
 
-        fake_spec_logits = torch.zeros(1, 4)
-        fake_spec_logits[0, 0] = 5.0  
-
-        class FakeSpecialist(nn.Module):
-            def forward(self, x):
-                return fake_spec_logits
-            features = [nn.Identity()]
-
-        original_router = bm.ROUTER_MODEL
-        original_specialists = bm.SPECIALIST_MODELS
+        original_monolith = getattr(bm, "MONOLITHIC_MODEL", None)
+        original_router = getattr(bm, "ROUTER_MODEL", None)
+        original_specialists = getattr(bm, "SPECIALIST_MODELS", None)
 
         try:
-            bm.ROUTER_MODEL = FakeRouter()
-            bm.SPECIALIST_MODELS = {
-                2: {
-                    "type": "model",
-                    "model": FakeSpecialist(),
-                    "classes": ["Conjunctivitis", "Jaundice", "Normal", "Pterygium"],
-                    "group_name": "Ocular Surface Disorders",
-                }
-            }
+            fake_model = FakeMonolith()
+            bm.MONOLITHIC_MODEL = fake_model
+            bm.ROUTER_MODEL = fake_model
+            bm.SPECIALIST_MODELS = {}
 
             from backend.db import create_tables
             create_tables()
@@ -515,6 +512,7 @@ class TestPredictResponseShape(unittest.TestCase):
                     self.assertIn("severity", entry)
                     self.assertIn("message", entry)
         finally:
+            bm.MONOLITHIC_MODEL = original_monolith
             bm.ROUTER_MODEL = original_router
             bm.SPECIALIST_MODELS = original_specialists
 
