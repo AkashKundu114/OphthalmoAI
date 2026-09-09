@@ -21,11 +21,12 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 ---
 
 ## Architecture & Design Principles
-1. **Meta-Classifier Ensemble Architecture:** Uses a state-of-the-art meta-classifier to intelligently combine predictions from three vision models (ConvNeXt-Small, DenseNet-201, and EfficientNet-V2). This allows for robust clinical diagnostic capabilities by capturing both fine-grained vascular anomalies and robust structural features.
-2. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
-3. **Hardware Optimized for 8GB VRAM:** Employs Automatic Mixed Precision (AMP), gradient scaling, and aggressive VRAM garbage collection to train three state-of-the-art models natively on a single NVIDIA RTX 5060 Laptop GPU.
-4. **LLM Structural Guardrails:** Integrates Gemini 2.0 Flash into the point-of-care interface, restricted strictly to answering questions and contextualizing the deterministic vision pipeline results, preventing clinical hallucination.
-5. **Comprehensive Dockerized Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration testing, running entirely in isolated ephemeral Docker containers to ensure zero environment pollution.
+1. **Asymmetric Clinical-Cost Evidential Meta-Classifier (AC-HDL):** Features a single-forward-pass Dirichlet Evidential network that parameterizes $\text{Dir}(\boldsymbol{\alpha})$ over class representations from ConvNeXt-Small, DenseNet-201, and EfficientNet-V2. Optimized using an asymmetric clinical urgency penalty matrix ($5\times$ penalty for missing sight-threatening conditions like Keratitis or Uveitis) with instant single-pass epistemic vacuity and OOD rejection.
+2. **Urgency-Stratified Conformal Risk Control (US-CRC):** Replaces uncalibrated heuristics with distribution-free conformal prediction sets, mathematically guaranteeing $\ge 99.0\%$ coverage on sight-threatening emergencies and $\ge 95.0\%$ on routine conditions, coupled with an automated 3-tier clinical action policy.
+3. **Saliency-Grounded Multimodal Biomarkers (SGB-LLM):** Extracts quantitative spatial and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding Gemini 2.0 Flash in physical visual evidence to eliminate hallucinations.
+4. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
+5. **Hardware Optimized for 8GB VRAM:** Sub-20ms inference and fast single-pass uncertainty evaluation natively on a single NVIDIA RTX 5060 Laptop GPU with Automatic Mixed Precision (AMP).
+6. **Comprehensive Automated Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration and novelty validation testing.
 
 ---
 

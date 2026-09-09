@@ -42,6 +42,8 @@ CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
                                          "physician with liver function tests (LFTs), not routine eye care.")},
     "Normal": {"icd10": "Z01.00", "snomed_ct": "165070006", "urgency": "none", "urgency_rank": 0,
                "referral": "Routine screening per standard schedule", "escalation_message": None},
+    "Eyelid": {"icd10": "H02.9", "snomed_ct": "193917006", "urgency": "non-urgent", "urgency_rank": 1,
+               "referral": "Oculoplastic Specialist or General Ophthalmologist", "escalation_message": None},
 }
 
 

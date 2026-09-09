@@ -79,8 +79,10 @@ from .security import (
     validate_magic_bytes,
     ALLOWED_MIMES,
 )
-from .storage import store as storage_store, presigned_url
 from .uncertainty import build_review_payload, mc_dropout_predict
+from .evidential import DirichletMetaClassifier, EvidentialOODDetector
+from .conformal import ConformalCalibrator, ConformalTriagePolicy
+from .biomarker_extractor import extract_visual_biomarkers, format_biomarkers_for_llm
 from .validators import (
     detect_medical_emergency,
     sanitise_chat_message,
@@ -110,6 +112,9 @@ MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
 CALIBRATION_PATH    = os.path.join(MODELS_DIR, "calibration.json")
 CALIBRATION_REGISTRY = CalibrationRegistry(CALIBRATION_PATH)
+CONFORMAL_CALIBRATION_PATH = os.path.join(MODELS_DIR, "conformal_calibration.json")
+CONFORMAL_CALIBRATOR = ConformalCalibrator(calibration_path=CONFORMAL_CALIBRATION_PATH)
+EVIDENTIAL_OOD_DETECTOR = EvidentialOODDetector()
 MC_DROPOUT_PASSES   = int(os.getenv("MC_DROPOUT_PASSES", "8"))
 ENABLE_UNCERTAINTY  = os.getenv("ENABLE_UNCERTAINTY", "true").lower() in {"1", "true", "yes"}
 ENABLE_IQA          = os.getenv("ENABLE_IQA", "true").lower() in {"1", "true", "yes"}
@@ -122,6 +127,8 @@ MONOLITHIC_CLASSES = [
 ]
 
 MONOLITHIC_MODEL: Optional[nn.Module] = None
+ROUTER_MODEL: Optional[nn.Module] = None
+SPECIALIST_MODELS: Optional[dict] = None
 
 OPHTHALMOLOGY_SYSTEM_PROMPT = (
     "You are OphthalmoAI Doctor, a specialized AI educational assistant focused exclusively on ophthalmology and eye health.\n\n"
@@ -309,7 +316,7 @@ def _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness,
     # Cataract cross-checks
     if diagnosis == "Cataract":
         if "yes" in h_lower or "rainbow" in h_lower:
-            alerts.append(("info", "Symptom Concordance: Light halos & glare strongly correlate with lenticular opacification."))
+            alerts.append(("info", "Symptom Concordance: Light Halos & glare strongly correlate with lenticular opacification."))
         if "severe" in p_lower or "throbbing" in p_lower:
             alerts.append(("urgent", "Atypical Presentation: Severe pain is NOT typical for uncomplicated cataract. Rule out secondary phacolytic glaucoma or acute angle closure."))
         if "yes" in v_lower or "blur" in v_lower:
@@ -320,9 +327,7 @@ def _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness,
         if "severe" in p_lower or "moderate" in p_lower or "throbbing" in p_lower:
             alerts.append(("urgent", "URGENT TRIAGE: Deep ciliary/ocular pain with suspected Uveitis represents a sight-threatening inflammatory condition."))
         if "yes" in l_lower or "severe" in l_lower:
-            alerts.append(("urgent", "Photophobia Alert: Severe light sensitivity reflects acute ciliary spasm and anterior chamber inflammation."))
-        if "yes" in f_lower:
-            alerts.append(("warning", "Vitreous Floaters: Vitritis or intermediate/posterior uveitis must be evaluated with dilated fundoscopy."))
+            alerts.append(("urgent", "Photophobia Alert: Light sensitivity reflects acute ciliary spasm and anterior chamber inflammation."))
 
     # Keratitis cross-checks
     elif diagnosis == "Keratitis":
@@ -335,13 +340,15 @@ def _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness,
     # Conjunctivitis cross-checks
     elif diagnosis == "Conjunctivitis":
         if "severe" in p_lower or "throbbing" in p_lower:
-            alerts.append(("warning", "Pain Discrepancy: Severe pain is atypical for simple pink eye. Rule out acute keratitis, scleritis, or acute glaucoma."))
+            alerts.append(("warning", "Pain Mismatch: Severe pain is atypical for simple pink eye. Rule out acute keratitis, scleritis, or acute glaucoma."))
         if "yes" in v_lower or "significant" in v_lower:
             alerts.append(("warning", "Vision Threat Alert: Significant vision loss is NOT expected in conjunctivitis. Urgent ophthalmic evaluation recommended."))
         if "yes" in i_lower or "itch" in i_lower:
-            alerts.append(("info", "Allergic Phenotype: Prominent pruritus (itching) indicates allergic conjunctivitis etiology."))
+            alerts.append(("info", "Allergic Phenotype: Prominent pruritus (Itchiness) indicates allergic conjunctivitis etiology."))
         if "purulent" in d_lower or "yellow" in d_lower or "crust" in d_lower:
             alerts.append(("info", "Bacterial Phenotype: Purulent/mucopurulent discharge and crusting strongly suggest bacterial conjunctivitis."))
+        if "month" in dur_lower or "chronic" in dur_lower:
+            alerts.append(("warning", "Chronic Presentation: Symptoms persisting >1 month warrant investigation for atypical, chlamydial, or toxic conjunctivitis."))
 
     # Jaundice (Scleral Icterus) cross-checks
     elif diagnosis == "Jaundice":
@@ -373,7 +380,7 @@ def _build_symptom_alerts(diagnosis, pain_level, vision_loss, itchiness,
 
     # General / Floater Cross-Checks
     if "shower" in f_lower or ("yes" in f_lower and diagnosis not in ["Uveitis", "Normal"]):
-        alerts.append(("warning", "Posterior Segment Warning: New-onset floaters or flashes warrant dilated peripheral retinal examination to rule out retinal tear or detachment."))
+        alerts.append(("warning", "Posterior Segment Warning: New-onset Floaters or flashes warrant dilated peripheral retinal examination to rule out retinal tear or detachment."))
 
     return alerts
 
@@ -562,6 +569,18 @@ async def predict(
         
         heatmap_base64 = None
         uncertainty_value: Optional[float] = None
+        grayscale = None
+
+        # Dirichlet evidential single-pass vacuity calculation
+        evidence_vec = torch.nn.functional.softplus(calibrated_out)
+        alpha_vec = evidence_vec + 1.0
+        total_strength = float(torch.sum(alpha_vec).item())
+        epistemic_vacuity = float(min(1.0, max(0.0, len(MONOLITHIC_CLASSES) / (total_strength if total_strength > 0 else 1.0))))
+
+        probs_np = probs.cpu().numpy()
+        conformal_set, conformal_probs, conformal_stratum, coverage_guarantee = CONFORMAL_CALIBRATOR.predict_set(
+            probs_np, diagnosis
+        )
 
         if ENABLE_UNCERTAINTY:
             try:
@@ -583,6 +602,12 @@ async def predict(
             except Exception as cam_err:
                 logger.warning("predict.gradcam_failed", error=str(cam_err))
 
+        visual_biomarkers = extract_visual_biomarkers(
+            image,
+            grayscale[0, :] if grayscale is not None else None,
+            diagnosis
+        )
+
         hybrid_warnings            = analyze_symptoms(
             diagnosis, pain, vision, itch,
             halos=halos, discharge=discharge,
@@ -597,7 +622,16 @@ async def predict(
             diagnosis,
             confidence / 100.0,
             uncertainty_value if uncertainty_value is not None else 0.0,
+            conformal_set=conformal_set,
+            vacuity=epistemic_vacuity,
         )
+        triage_eval = ConformalTriagePolicy.evaluate(
+            prediction_set=conformal_set,
+            top_diagnosis=diagnosis,
+            epistemic_vacuity=epistemic_vacuity,
+            requires_human_review_flag=review_payload["requires_human_review"]
+        )
+
         code_entry = get_clinical_code(diagnosis)
         details    = MEDICAL_INFO.get(diagnosis, {
             "description": "No detailed information available.",
@@ -622,6 +656,16 @@ async def predict(
             "uncertainty":              review_payload["uncertainty"],
             "requires_human_review":    review_payload["requires_human_review"],
             "review_reasons":           review_payload["review_reasons"],
+            "conformal_prediction_set":          conformal_set,
+            "conformal_candidate_probabilities": conformal_probs,
+            "conformal_stratum":                 conformal_stratum,
+            "conformal_coverage_guarantee":      f"{coverage_guarantee:.1f}%",
+            "epistemic_vacuity":                 round(epistemic_vacuity, 4),
+            "triage_tier":                       triage_eval["triage_tier"],
+            "triage_urgency":                    triage_eval["urgency_level"],
+            "triage_action_code":                triage_eval["action_code"],
+            "triage_guidance":                   triage_eval["guidance"],
+            "visual_biomarkers":                 visual_biomarkers,
             "icd10_code":               code_entry["icd10"],
             "snomed_code":              code_entry["snomed_ct"],
             "urgency":                  code_entry["urgency"],
@@ -838,6 +882,22 @@ async def chat_endpoint(
             f"Clinical Advice: {details.get('advice', 'N/A')}\n"
             f"Note: This is an AI screening result only, not a clinical diagnosis."
         )
+        biomarkers = ctx.get("visual_biomarkers")
+        conformal_set = ctx.get("conformal_prediction_set")
+        if biomarkers:
+            try:
+                cov_str = str(ctx.get("conformal_coverage_guarantee", "95.0%")).replace("%", "").strip()
+                cov_val = float(cov_str.split()[0])
+            except Exception:
+                cov_val = 95.0
+            grounded_block = format_biomarkers_for_llm(
+                biomarkers=biomarkers,
+                diagnosis=ctx.get("diagnosis", "Unknown"),
+                conformal_set=conformal_set if conformal_set else [ctx.get("diagnosis", "Unknown")],
+                coverage_guarantee=cov_val,
+                epistemic_vacuity=float(ctx.get("epistemic_vacuity", 0.05)),
+            )
+            system += f"\n\n{grounded_block}"
 
     gemini_key  = os.getenv("GEMINI_API_KEY", "").strip()
     ollama_url  = os.getenv("OLLAMA_URL", "").strip()
