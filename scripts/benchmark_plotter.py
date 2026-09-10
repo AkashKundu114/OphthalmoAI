@@ -1,8 +1,47 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import sys
 import json
 import glob
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
+def get_clean_run_name(run):
+    fname = run.get('filename', '')
+    raw_model = run.get('model', fname.replace('.json', '').replace('telemetry_', ''))
+    if 'CPU-ResNet50' in fname:
+        return 'ResNet50 (CPU Baseline)'
+    elif 'BareMetal-ResNet50' in fname:
+        return 'ResNet50 (Bare-Metal GPU)'
+    elif 'Docker-B4' in fname:
+        return 'EfficientNet-B4 (Docker Single)'
+    elif 'BareMetal-B4' in fname:
+        return 'EfficientNet-B4 (Bare-Metal)'
+    elif 'BareMetal-V2-S' in fname:
+        return 'EfficientNet-V2-S (Bare-Metal)'
+    elif 'EfficientNet-B4_2026' in fname:
+        return 'EfficientNet-B4 (1-Epoch Test)'
+    elif 'MetaEnsemble_2026' in fname:
+        return 'Meta-Ensemble (BS4 Baseline)'
+    elif 'MetaClassifier_FP16_BS32' in fname:
+        return 'Meta-Classifier (FP16, BS32)'
+    elif 'MetaClassifier_BF16_BS32' in fname:
+        return 'Meta-Classifier (BF16, BS32)'
+    elif 'ConvNeXt-Small_FP16_BS32' in fname:
+        return 'ConvNeXt-Small (FP16, BS32)'
+    elif 'ConvNeXt-Small_BF16_BS32' in fname:
+        return 'ConvNeXt-Small (BF16, BS32)'
+    elif 'DenseNet-201_FP16_BS32' in fname:
+        return 'DenseNet-201 (FP16, BS32)'
+    elif 'DenseNet-201_BF16_BS32' in fname:
+        return 'DenseNet-201 (BF16, BS32)'
+    elif 'EfficientNet-V2-M_FP16_BS32' in fname:
+        return 'EfficientNet-V2-M (FP16, BS32)'
+    elif 'EfficientNet-V2-M_BF16_BS32' in fname:
+        return 'EfficientNet-V2-M (BF16, BS32)'
+    return raw_model
 
 def load_telemetry_data(log_dir='./dataset/logs'):
     json_files = glob.glob(os.path.join(log_dir, 'telemetry_*.json'))
@@ -38,7 +77,7 @@ def create_benchmark_graphs(output_dir='docs/images'):
     time_per_epoch = []
     
     for run in runs:
-        model_name = run.get('model', run['filename'].replace('.json', '').replace('telemetry_', ''))
+        model_name = get_clean_run_name(run)
         epochs = run['epochs']
         avg_time = np.mean([e['time_seconds'] for e in epochs])
         max_vram = max([e.get('vram_gb_used', 0) for e in epochs])
@@ -77,7 +116,7 @@ def create_benchmark_graphs(output_dir='docs/images'):
     fig2, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 9), sharex=False)
     
     for run in runs:
-        name = run.get('model', run['filename'].replace('.json', '').replace('telemetry_', ''))
+        name = get_clean_run_name(run)
         epochs = [e['epoch'] for e in run['epochs']]
         vram = [e.get('vram_gb_used', 0) for e in run['epochs']]
         ram = [e.get('sys_ram_gb_used', 0) for e in run['epochs']]
@@ -108,7 +147,7 @@ def create_benchmark_graphs(output_dir='docs/images'):
     fig3, ax3 = plt.subplots(figsize=(12, 7))
     
     for run in runs:
-        name = run.get('model', run['filename'].replace('.json', '').replace('telemetry_', ''))
+        name = get_clean_run_name(run)
         epochs = [e['epoch'] for e in run['epochs']]
         acc = [e.get('accuracy', 0) for e in run['epochs']]
         
@@ -132,7 +171,7 @@ def create_benchmark_graphs(output_dir='docs/images'):
     for run in runs:
         temps = [e.get('gpu_temp_c', 0) for e in run['epochs']]
         if any(t > 0 for t in temps):
-            name = run.get('model', run['filename'].replace('.json', '').replace('telemetry_', ''))
+            name = get_clean_run_name(run)
             epochs = [e['epoch'] for e in run['epochs']]
             ax4.plot(epochs, temps, marker='d', markersize=3, linestyle='-', label=name, linewidth=1.8)
             

@@ -4,24 +4,28 @@ This document describes the safety mechanisms built into OphthalmoAI: how the sy
 
 ## 1. Layered Safety Design
 
-No single mechanism here is treated as sufficient on its own. The system layers four independent safety mechanisms, on the assumption that any one of them can fail or be misconfigured without the whole system failing silently:
+No single mechanism here is treated as sufficient on its own. The system layers seven independent safety mechanisms, on the assumption that any one of them can fail or be misconfigured without the whole system failing silently:
 
-1. **Image Quality Assessment** (`backend/iqa.py`) — catches bad inputs before they produce a confident-sounding wrong answer.
-2. **Calibrated confidence + uncertainty estimation** (`backend/calibration.py`, `backend/uncertainty.py`) — makes the model's stated confidence trustworthy, and flags cases where the model is internally inconsistent across repeated stochastic passes.
-3. **Clinical coding and urgency triage** (`backend/clinical_codes.py`) — every diagnosis carries a fixed urgency tier independent of model confidence, so a confidently-wrong "Cataract" prediction on an actual Uveitis case is still bounded by symptom cross-checking (layer 4) rather than relying on the model alone to know it's wrong.
-4. **Symptom cross-check engine** (`backend/main.py: analyze_symptoms`) — flags mismatches between the AI's visual diagnosis and patient-reported symptoms, independent of the model's confidence in its own visual read.
+1. **Image Quality Assessment** (`backend/iqa.py`) — catches bad inputs (blur, underexposure, overexposure, resolution deficits) before they produce a confident-sounding wrong answer.
+2. **Calibrated Confidence Scaling** (`backend/calibration.py`, `backend/uncertainty.py`) — temperature scales logits against empirical validation holdouts to guarantee trustworthy confidence estimates.
+3. **Dirichlet Evidential Epistemic Vacuity & OOD Rejection** (`backend/evidential.py`) — calculates single-forward-pass epistemic vacuity $u = K/S \in [0, 1]$; instantly flags out-of-distribution or non-ocular inputs ($u > 0.65$) without stochastic multi-pass latency.
+4. **Urgency-Stratified Conformal Risk Control (US-CRC)** (`backend/conformal.py`) — provides distribution-free, finite-sample prediction sets guaranteeing $\ge 99.0\%$ empirical coverage on sight-threatening emergencies and $\ge 95.0\%$ on routine conditions.
+5. **Saliency-Grounded Multimodal Biomarkers (SGB-LLM)** (`backend/biomarker_extractor.py`) — computes physical spatial and colorimetric biomarkers ($\rho_{\text{anterior}}$, $\Delta\text{EI}$, $b^*$) from Grad-CAM heatmaps, strictly grounding LLM reasoning in verifiable visual evidence.
+6. **Clinical Coding and Urgency Triage** (`backend/clinical_codes.py`) — maps every diagnosis to a standardized urgency tier, ICD-10, and SNOMED-CT code independent of model confidence.
+7. **Symptom Cross-Check Engine** (`backend/main.py: analyze_symptoms`) — cross-correlates patient-reported symptoms with visual findings to catch discrepancies.
 
 ## 2. Human Review Policy
 
 ### 2.1 When a result is auto-flagged
 
-`backend/uncertainty.py: needs_human_review()` flags a result whenever any of the following is true:
+`backend/uncertainty.py: needs_human_review()` and `backend/conformal.py: ConformalTriagePolicy` flag a result whenever any of the following is true:
 
 | Condition | Threshold | Rationale |
 |---|---|---|
 | Confidence below threshold | < 75% (default) | Below this, the model itself is signaling low certainty |
-| Epistemic uncertainty above threshold | MC-Dropout variance > 0.15 (default) | The model is inconsistent with itself across repeated stochastic passes — a sign the input sits near a decision boundary |
-| Diagnosis is sight-threatening/systemic-emergency AND confidence below stricter threshold | Uveitis or Jaundice, confidence < 90% | The cost of a missed or wrong call on these specific conditions is categorically higher than for the others in the taxonomy |
+| Epistemic uncertainty above threshold | MC variance > 0.15 or Dirichlet Vacuity $u > 0.50$ | High model ignorance or decision boundary ambiguity |
+| Diagnosis is sight-threatening AND confidence below stricter threshold | Keratitis, Uveitis, or Jaundice, confidence < 90% | Catastrophic cost of missed or delayed high-urgency triage |
+| Conformal prediction set non-singleton | $|\mathcal{C}(X)| > 1$ | Multiple candidate diagnoses cannot be disambiguated with statistical safety |
 
 These thresholds are configurable (`DEFAULT_CONFIDENCE_THRESHOLD`, `DEFAULT_UNCERTAINTY_THRESHOLD`, `CRITICAL_CONFIDENCE_THRESHOLD` in `backend/uncertainty.py`) and should be tuned against real validation data (see `docs/clinical/CLINICAL_VALIDATION.md`) rather than left at their illustrative defaults in any real deployment.
 
@@ -39,11 +43,14 @@ Every diagnosis carries a fixed urgency tier from `backend/clinical_codes.py`, i
 
 | Diagnosis | Urgency | Escalation behavior |
 |---|---|---|
-| Jaundice (scleral icterus) | **Emergency** | `escalation_message` directs to same-day internal medicine/gastroenterology evaluation — this is flagged as a systemic, not ophthalmic, emergency |
-| Uveitis | **Urgent** | `escalation_message` directs to same-day-if-symptomatic ophthalmologist/uveitis specialist evaluation |
-| Conjunctivitis, Eyelid | Non-urgent | Routine GP/optometrist referral |
-| Cataract, Pterygium | Elective | Routine ophthalmologist referral for monitoring/surgical evaluation timeline |
-| Normal | None | Routine screening interval |
+| **Jaundice** (scleral icterus) | **Emergency** | `escalation_message` directs to same-day internal medicine/gastroenterology evaluation — flagged as a systemic, not ophthalmic, emergency |
+| **Keratitis** (corneal ulceration) | **Urgent / Emergency** | `escalation_message` directs to immediate/same-day ophthalmologist evaluation due to rapid corneal melt and permanent vision loss risk |
+| **Uveitis** (anterior uveitis) | **Urgent** | `escalation_message` directs to same-day-if-symptomatic ophthalmologist/uveitis specialist evaluation |
+| Ptosis, Blepharitis, Chalazion, Stye | Non-urgent | Routine GP / optometrist / oculoplastic referral |
+| Conjunctivitis | Non-urgent | Routine GP or optometrist referral |
+| Cataract, Pterygium | Elective | Routine ophthalmologist referral for monitoring or surgical evaluation timeline |
+| Subconjunctival Hemorrhage | None | Reassurance and routine primary care monitoring |
+| Normal | None | Standard routine screening interval |
 
 The `escalation_message` field is non-null only for urgent/emergency tiers, by design — its presence in a response is itself a signal the UI layer can branch on without needing to separately parse the urgency string. Frontend implementations should treat a non-null `escalation_message` as something to surface prominently, not bury in collapsed detail text.
 

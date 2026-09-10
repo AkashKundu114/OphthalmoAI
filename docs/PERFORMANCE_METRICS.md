@@ -8,11 +8,11 @@ All metrics were gathered via automated runtime telemetry (`scripts/metric_logge
 
 ## 1. Executive Summary & Architecture Evolution
 
-OphthalmoAI transitioned through three major architectural paradigms to achieve real-time, clinical-grade diagnostic accuracy on consumer hardware:
+OphthalmoAI transitioned through three major architectural paradigms to achieve real-time, clinical-grade screening classification accuracy on consumer hardware:
 
 1. **Legacy Baseline (CPU / Unoptimized Routing):** Slow execution throughput (460.8s/epoch on 16 threads) with modest classification accuracy (81.61%).
 2. **GPU Monolithic Vision Classifiers:** Hardware-accelerated training using PyTorch Mixed Precision (AMP FP16 and Native BF16), achieving ~19s–25s per epoch and >99.1% individual accuracy across three specialized vision backbones (**ConvNeXt-Small**, **DenseNet-201**, and **EfficientNet-V2-M**).
-3. **Meta-Classifier Ensemble Fusion (state-of-the-art):** A dense mathematical fusion head that concatenates predictions from all three base models, achieving **99.72% Diagnostic Screening Accuracy** with minimal memory overhead (< 1.2 GB VRAM).
+3. **Meta-Classifier Ensemble Fusion (state-of-the-art):** A dense mathematical fusion head that concatenates predictions from all three base models, achieving **99.72% Screening Classification Accuracy** with minimal memory overhead (< 1.2 GB VRAM).
 
 <p align="center">
   <img src="images/architecture_evolution_summary.png" alt="Architecture Evolution Summary" width="95%" />
@@ -30,14 +30,17 @@ Below is the verified performance summary across all 15 telemetry logs captured 
 | **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51 s** | **1.21 GB** | **99.67%** | **75 °C** |
 | **ConvNeXt-Small** | **FP16** | **32** | **19.32 s** | **3.64 GB** | **99.32%** | **78 °C** |
 | **ConvNeXt-Small** | **BF16** | **32** | **21.07 s** | **3.64 GB** | **99.31%** | **75 °C** |
-| **DenseNet-201** | **FP16** | **32** | **24.74 s** | **3.46 GB** | **99.19%** | **70 °C** |
 | **DenseNet-201** | **BF16** | **32** | **25.00 s** | **3.45 GB** | **99.49%** | **72 °C** |
+| **DenseNet-201** | **FP16** | **32** | **24.74 s** | **3.46 GB** | **99.19%** | **70 °C** |
 | **EfficientNet-V2-M** | **FP16** | **32** | **24.91 s** | **4.62 GB** | **99.21%** | **73 °C** |
 | **EfficientNet-V2-M** | **BF16** | **32** | **29.62 s** | **4.62 GB** | **99.11%** | **75 °C** |
 | *EfficientNet-B4 (Docker Single)* | *FP16* | *16* | *33.68 s* | *2.00 GB* | *98.61%* | *63 °C* |
 | *Meta-Ensemble Baseline* | *FP16* | *4* | *102.08 s* | *1.01 GB* | *99.60%* | *60 °C* |
 | *ResNet50 (Bare-Metal GPU)* | *FP32* | *16* | *52.09 s* | *1.73 GB* | *92.96%* | *60 °C* |
 | *ResNet50 (CPU Baseline)* | *FP32* | *16* | *460.79 s* | *0.00 GB* | *81.61%* | *N/A* |
+| *EfficientNet-B4 (Bare-Metal)* | *FP32* | *16* | *75.65 s* | *2.00 GB* | *96.27%* | *55 °C* |
+| *EfficientNet-V2-S (Bare-Metal)* | *FP32* | *16* | *73.26 s* | *2.69 GB* | *91.30%* | *61 °C* |
+| *EfficientNet-B4 (1-Epoch Test)* | *FP32* | *16* | *95.61 s* | *2.00 GB* | *65.62%* | *50 °C* |
 
 ---
 
@@ -82,7 +85,7 @@ The Meta-Classifier head takes the concatenated output logits from all three bas
 
 ### Architectural Benefits:
 * **Zero Latency Bottleneck:** Training the Meta-Classifier requires less than **1.0 GB VRAM** and completes an epoch in just **20.6s**.
-* **Superhuman Diagnostic Agreement:** Fusing three distinct architectures eliminates individual single-model blind spots, driving overall screening accuracy to **99.72%**.
+* **Cross-Model Triage Consensus:** Fusing three distinct architectures eliminates individual single-model blind spots, driving overall screening classification accuracy to **99.72%**.
 
 ---
 
@@ -139,10 +142,20 @@ Thermal telemetry recorded GPU core temperatures using NVIDIA Management Library
 
 To reproduce all benchmarks or regenerate these exact figures from the raw JSON logs in `dataset/logs/`:
 
+### Option A: Local Python Environment
+```powershell
+# 1. Regenerate focused presentation figures:
+python scripts/generate_presentation_charts.py
+
+# 2. Regenerate multi-run telemetry telemetry charts:
+python scripts/benchmark_plotter.py
+```
+
+### Option B: Dockerized Container Runtime
 ```powershell
 # 1. Regenerate focused presentation figures:
 docker run --rm -v "${PWD}:/workspace" -w /workspace nvcr.io/nvidia/pytorch:26.07-py3 python scripts/generate_presentation_charts.py
 
-# 2. Regenerate multi-run telemetry telemetry charts:
+# 2. Regenerate multi-run telemetry charts:
 docker run --rm -v "${PWD}:/workspace" -w /workspace nvcr.io/nvidia/pytorch:26.07-py3 python scripts/benchmark_plotter.py
 ```

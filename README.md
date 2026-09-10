@@ -10,7 +10,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
-OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances diagnostic screening capabilities across 12 visible eye conditions**. It employs a novel **Monolithic EfficientNet-B4 Architecture** to deliver high-accuracy inference, backed by **interpretable Grad-CAM heatmaps** and an **AI-driven clinical conversational assistant**.
+OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances diagnostic screening capabilities across 12 visible eye conditions**. It employs a state-of-the-art **Evidential Multi-Backbone Meta-Classifier Ensemble (ConvNeXt-Small + DenseNet-201 + EfficientNet-V2-M)** with **Urgency-Stratified Conformal Risk Control (US-CRC)**, backed by **interpretable Grad-CAM heatmaps**, quantitative physical biomarkers, and an **AI-driven clinical conversational assistant**.
 
 </div>
 
@@ -129,9 +129,13 @@ OphthalmoAI features an integrated hardware telemetry pipeline designed to profi
 | **Meta-Classifier Ensemble (state-of-the-art)** | **FP16** | **32** | **20.62s** | **0.96 GB** | **99.72%** |
 | **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51s** | **1.21 GB** | **99.67%** |
 | **ConvNeXt-Small** | **FP16** | **32** | **19.32s** | **3.64 GB** | **99.32%** |
+| **ConvNeXt-Small** | **BF16** | **32** | **21.07s** | **3.64 GB** | **99.31%** |
 | **DenseNet-201** | **BF16** | **32** | **25.00s** | **3.45 GB** | **99.49%** |
+| **DenseNet-201** | **FP16** | **32** | **24.74s** | **3.46 GB** | **99.19%** |
 | **EfficientNet-V2-M** | **FP16** | **32** | **24.91s** | **4.62 GB** | **99.21%** |
+| **EfficientNet-V2-M** | **BF16** | **32** | **29.62s** | **4.62 GB** | **99.11%** |
 | *EfficientNet-B4 (Docker Single)* | *FP16* | *16* | *33.68s* | *2.00 GB* | *98.61%* |
+| *Meta-Ensemble Baseline* | *FP16* | *4* | *102.08s* | *1.01 GB* | *99.60%* |
 | *ResNet50 (Bare-Metal GPU)* | *FP32* | *16* | *52.09s* | *1.73 GB* | *92.96%* |
 | *ResNet50 (CPU Baseline)* | *FP32* | *16* | *460.79s* | *0.00 GB* | *81.61%* |
 

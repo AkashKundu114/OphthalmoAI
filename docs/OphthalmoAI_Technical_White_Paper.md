@@ -130,6 +130,22 @@ The LLM is prompted to explicitly reference these physical measurements, elimina
 
 ## 3. Empirical Benchmarks & Comparative Telemetry
 
+All models were evaluated on an NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7) across $N = 5,663$ high-resolution clinical eye photographs spanning 12 diagnostic categories.
+
+### 3.1 Architectural Evolution & Hardware Telemetry Table
+| Model Architecture | Precision Mode | Batch Size | Avg Epoch Time | Peak VRAM | Final Accuracy | Max GPU Temp |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Meta-Classifier Ensemble (SOTA)** | **FP16** | **32** | **20.62 s** | **0.96 GB** | **99.72%** | **74 °C** |
+| **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51 s** | **1.21 GB** | **99.67%** | **75 °C** |
+| **ConvNeXt-Small** | **FP16** | **32** | **19.32 s** | **3.64 GB** | **99.32%** | **78 °C** |
+| **DenseNet-201** | **BF16** | **32** | **25.00 s** | **3.45 GB** | **99.49%** | **72 °C** |
+| **DenseNet-201** | **FP16** | **32** | **24.74 s** | **3.46 GB** | **99.19%** | **70 °C** |
+| **EfficientNet-V2-M** | **FP16** | **32** | **24.91 s** | **4.62 GB** | **99.21%** | **73 °C** |
+| *EfficientNet-B4 (Docker Single)* | *FP16* | *16* | *33.68 s* | *2.00 GB* | *98.61%* | *63 °C* |
+| *ResNet50 (Bare-Metal GPU)* | *FP32* | *16* | *52.09 s* | *1.73 GB* | *92.96%* | *60 °C* |
+| *ResNet50 (CPU Baseline)* | *FP32* | *16* | *460.79 s* | *0.00 GB* | *81.61%* | *N/A* |
+
+### 3.2 Methodological Comparison
 | Dimension / Metric | Standard Monolith (ResNet-50) | Heuristic Ensemble (MC-Dropout) | **OphthalmoAI (Ophthalmo-CRC)** |
 | :--- | :--- | :--- | :--- |
 | **Top-1 Accuracy** | 92.96% | 99.49% | **99.72%** |
@@ -139,6 +155,12 @@ The LLM is prompted to explicitly reference these physical measurements, elimina
 | **Error Guarantee** | None | Arbitrary cutoffs ($p < 0.75$) | **Distribution-Free ($1 - \alpha = 99.0\%$)** |
 | **OOD Rejection** | Fails (High-conf wrong) | Slow ($8\times$ passes) | **Instant Single-Pass Rejection ($u > 0.65$)** |
 | **LLM Grounding** | None (Unconstrained chat) | Text label injection only | **Quantitative Saliency Biomarkers** |
+
+### 3.3 Visual Telemetry Artifacts
+- **Full Architecture Evolution:** [`docs/images/architecture_evolution_summary.png`](images/architecture_evolution_summary.png)
+- **Base Monolith Models Comparison:** [`docs/images/base_monolith_models_comparison.png`](images/base_monolith_models_comparison.png)
+- **Meta-Classifier Scaling (BS4 vs BS32):** [`docs/images/meta_classifier_comparison.png`](images/meta_classifier_comparison.png)
+- **Runtime Hardware Profiles (VRAM, RAM, Convergence, Thermals):** [`docs/images/training_time_comparison.png`](images/training_time_comparison.png), [`docs/images/memory_usage_comparison.png`](images/memory_usage_comparison.png), [`docs/images/convergence_comparison.png`](images/convergence_comparison.png), [`docs/images/thermal_comparison.png`](images/thermal_comparison.png)
 
 ---
 

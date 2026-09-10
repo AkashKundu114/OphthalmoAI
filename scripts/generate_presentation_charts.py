@@ -1,8 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import sys
 import json
 import glob
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 # Style settings for clean, publication-quality presentation figures
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
@@ -57,7 +61,7 @@ def plot_base_monolith_models(runs, output_dir='docs/images'):
         'EfficientNet-V2-M (FP16)', 'EfficientNet-V2-M (BF16)'
     ]
     
-    valid_runs = {k: v for k, v in runs.items() if k in target_models}
+    valid_runs = {k: runs[k] for k in target_models if k in runs}
     if not valid_runs:
         print("Base monolith logs not found!")
         return
@@ -129,7 +133,7 @@ def plot_meta_classifier(runs, output_dir='docs/images'):
         'Meta-Classifier (FP16, BS32)',
         'Meta-Classifier (BF16, BS32)'
     ]
-    valid_runs = {k: v for k, v in runs.items() if k in target_meta}
+    valid_runs = {k: runs[k] for k in target_meta if k in runs}
     if not valid_runs:
         print("Meta classifier logs not found!")
         return
@@ -192,7 +196,7 @@ def plot_architecture_evolution(runs, output_dir='docs/images'):
         ('GPU Monolith\n(ResNet50)', 52.09, 92.96, '#3498db'),
         ('GPU Monolith\n(EfficientNet-B4)', 33.68, 98.61, '#9b59b6'),
         ('GPU Monolith\n(ConvNeXt-Small)', 19.32, 99.32, '#e67e22'),
-        ('GPU Monolith\n(DenseNet-201)', 24.74, 99.49, '#1abc9c'),
+        ('GPU Monolith\n(DenseNet-201 BF16)', 25.00, 99.49, '#1abc9c'),
         ('Meta-Ensemble\n(Final Fusion [SOTA])', 20.62, 99.72, '#2ecc71')
     ]
     
@@ -215,11 +219,11 @@ def plot_architecture_evolution(runs, output_dir='docs/images'):
         ax1.text(bar.get_x() + bar.get_width()/2., h * 1.1, f'{h:.1f}s', ha='center', va='bottom', fontsize=9, fontweight='bold')
     ax1.grid(axis='y', linestyle='--', alpha=0.7)
     
-    # Diagnostic Accuracy
+    # Screening Classification Accuracy
     bars2 = ax2.bar(labels, accs, color=colors, edgecolor='black', alpha=0.85)
-    ax2.set_ylabel('Diagnostic Accuracy (%)', fontsize=11, fontweight='bold')
+    ax2.set_ylabel('Screening Classification Accuracy (%)', fontsize=11, fontweight='bold')
     ax2.set_ylim(75, 102)
-    ax2.set_title('Evolution of Diagnostic Screening Accuracy (Up to 99.72%)', fontsize=12, fontweight='bold')
+    ax2.set_title('Evolution of Screening Classification Accuracy (Up to 99.72%)', fontsize=12, fontweight='bold')
     ax2.set_xticks(range(len(labels)))
     ax2.set_xticklabels(labels, rotation=20, ha='right', fontsize=9)
     for bar in bars2:

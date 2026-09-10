@@ -84,21 +84,23 @@ These biomarkers are formatted into structured JSON tokens and injected into the
 
 ## 3. Experimental Setup & Benchmarks
 
-### 3.1 Dataset Description
-- 12 clinically validated conditions: Anterior segment, ocular surface, and adnexal categories.
-- $N = 4,200$ high-resolution clinical photographs, stratified 70/15/15 into train, validation, and test splits.
+### 3.1 Dataset Description & Experimental Setup
+- **Taxonomy:** 12 clinically validated conditions spanning anterior segment, ocular surface, and adnexal categories.
+- **Dataset Scale:** $N = 5,663$ high-resolution clinical photographs, stratified 70/15/15 into train ($n = 3,964$), validation ($n = 849$), and test ($n = 850$) splits.
+- **Class Distribution:** Normal ($n = 1,452$), Ptosis ($n = 1,152$), Conjunctivitis ($n = 647$), Cataract ($n = 645$), Uveitis ($n = 474$), Pterygium ($n = 321$), Jaundice ($n = 273$), Subconjunctival Hemorrhage ($n = 167$), Blepharitis ($n = 154$), Chalazion ($n = 146$), Stye ($n = 127$), and Keratitis ($n = 105$).
+- **Hardware Profile:** All models benchmarked on an NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7) with an AMD Ryzen 9 8940HX host processor running containerized PyTorch mixed precision (AMP FP16 and Native BF16).
 
 ### 3.2 Quantitative Results
 
 #### Table 1: Model Accuracy, Emergency Sensitivity, and Computational Latency
-| Model / Pipeline | Overall Acc (%) | Macro F1 | Emergency Sensitivity (%) | Epistemic UQ Latency (ms) | Peak VRAM (GB) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| ResNet-50 Baseline | 92.96 | 0.912 | 91.2 | N/A | 1.73 |
-| EfficientNet-B4 Monolith | 98.61 | 0.981 | 96.5 | 33.7 | 2.00 |
-| ConvNeXt-Small Base | 99.32 | 0.991 | 97.1 | 19.3 | 3.64 |
-| DenseNet-201 Base | 99.49 | 0.993 | 97.6 | 25.0 | 3.45 |
-| Meta-Classifier Ensemble (Linear) | 99.67 | 0.995 | 98.2 | 164.8 (8-pass MC) | 0.96 |
-| **Ophthalmo-CRC (AC-HDL + US-CRC)** | **99.72** | **0.997** | **99.8** | **19.3 (1-pass Evidential)** | **0.96** |
+| Model / Pipeline | Precision Mode | Overall Acc (%) | Macro F1 | Emergency Sensitivity (%) | Epistemic UQ Latency (ms) | Peak VRAM (GB) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ResNet-50 Baseline | FP32 (Bare-Metal) | 92.96 | 0.912 | 91.2 | N/A | 1.73 |
+| EfficientNet-B4 Monolith | FP16 (Docker) | 98.61 | 0.981 | 96.5 | 33.7 | 2.00 |
+| ConvNeXt-Small Base | FP16 (BS=32) | 99.32 | 0.991 | 97.1 | 19.3 | 3.64 |
+| DenseNet-201 Base | BF16 (BS=32) | 99.49 | 0.993 | 97.6 | 25.0 | 3.45 |
+| Meta-Classifier Ensemble (Linear) | BF16 (BS=32) | 99.67 | 0.995 | 98.2 | 164.8 (8-pass MC) | 1.21 |
+| **Ophthalmo-CRC (AC-HDL + US-CRC)** | **FP16 (BS=32)** | **99.72** | **0.997** | **99.8** | **19.3 (1-pass Evidential)** | **0.96** |
 
 #### Table 2: Conformal Coverage and Prediction Set Efficiency
 | Urgency Stratum | Target Coverage ($1 - \alpha$) | Empirical Coverage (%) | Average Set Size $|\mathcal{C}(X)|$ | Emergency Miss Rate |
@@ -106,6 +108,12 @@ These biomarkers are formatted into structured JSON tokens and injected into the
 | **Emergency Stratum** | **99.0%** | **99.4%** | **1.21** | **< 0.2%** |
 | Routine Stratum | 95.0% | 96.1% | 1.05 | N/A |
 | Combined Overall | 96.0% | 96.9% | 1.09 | < 0.2% |
+
+### 3.3 Visual & Telemetric Validations
+- **Architectural Progression (Fig. 1):** Screening classification accuracy evolved monotonically from 81.61% (CPU ResNet-50) to 99.72% (Meta-Classifier Ensemble), while training latency dropped from 460.8s to 20.6s per epoch (*see `docs/images/architecture_evolution_summary.png`*).
+- **Multi-Backbone Complementarity (Fig. 2):** ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M maintain distinct receptive field profiles while operating within a compact 3.45–4.62 GB VRAM footprint (*see `docs/images/base_monolith_models_comparison.png`*).
+- **Meta-Classifier Scaling (Fig. 3):** Moving from batch size 4 (102.1s/epoch) to batch size 32 (20.6s/epoch) achieved a $4.95\times$ speedup while reaching 99.72% convergence (*see `docs/images/meta_classifier_comparison.png`*).
+- **Hardware Telemetry Profile (Fig. 4):** Full-epoch profiling confirms zero memory leaks (flat system RAM at ~4.25 GB) and sustained GPU thermal profiles between 58 °C and 78 °C with no thermal throttling (*see `docs/images/memory_usage_comparison.png` and `docs/images/thermal_comparison.png`*).
 
 ---
 
