@@ -842,7 +842,7 @@ export default function App() {
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api'
+        const apiUrl = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
         const { data } = await axios.get(`${apiUrl}/conditions`)
         if (data && data.conditions) {
           setConditions(data.conditions)
@@ -883,7 +883,7 @@ export default function App() {
 
   const handleExportFHIR = async () => {
     const scanId = result?.scan_id || result?.id || 'DEMO-SCAN'
-    const apiUrl = import.meta.env.VITE_API_URL || '/api'
+    const apiUrl = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
     try {
       const res = await axios.get(`${apiUrl}/fhir/export/${scanId}`)
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' })
@@ -919,7 +919,7 @@ export default function App() {
     setResult(null)
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '/api'
+      const apiUrl = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
       const formData = new FormData()
       formData.append('file', selectedFile, 'scan.jpg')
       formData.append('pain', painLevel)

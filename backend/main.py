@@ -684,7 +684,7 @@ async def predict(
                 scan = ScanResult(
                     user_id=user_id, diagnosis=diagnosis,
                     confidence=round(confidence, 2),
-                    group_name=spec_data.get("group_name", "Unknown"),
+                    group_name="Monolithic 12-Class Model",
                     probabilities=probs_dict, calibrated=is_calibrated,
                     calibration_temperature=calibration_temperature,
                     uncertainty=review_payload["uncertainty"],
@@ -703,7 +703,7 @@ async def predict(
                         "light_sensitivity": light_sens,
                         "floaters": floaters, "duration": duration,
                     },
-                    router_group_idx=group_idx,
+                    router_group_idx=0,
                     hba1c=hba1c,
                     systolic_bp=systolic_bp,
                     diastolic_bp=diastolic_bp,
