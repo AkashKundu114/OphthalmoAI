@@ -46,14 +46,14 @@ export default function TermsPage({ onNavigate }) {
       content: (
         <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
           <p>
-            By accessing or operating the OphthalmoAI platform, you certify that you meet the prerequisite qualifications and agree to use the software solely for legitimate clinical, educational, epidemiological, or research screening purposes:
+            By accessing or operating the OphthalmoAI platform, you agree to use the software solely for legitimate personal health screening, educational, clinical decision-support, or medical research purposes:
           </p>
           <ul className="space-y-2 list-none pl-1">
             {[
-              'You are a licensed clinician, optometrist, ophthalmology resident, triage nurse, or medical researcher operating under clinical supervision.',
-              'You will not use this platform to conduct unauthorized medical practice or offer definitive diagnosis without clinical verification.',
+              'You may use this tool as a member of the public, patient, caregiver, student, or healthcare professional for preliminary eye health screening and informational purposes.',
+              'You understand that this platform provides auxiliary educational screening and does not constitute a legally binding or definitive medical diagnosis.',
               'You will not perform automated high-frequency stress tests, scrape model predictions, or attempt denial-of-service against the API gateway.',
-              'You will not reverse-engineer, decompile, extract proprietary weights, or poison dataset caches for adversarial purposes.'
+              'You will not reverse-engineer, decompile, extract proprietary model weights, or poison dataset caches for adversarial purposes.'
             ].map((rule, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />

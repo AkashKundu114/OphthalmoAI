@@ -1310,23 +1310,23 @@ export default function App() {
                 <span className="text-base font-extrabold tracking-wide text-white font-display">
                   Ophthalmo<span className="text-cyan-400">AI</span>
                 </span>
-                <span className="block text-[10px] text-slate-400 font-mono tracking-tight">
-                  Clinical Retina Screening
+                <span className="block text-[10px] text-slate-400 font-medium tracking-wide">
+                  Eye Health Screening
                 </span>
               </div>
             </div>
 
             <nav className="flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto scrollbar-hide">
               <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
-              <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Diagnostic Tool" />
-              <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions (12)" />
-              <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Telemetry" />
-              <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Clinical Research" />
+              <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Eye Screening" />
+              <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions Guide" />
+              <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Specs" />
+              <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> AI System Online
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Free Screening Ready
               </span>
             </div>
           </div>
@@ -1341,15 +1341,15 @@ export default function App() {
           <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">AI Ocular Diagnostic Screening</h2>
-                <p className="text-xs text-slate-400 mt-1">Upload a retinal scan, specify clinical symptoms, and obtain instant AI predictions.</p>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Eye Health Screening & Check</h2>
+                <p className="text-xs text-slate-400 mt-1">Upload an eye photo or scan, note any symptoms, and get instant guidance with a report for your doctor.</p>
               </div>
               {result && (
                 <button
                   onClick={generatePDFReport}
                   className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all"
                 >
-                  <Download className="w-4 h-4" /> Download PDF Clinical Report
+                  <Download className="w-4 h-4" /> Download PDF Report
                 </button>
               )}
             </div>
@@ -1360,7 +1360,7 @@ export default function App() {
                 {}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                    <Upload className="w-4 h-4" /> 1. Upload Eye Image
+                    <Upload className="w-4 h-4" /> 1. Eye Photo or Scan
                   </p>
 
                   <div className="relative border-2 border-dashed border-slate-700/80 rounded-2xl p-6 text-center hover:border-cyan-500/60 transition-all duration-300 bg-slate-900/60 group">
@@ -1374,7 +1374,7 @@ export default function App() {
                     {previewUrl ? (
                       <div className="relative space-y-3">
                         <img src={previewUrl} alt="Scan preview" className="max-h-48 mx-auto rounded-xl shadow-lg border border-slate-700 object-cover" />
-                        <p className="text-[11px] text-cyan-400 font-medium">Click or drag to replace image</p>
+                        <p className="text-[11px] text-cyan-400 font-medium">Click or drag to replace photo</p>
                       </div>
                     ) : (
                       <div className="space-y-3 py-4">
@@ -1382,7 +1382,7 @@ export default function App() {
                           <Upload className="w-6 h-6" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-slate-200">Drag & drop eye scan or click to browse</p>
+                          <p className="text-xs font-semibold text-slate-200">Drag & drop an eye photo or click to browse</p>
                           <p className="text-[10px] text-slate-400 mt-1">Supports JPEG, PNG, BMP, WEBP (Max 20MB)</p>
                         </div>
                       </div>
@@ -1394,52 +1394,52 @@ export default function App() {
                       onClick={() => setCropping(true)}
                       className="w-full py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors"
                     >
-                      Crop & Focus Image Region
+                      Crop & Adjust Photo
                     </button>
                   )}
                 </div>
 
                 {}
-                {/* 2. Structured Clinical Questionnaire */}
+                {/* 2. Structured Symptoms & Health Context */}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-5">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                      <Stethoscope className="w-4 h-4" /> 2. Clinical Symptom & Triage Intake
+                      <Stethoscope className="w-4 h-4" /> 2. Symptoms & Health Context (Optional)
                     </p>
-                    <span className="text-[10px] text-slate-400 font-mono">12-Disease Screening</span>
+                    <span className="text-[10px] text-slate-400 font-mono">12-Condition Screening</span>
                   </div>
 
-                  {/* Clinical Quick Presets */}
+                  {/* Common Quick Presets */}
                   <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">Quick Clinical Scenarios:</span>
+                    <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">Quick Common Scenarios:</span>
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         type="button"
                         onClick={() => applyPreset('red_eye')}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-red-950/60 text-red-300 border border-red-800/60 hover:bg-red-900/60 transition-colors"
                       >
-                        🔴 Acute Red Eye
+                        🔴 Red Eye / Irritation
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('cataract')}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-950/60 text-amber-300 border border-amber-800/60 hover:bg-amber-900/60 transition-colors"
                       >
-                        🟡 Cataract / Glare
+                        🟡 Blurry / Cataract
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('jaundice')}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-yellow-950/60 text-yellow-300 border border-yellow-800/60 hover:bg-yellow-900/60 transition-colors"
                       >
-                        🟠 Scleral Icterus
+                        🟠 Yellow Tint / Jaundice
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('reset')}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors ml-auto"
                       >
-                        🔄 Reset All
+                        🔄 Reset
                       </button>
                     </div>
                   </div>
@@ -1455,7 +1455,7 @@ export default function App() {
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      Chief Complaints
+                      Symptoms
                     </button>
                     <button
                       type="button"
@@ -1466,7 +1466,7 @@ export default function App() {
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      Light & Onset
+                      Vision & Duration
                     </button>
                     <button
                       type="button"
@@ -1477,11 +1477,11 @@ export default function App() {
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      Patient Vitals (Optional)
+                      General Health (Optional)
                     </button>
                   </div>
 
-                  {/* Tab 1: Chief Complaints */}
+                  {/* Tab 1: Symptoms */}
                   {activeQuestionTab === 'symptoms' && (
                     <div className="grid grid-cols-2 gap-3 animate-fade-in">
                       <SymptomSelect
@@ -1491,26 +1491,26 @@ export default function App() {
                         options={['None', 'Mild', 'Moderate', 'Severe']}
                       />
                       <SymptomSelect
-                        label="Visual Acuity Deficit"
+                        label="Blurry Vision or Vision Loss"
                         value={visionLoss}
                         setValue={setVisionLoss}
                         options={['No', 'Mild', 'Significant']}
                       />
                       <SymptomSelect
-                        label="Ocular Discharge"
+                        label="Eye Discharge or Watering"
                         value={discharge}
                         setValue={setDischarge}
                         options={['None', 'Watery', 'Mucous', 'Purulent / Crusty']}
                       />
                       <SymptomSelect
-                        label="Itchiness / Pruritus"
+                        label="Itchiness or Irritation"
                         value={itchiness}
                         setValue={setItchiness}
                         options={['No', 'Yes']}
                       />
                       <div className="col-span-2">
                         <SymptomSelect
-                          label="Affected Eye Lateralization"
+                          label="Which Eye is Affected?"
                           value={affectedEye}
                           setValue={setAffectedEye}
                           options={['Both Eyes (OU)', 'Right Eye (OD)', 'Left Eye (OS)']}
@@ -1519,29 +1519,29 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Tab 2: Light Phenomena & Onset */}
+                  {/* Tab 2: Vision & Duration */}
                   {activeQuestionTab === 'phenomena' && (
                     <div className="grid grid-cols-2 gap-3 animate-fade-in">
                       <SymptomSelect
-                        label="Light Sensitivity (Photophobia)"
+                        label="Sensitivity to Light"
                         value={lightSensitivity}
                         setValue={setLightSensitivity}
                         options={['No', 'Mild', 'Yes']}
                       />
                       <SymptomSelect
-                        label="Halos & Glare"
+                        label="Halos Around Lights or Glare"
                         value={halos}
                         setValue={setHalos}
                         options={['No', 'Yes']}
                       />
                       <SymptomSelect
-                        label="Floaters & Flashes"
+                        label="Floaters or Flashes of Light"
                         value={floaters}
                         setValue={setFloaters}
                         options={['No', 'Yes']}
                       />
                       <SymptomSelect
-                        label="Symptom Duration"
+                        label="How Long Have You Noticed This?"
                         value={duration}
                         setValue={setDuration}
                         options={['Not Sure', '<24 Hours (Acute)', '<1 week', '1-4 weeks', '>1 month']}
@@ -1549,13 +1549,13 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Tab 3: Patient Vitals & Systemic Biomarkers */}
+                  {/* Tab 3: General Health & Vitals (Optional) */}
                   {activeQuestionTab === 'vitals' && (
                     <div className="space-y-3 animate-fade-in">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Patient Age (Years)
+                            Age (Years)
                           </label>
                           <input
                             type="number"
@@ -1567,7 +1567,7 @@ export default function App() {
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            HbA1c Level (%)
+                            Recent HbA1c or Blood Sugar (%)
                           </label>
                           <input
                             type="number"
@@ -1583,7 +1583,7 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Systolic BP (mmHg)
+                            Blood Pressure Systolic (mmHg)
                           </label>
                           <input
                             type="number"
@@ -1595,7 +1595,7 @@ export default function App() {
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                            Diastolic BP (mmHg)
+                            Blood Pressure Diastolic (mmHg)
                           </label>
                           <input
                             type="number"
@@ -1626,12 +1626,12 @@ export default function App() {
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Running AI Diagnostic Models...
+                        Checking Eye Photo & Symptoms...
                       </>
                     ) : (
                       <>
                         <Activity className="w-4 h-4" />
-                        Run Diagnostic Inference
+                        Check Eye Health
                       </>
                     )}
                   </button>
@@ -1644,7 +1644,7 @@ export default function App() {
                   <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold">Diagnostic System Alert</p>
+                      <p className="font-bold">Screening Notice</p>
                       <p className="mt-0.5 leading-relaxed">{error}</p>
                     </div>
                   </div>
@@ -1669,8 +1669,8 @@ export default function App() {
                           </div>
                           <div className="text-right shrink-0">
                             <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tabular-nums">{result.confidence}%</div>
-                            <span className="text-xs text-slate-400 font-mono font-medium block mt-1">Calibrated Confidence</span>
-                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">MC Uncertainty: {(result.uncertainty * 100).toFixed(1)}%</span>
+                            <span className="text-xs text-slate-400 font-mono font-medium block mt-1">Screening Confidence</span>
+                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">Consistency: {((1 - (result.uncertainty || 0)) * 100).toFixed(1)}%</span>
                           </div>
                         </div>
 
@@ -1678,7 +1678,7 @@ export default function App() {
                         {result.condition_details?.pathophysiology && (
                           <div className="pt-6">
                             <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
-                              <Brain className="w-4 h-4 text-emerald-400" /> Clinical Impression & Pathophysiology
+                              <Brain className="w-4 h-4 text-emerald-400" /> Understanding This Condition
                             </h4>
                             <p className="text-sm text-slate-400 leading-relaxed">
                               {result.condition_details.pathophysiology}
@@ -1691,10 +1691,10 @@ export default function App() {
                       <div className="glass-panel p-6 rounded-2xl border border-slate-800">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
                           <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                            <Layers className="w-4 h-4 text-cyan-400" /> Visual Findings & Explainable AI
+                            <Layers className="w-4 h-4 text-cyan-400" /> Visual Findings & Highlighted Areas
                           </h4>
                           <button onClick={() => setShowHeatmap(!showHeatmap)} className="text-[11px] px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 transition-colors">
-                            {showHeatmap ? 'Toggle Original Scan' : 'Toggle Grad-CAM Heatmap'}
+                            {showHeatmap ? 'Show Original Photo' : 'Show Highlighted Heatmap'}
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -1702,25 +1702,25 @@ export default function App() {
                             <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900 group">
                               <img src={showHeatmap && result.heatmap ? result.heatmap : previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
                               <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md">
-                                {showHeatmap && result.heatmap ? 'Grad-CAM' : 'Original'}
+                                {showHeatmap && result.heatmap ? 'Highlighted Focus' : 'Original Photo'}
                               </div>
                             </div>
                           </div>
                           <div className="md:col-span-3 space-y-4">
                             {result.condition_details?.analysis && (
                               <div>
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Expected Visual Findings</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Key Visual Signs</span>
                                 <p className="text-xs text-slate-300 leading-relaxed">{result.condition_details.analysis}</p>
                               </div>
                             )}
                             {result.spatial_description && (
                               <div className="bg-slate-950/60 p-3.5 border border-slate-850 rounded-xl space-y-1">
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">AI Spatial Localization Annotation</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Highlighted Area Description</span>
                                 <p className="text-xs text-emerald-400 font-mono leading-relaxed">{result.spatial_description}</p>
                               </div>
                             )}
                             <div>
-                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2 block">Specialist Model Probabilities</span>
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2 block">Condition Probability Breakdown</span>
                               <div className="space-y-2.5">
                                 {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
                                   <ProbabilityBar key={cls} label={cls} value={prob} />
@@ -1736,7 +1736,7 @@ export default function App() {
                         {result.condition_details?.diagnostic_workup && (
                           <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                             <h4 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
-                              <Microscope className="w-4 h-4" /> Recommended Diagnostic Workup
+                              <Microscope className="w-4 h-4" /> Recommended Next Steps with an Eye Doctor
                             </h4>
                             <ul className="space-y-2.5">
                               {result.condition_details.diagnostic_workup.map((workup, i) => (
@@ -1753,7 +1753,7 @@ export default function App() {
                         {result.condition_details?.treatment && (
                           <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
                             <h4 className="text-sm font-bold text-teal-400 flex items-center gap-2">
-                              <Pill className="w-4 h-4" /> Clinical Treatment Protocols
+                              <Pill className="w-4 h-4" /> Standard Clinical Care Options
                             </h4>
                             <ul className="space-y-2.5">
                               {result.condition_details.treatment.map((tx, i) => (
@@ -1773,7 +1773,7 @@ export default function App() {
                           {result.condition_details?.precautions && (
                             <div className="space-y-3">
                               <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-                                <ShieldAlert className="w-4 h-4" /> Immediate Precautions
+                                <ShieldAlert className="w-4 h-4" /> Important Everyday Precautions
                               </h4>
                               <ul className="space-y-2">
                                 {result.condition_details.precautions.map((prec, i) => (
@@ -1789,7 +1789,7 @@ export default function App() {
                           {result.condition_details?.doctor_notes && (
                             <div className="space-y-3">
                               <h4 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
-                                <Stethoscope className="w-4 h-4" /> Doctor's Clinical Notes
+                                <Stethoscope className="w-4 h-4" /> Clinical Summary for Your Specialist
                               </h4>
                               <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-900/30">
                                 <p className="text-xs text-cyan-100/90 leading-relaxed italic">
@@ -1805,7 +1805,7 @@ export default function App() {
                       {result.hybrid_warnings_structured && result.hybrid_warnings_structured.length > 0 && (
                         <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
                           <p className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                            <ShieldAlert className="w-4 h-4" /> Clinical Symptom Alerts & Mismatches
+                            <ShieldAlert className="w-4 h-4" /> Symptom Observations & Alerts
                           </p>
                           <div className="space-y-2">
                             {result.hybrid_warnings_structured.map((w, idx) => (
@@ -1832,7 +1832,7 @@ export default function App() {
                         {result.condition_details?.questions_for_doctor && (
                           <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
                             <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2 uppercase tracking-wider">
-                              <ClipboardList className="w-4 h-4 text-emerald-400" /> Questions for your Ophthalmologist
+                              <ClipboardList className="w-4 h-4 text-emerald-400" /> Questions to Ask Your Eye Doctor
                             </h4>
                             <ul className="space-y-2 pl-1">
                               {result.condition_details.questions_for_doctor.map((q, i) => (
@@ -1846,20 +1846,20 @@ export default function App() {
                         )}
 
                         <div className="lg:w-1/3 flex flex-col justify-end gap-3 p-5 glass-panel rounded-2xl border border-slate-800">
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Export Clinical Records</p>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Save or Export Summary</p>
                           <button
                             onClick={handleExportFHIR}
                             className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-800/60 transition flex items-center justify-center gap-2"
                           >
                             <Download className="w-4 h-4" />
-                            <span>Export FHIR R4 Record</span>
+                            <span>Export Medical Record (FHIR)</span>
                           </button>
                           <button
                             onClick={generatePDFReport}
                             className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
                           >
                             <FileText className="w-4 h-4" />
-                            <span>Download Full PDF Report</span>
+                            <span>Download Doctor-Ready PDF</span>
                           </button>
                         </div>
                       </div>
@@ -1872,7 +1872,7 @@ export default function App() {
                     <div className="max-w-xs mx-auto">
                       <p className="text-sm font-bold text-slate-300">No Active Screening Data</p>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Upload an eye scan on the left panel and click &quot;Run Diagnostic Inference&quot; to see prediction results and visual heatmaps.
+                        Upload an eye photo on the left panel and click &quot;Check Eye Health&quot; to view your results, visual highlights, and doctor recommendations.
                       </p>
                     </div>
                   </div>
@@ -1886,14 +1886,14 @@ export default function App() {
           <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">Clinical Conditions Directory (12 Ocular Pathologies)</h2>
-                <p className="text-xs text-slate-400 mt-1">Medical descriptions, SNOMED-CT / ICD-10 codings, hallmarks, and clinical action protocols for all detectable eye conditions.</p>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Eye Conditions Guide (12 Detectable Conditions)</h2>
+                <p className="text-xs text-slate-400 mt-1">Explore typical symptoms, causes, prevention advice, and next steps for common eye conditions.</p>
               </div>
 
               <div className="relative w-full md:w-72">
                 <input
                   type="text"
-                  placeholder="Search by name, symptom, ICD-10..."
+                  placeholder="Search by condition name, symptom, or keyword..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl glass-input text-slate-200"
@@ -1906,10 +1906,10 @@ export default function App() {
             <div className="flex flex-wrap items-center gap-2">
               {[
                 { id: 'All', label: 'All Conditions (12)' },
-                { id: 'Anterior Segment', label: 'Anterior Segment (3)' },
-                { id: 'Ocular Surface', label: 'Ocular Surface (4)' },
-                { id: 'Adnexal/Oculoplastic', label: 'Adnexal / Oculoplastic (4)' },
-                { id: 'Healthy', label: 'Normal / Healthy (1)' },
+                { id: 'Anterior Segment', label: 'Anterior & Vision (3)' },
+                { id: 'Ocular Surface', label: 'Surface & Cornea (4)' },
+                { id: 'Adnexal/Oculoplastic', label: 'Eyelid & General Health (4)' },
+                { id: 'Healthy', label: 'Healthy Baseline (1)' },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -1967,7 +1967,7 @@ export default function App() {
                     <div className="space-y-3 pt-3 border-t border-slate-800/80">
                       {c.advice && (
                         <div className="p-3 bg-cyan-950/20 rounded-xl border border-cyan-900/40 text-xs text-cyan-200">
-                          <span className="font-bold block text-[10px] uppercase text-cyan-400 mb-0.5">Clinical Protocol</span>
+                          <span className="font-bold block text-[10px] uppercase text-cyan-400 mb-0.5">Recommended Care</span>
                           {c.advice}
                         </div>
                       )}
@@ -1979,7 +1979,7 @@ export default function App() {
                         }}
                         className="w-full py-2 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <ScanEye className="w-3.5 h-3.5 text-cyan-400" /> Screen for {c.name.split(' ')[0]}
+                        <ScanEye className="w-3.5 h-3.5 text-cyan-400" /> Check for {c.name.split(' ')[0]}
                       </button>
                     </div>
                   </div>
@@ -2025,11 +2025,11 @@ export default function App() {
       {}
       <ChatBot diagnosisContext={result ? { diagnosis: result.diagnosis, confidence: result.confidence, group_name: result.group_name, details: result.details } : null} />
 
-      {/* Platform Clinical Footer */}
+      {/* Modern Public & Clinical Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 pt-12 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            {/* Column 1: Brand & Clinical Mission */}
+            {/* Column 1: Brand & Mission */}
             <div className="md:col-span-5 space-y-3">
               <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-400 text-white shadow-md shadow-cyan-500/20">
@@ -2040,52 +2040,52 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                Next-generation point-of-care ocular triage and retinal screening platform powered by a Meta-Classifier Vision Ensemble, Grad-CAM explainability, and Gemini 2.0 Flash clinical assistant.
+                Free, private, and accessible AI eye screening designed to help individuals, families, and clinics detect potential eye issues early and connect with specialist care.
               </p>
-              <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-mono">
+              <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-medium">
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Diagnostic Pipeline v2.4 (RTX-Accelerated)</span>
+                <span>Free Eye Health Screening Online</span>
               </div>
             </div>
 
-            {/* Column 2: Clinical Screening Navigation */}
+            {/* Column 2: Quick Navigation */}
             <div className="md:col-span-4 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Clinical Platform
+                Explore & Screen
               </p>
               <ul className="space-y-2 text-xs text-slate-400">
                 <li>
-                  <button onClick={() => setActiveTab('home')} className="hover:text-cyan-400 transition">
+                  <button onClick={() => { setActiveTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
                     Home & Overview
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setActiveTab('diagnostic')} className="hover:text-cyan-400 transition">
-                    AI Diagnostic Screening Tool
+                  <button onClick={() => { setActiveTab('diagnostic'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                    Eye Screening Tool
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setActiveTab('conditions')} className="hover:text-cyan-400 transition">
-                    12 Detectable Conditions Directory
+                  <button onClick={() => { setActiveTab('conditions'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                    Conditions Guide (12)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setActiveTab('workflow')} className="hover:text-cyan-400 transition">
-                    Architecture Benchmarks & Telemetry
+                  <button onClick={() => { setActiveTab('workflow'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                    Architecture & Specs (Technical Page)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setActiveTab('news')} className="hover:text-cyan-400 transition">
-                    Ophthalmology Research & Highlights
+                  <button onClick={() => { setActiveTab('news'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                    Eye Health News & Articles
                   </button>
                 </li>
               </ul>
             </div>
 
-            {/* Column 3: Governance & Legal */}
+            {/* Column 3: Privacy, Legal & Contact */}
             <div className="md:col-span-3 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Legal & Governance
+                Privacy & Legal
               </p>
               <ul className="space-y-2 text-xs text-slate-400">
                 <li>
@@ -2123,8 +2123,8 @@ export default function App() {
                 </li>
                 <li className="pt-2">
                   <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
-                    <span className="font-semibold text-slate-300 block">HIPAA Safe Harbor</span>
-                    <span>De-identified volatile processing for medical images.</span>
+                    <span className="font-semibold text-slate-300 block">Patient Privacy First</span>
+                    <span>Secure in-memory processing. Photos and symptoms are never stored, sold, or shared.</span>
                   </div>
                 </li>
               </ul>
@@ -2132,14 +2132,14 @@ export default function App() {
           </div>
 
           {/* Clinical Advisory Alert */}
-          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-[11px] text-slate-400 leading-relaxed">
-            <strong className="text-slate-300">Clinical Advisory Notice:</strong> OphthalmoAI is an assistive screening system designed to support clinical evaluation and ophthalmic research. It is not an autonomous medical device. Immediate direct emergency care is required for acute sight-threatening symptoms or ocular trauma.
+          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400 leading-relaxed">
+            <strong className="text-slate-300">Medical Notice:</strong> OphthalmoAI is an educational screening aid designed to assist, not replace, an in-person medical evaluation. If you experience sudden vision loss, intense eye pain, or an eye injury, please consult an eye doctor or emergency medical center immediately.
           </div>
 
           {/* Copyright & Disclaimer Bar */}
           <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div>
-              &copy; {new Date().getFullYear()} OphthalmoAI. Clinical AI Screening Platform. All rights reserved.
+              &copy; {new Date().getFullYear()} OphthalmoAI. Free Eye Health Screening Platform. All rights reserved.
             </div>
             <div className="flex items-center gap-4 text-[11px]">
               <button onClick={() => { setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
@@ -2149,8 +2149,6 @@ export default function App() {
               <button onClick={() => { setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
                 Privacy
               </button>
-              <span>·</span>
-              <span>HL7 FHIR R4 Compliant</span>
             </div>
           </div>
         </div>
