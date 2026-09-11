@@ -204,8 +204,9 @@ const ChatBot = ({ diagnosisContext }) => {
         is_emergency: data.is_emergency || false,
       }])
     } catch (err) {
+      console.error('Chat error:', err)
       const serverDetail = err?.response?.data?.detail
-      const fallback     = 'I am currently unable to process your request. For urgent eye concerns, please contact an ophthalmologist or visit an emergency room immediately.'
+      const fallback     = `I am currently unable to process your request. Error: ${err.message}. For urgent eye concerns, please contact an ophthalmologist or visit an emergency room immediately.`
       setMessages(prev => [
         ...prev,
         { role: 'assistant', content: sanitise(serverDetail || fallback) },
