@@ -257,173 +257,184 @@ const BENCHMARK_DATA = [
 const HomePage = ({ onNavigate }) => (
   <div className="space-y-16 animate-fade-in">
     {/* Hero Section */}
-    <section className="relative overflow-hidden py-12 lg:py-20">
+    <section className="relative overflow-hidden py-10 lg:py-16">
       <div className="max-w-7xl px-4 mx-auto sm:px-6 lg:px-8">
         <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-12">
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 glow-teal">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              SOTA Point-of-Care Ophthalmology AI Platform
+              Free, Instant & Confidential Eye Screening
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
-              Clinical Retinal & Eye <br />
-              <span className="gradient-text">Disease Screening</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] tracking-tight">
+              Check Your Eye Health <br />
+              <span className="gradient-text">In Seconds, From Home</span>
             </h1>
 
-            <p className="max-w-xl text-sm sm:text-base text-slate-300 leading-relaxed">
-              Automated point-of-care ophthalmic triage across <strong>12 detectable conditions</strong> powered by a <strong>Meta-Classifier Vision Ensemble</strong> (ConvNeXt-Small, DenseNet-201, EfficientNet-V2, EfficientNet-B4) with <strong>Grad-CAM explainability</strong>, <strong>Monte Carlo uncertainty quantification</strong>, and <strong>Gemini 2.0 Flash clinical assistant</strong>.
+            <p className="max-w-xl text-base sm:text-lg text-slate-300 leading-relaxed">
+              Have an irritated eye, redness, or blurry vision? Upload a clear photo of your eye to get instant screening, understand possible causes, and receive an easy-to-read summary to take to your eye doctor.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
                 onClick={() => onNavigate('diagnostic')}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 text-sm font-bold text-white rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 transition-all duration-300 shadow-xl shadow-cyan-500/25 hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 text-base font-bold text-white rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 transition-all duration-300 shadow-xl shadow-cyan-500/25 hover:scale-105 active:scale-95"
               >
-                <ScanEye className="w-5 h-5" /> Launch Screening Tool
-              </button>
-
-              <button
-                onClick={() => onNavigate('workflow')}
-                className="inline-flex items-center gap-2 px-5 py-3.5 text-sm font-medium text-slate-300 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 hover:text-white border border-slate-700 transition-all duration-200"
-              >
-                <BarChart2 className="w-4 h-4 text-teal-400" /> Architecture & Telemetry <ChevronRight className="w-4 h-4" />
+                <ScanEye className="w-5 h-5" /> Start Free Eye Scan
               </button>
 
               <button
                 onClick={() => onNavigate('conditions')}
                 className="inline-flex items-center gap-2 px-5 py-3.5 text-sm font-medium text-slate-300 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 hover:text-white border border-slate-700 transition-all duration-200"
               >
-                <BookOpen className="w-4 h-4 text-cyan-400" /> 12 Conditions Guide
+                <BookOpen className="w-4 h-4 text-cyan-400" /> Browse 12 Conditions <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => onNavigate('workflow')}
+                className="inline-flex items-center gap-2 px-4 py-3.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+                title="View model specifications and GPU telemetry"
+              >
+                <BarChart2 className="w-4 h-4 text-teal-400" /> Tech & Telemetry
               </button>
             </div>
 
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-slate-800/80">
+            {/* Public Trust & Usability Highlights */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-800/80">
               {[
-                { value: '12 Conditions', label: 'Point-of-Care Coverage', color: 'text-cyan-300' },
-                { value: '99.72%', label: 'Ensemble Top-1 Accuracy', color: 'text-emerald-400' },
-                { value: '< 1.2 GB', label: 'Peak Inference VRAM', color: 'text-teal-300' },
-                { value: 'Sub-Second', label: 'GPU Inference Latency', color: 'text-indigo-400' },
+                { value: '100% Free', label: 'No Sign-Up or Fees', color: 'text-cyan-300' },
+                { value: '10 Seconds', label: 'Average Scan Time', color: 'text-emerald-400' },
+                { value: 'Private', label: 'Photos Never Stored', color: 'text-teal-300' },
+                { value: 'Doctor-Ready', label: 'Downloadable PDF', color: 'text-indigo-400' },
               ].map((s, i) => (
                 <div key={i} className="glass-panel p-3.5 rounded-xl border border-slate-800">
-                  <p className={`text-base sm:text-lg font-extrabold ${s.color} tabular-nums`}>{s.value}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{s.label}</p>
+                  <p className={`text-base sm:text-lg font-extrabold ${s.color}`}>{s.value}</p>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">{s.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Pipeline Visualizer Card */}
+          {/* Simple Guided Walkthrough Card */}
           <div className="lg:col-span-5 glass-card p-6 rounded-3xl border border-slate-700/60 shadow-2xl relative">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-2">
-                <Brain className="w-4 h-4" /> Multi-Stage Vision Pipeline
+              <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" /> How It Works
               </p>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800">
-                PyTorch 2.15+ CUDA
+              <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+                Simple 3-Step Check
               </span>
             </div>
 
             <div className="space-y-3">
               {[
                 {
-                  step: '01',
-                  label: 'Image Quality Assessment (IQA)',
-                  desc: 'Laplacian sharpness check, MIME verification & magic byte validation',
+                  step: '1',
+                  label: 'Snap or Upload a Photo',
+                  desc: 'Take a clear, close-up photo of your eye with your phone, webcam, or upload an existing picture.',
                   icon: <Upload className="w-4 h-4 text-cyan-400" />
                 },
                 {
-                  step: '02',
-                  label: 'Deep Vision Backbone Ensemble',
-                  desc: 'ConvNeXt-Small (Shapes) + DenseNet-201 (Vascular) + EfficientNet-V2 (Anterior)',
-                  icon: <GitBranch className="w-4 h-4 text-indigo-400" />
+                  step: '2',
+                  label: 'Tell Us What You Feel',
+                  desc: 'Optionally select symptoms like itching, redness, dryness, or blurry vision to add clinical context.',
+                  icon: <ClipboardList className="w-4 h-4 text-indigo-400" />
                 },
                 {
-                  step: '03',
-                  label: 'Meta-Classifier & Uncertainty',
-                  desc: 'Dense fusion head + Temperature Scaling + 8-pass Monte Carlo Dropout',
-                  icon: <Microscope className="w-4 h-4 text-teal-400" />
-                },
-                {
-                  step: '04',
-                  label: 'Explainable AI & EHR Interop',
-                  desc: 'High-res Grad-CAM heatmaps, SNOMED-CT / ICD-10, FHIR R4 & Clinical PDF',
-                  icon: <FileText className="w-4 h-4 text-emerald-400" />
+                  step: '3',
+                  label: 'Get Immediate Guidance',
+                  desc: 'Receive instant visual analysis, highlighted areas of concern, and a summary report you can share with your doctor.',
+                  icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 },
               ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                <div key={i} className="flex items-start gap-3.5 p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
                   <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 shrink-0 mt-0.5">
                     {item.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-200">{item.label}</span>
-                      <span className="text-[10px] font-mono text-cyan-400 font-bold">{item.step}</span>
+                      <span className="text-sm font-bold text-slate-200">{item.label}</span>
+                      <span className="text-xs font-bold text-cyan-400">Step {item.step}</span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Takes less than 1 minute</span>
+              <button
+                onClick={() => onNavigate('diagnostic')}
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1.5 transition-colors"
+              >
+                Try it now <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    {/* Detectable Conditions Spectrum Showcase */}
+    {/* Common Eye Conditions Section */}
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="border-b border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Target className="w-5 h-5 text-cyan-400" /> 12 Detectable Clinical Conditions
+            <Target className="w-5 h-5 text-cyan-400" /> Common Eye Conditions Screened
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Structured multi-disease screening across the three major anatomical ocular groups.</p>
+          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            Click on any condition to learn about typical symptoms, causes, and when to seek medical care.
+          </p>
         </div>
         <button
           onClick={() => onNavigate('conditions')}
-          className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1"
+          className="text-xs sm:text-sm font-semibold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1"
         >
-          View Full Clinical Protocols <ArrowRight className="w-3.5 h-3.5" />
+          View Full Guide <ArrowRight className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
         {FALLBACK_CONDITIONS.map((c) => (
           <div
             key={c.key}
             onClick={() => onNavigate('conditions')}
-            className="glass-card p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/40 cursor-pointer space-y-2 group"
+            className="glass-card p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/40 hover:bg-slate-800/40 cursor-pointer space-y-2 group transition-all"
           >
             <div className="flex items-center justify-between">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-              <span className="text-[9px] font-mono text-slate-500 group-hover:text-slate-400">{c.icd10}</span>
+              <span className="text-[10px] text-slate-400 font-medium">{c.group.split(' ')[0]}</span>
             </div>
-            <h4 className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition-colors line-clamp-1">{c.name}</h4>
-            <p className="text-[10px] text-slate-400 font-medium truncate">{c.group}</p>
+            <h4 className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-cyan-300 transition-colors line-clamp-1">
+              {c.name}
+            </h4>
+            <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+              {c.description}
+            </p>
           </div>
         ))}
       </div>
     </section>
 
-    {/* Platform Architectural Pillars */}
+    {/* Why Use OphthalmoAI (Patient & Public Benefits) */}
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
-            icon: <Zap className="w-6 h-6 text-amber-400" />,
-            title: 'Meta-Classifier Ensemble',
-            desc: 'Combines ConvNeXt-Small, DenseNet-201, and EfficientNet-V2 to capture both micro-vascular lesions and macro structural anomalies with 99.72% accuracy.'
+            icon: <Heart className="w-6 h-6 text-rose-400" />,
+            title: 'Friendly Guidance',
+            desc: 'Get plain-language explanations of possible eye issues so you feel informed and confident before speaking with your specialist.'
           },
           {
             icon: <ShieldCheck className="w-6 h-6 text-cyan-400" />,
-            title: 'Hardware Optimized for 8GB VRAM',
-            desc: 'Trained and served natively on consumer RTX 5060 GPUs via Automatic Mixed Precision (FP16/BF16), keeping memory consumption strictly under 4.62GB.'
+            title: 'Private & Confidential',
+            desc: 'Your images are processed securely in memory and never shared, sold, or stored. Your personal health privacy always comes first.'
           },
           {
-            icon: <Bot className="w-6 h-6 text-emerald-400" />,
-            title: 'Guardrailed Clinical AI Chat',
-            desc: 'Google Gemini 2.0 Flash conversational assistant strictly contextualized to the vision pipeline results, preventing clinical hallucination.'
+            icon: <FileText className="w-6 h-6 text-emerald-400" />,
+            title: 'Easy Doctor Summary',
+            desc: 'Download a clean, structured summary with clinical findings to bring directly to your optometrist or ophthalmologist.'
           },
         ].map((f, i) => (
           <div key={i} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
@@ -431,24 +442,24 @@ const HomePage = ({ onNavigate }) => (
               {f.icon}
             </div>
             <h3 className="text-base font-bold text-slate-100">{f.title}</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{f.desc}</p>
           </div>
         ))}
       </div>
     </section>
 
-    {/* Clinical Compliance & Legal Governance Strip */}
+    {/* Medical Notice & Privacy Strip */}
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
-            <ShieldCheck className="w-3.5 h-3.5" /> Clinical Governance & HIPAA Compliance
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+            <ShieldCheck className="w-3.5 h-3.5" /> Medical Disclaimer & Patient Privacy
           </div>
           <h3 className="text-lg font-bold text-white tracking-tight">
-            Responsible AI, Patient Safety & Rigorous Data Protection
+            Designed to Assist, Not Replace Your Doctor
           </h3>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            OphthalmoAI operates under strict patient de-identification standards, volatile in-memory processing, zero data commercialization, and transparent clinical AI disclaimers.
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            OphthalmoAI provides screening and educational insights. It does not provide an official medical diagnosis. If you experience sudden vision loss, severe pain, or an eye injury, please visit an eye care specialist or emergency room right away.
           </p>
         </div>
 
