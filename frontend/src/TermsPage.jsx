@@ -21,7 +21,7 @@ export default function TermsPage({ onNavigate }) {
           <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-800/60 text-rose-200 space-y-2">
             <div className="flex items-center gap-2 font-bold text-sm text-rose-300">
               <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-              Auxiliary Decision-Support Only — Not Autonomous Medical Care
+              Auxiliary Decision-Support Only: Not Autonomous Medical Care
             </div>
             <p>
               OphthalmoAI is an assistive artificial intelligence screening and research tool engineered to assist qualified healthcare professionals and clinical researchers in ocular image evaluation. <strong>It is NOT an FDA-cleared autonomous diagnostic device, nor is it a replacement for a board-certified ophthalmologist, optometrist, or emergency physician.</strong>

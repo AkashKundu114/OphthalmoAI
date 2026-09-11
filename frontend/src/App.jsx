@@ -69,7 +69,7 @@ const FALLBACK_CONDITIONS = [
     group: 'Ocular Surface',
     icd10: 'R17',
     snomed: '18165001',
-    description: 'Yellowing of the sclera due to systemic bilirubin deposition (>2.5–3.0 mg/dL), indicating hepatobiliary or hemolytic dysfunction.',
+    description: 'Yellowing of the sclera due to systemic bilirubin deposition (>2.5 to 3.0 mg/dL), indicating hepatobiliary or hemolytic dysfunction.',
     symptoms: ['Bilateral bright yellow sclera', 'Dark tea-colored urine', 'Abdominal pain or pruritus', 'Systemic fatigue'],
     advice: 'EMERGENCY: Immediate systemic medical evaluation including comprehensive Liver Function Tests (LFTs) and abdominal ultrasound.'
   },
@@ -630,7 +630,7 @@ const MedicalNewsPage = () => {
     {
       title: 'AI Outperforms Junior Doctors in Diagnosing Diabetic Retinopathy from Fundus Photos',
       category: 'Technology', date: 'May 2025', readTime: '5 min',
-      summary: 'A multi-center study published in Nature Medicine demonstrated that a deep learning model achieved 94.5% sensitivity and 91.2% specificity in detecting referable diabetic retinopathy — outperforming three junior ophthalmologists under time-pressure conditions.',
+      summary: 'A multi-center study published in Nature Medicine demonstrated that a deep learning model achieved 94.5% sensitivity and 91.2% specificity in detecting referable diabetic retinopathy, outperforming three junior ophthalmologists under time-pressure conditions.',
       tags: ['AI', 'Diabetic Retinopathy', 'Deep Learning'],
       highlight: true,
       source: 'Nature Medicine',
@@ -652,7 +652,7 @@ const MedicalNewsPage = () => {
       source: 'The Lancet',
     },
     {
-      title: 'Smartphone-Based OCT Reaches Primary Care — A Game Changer for Glaucoma Screening',
+      title: 'Smartphone-Based OCT Reaches Primary Care: A Game Changer for Glaucoma Screening',
       category: 'Technology', date: 'March 2025', readTime: '4 min',
       summary: 'A portable, smartphone-attachable OCT device priced under $500 demonstrated 88% sensitivity for detecting glaucomatous optic nerve changes in a real-world primary care setting, opening the door to widespread community screening.',
       tags: ['Glaucoma', 'OCT', 'Telemedicine'],
@@ -660,7 +660,7 @@ const MedicalNewsPage = () => {
       source: 'British Journal of Ophthalmology',
     },
     {
-      title: 'Blue Light from Screens: Myth vs. Reality — A 2025 Meta-Analysis',
+      title: 'Blue Light from Screens: Myth vs. Reality: A 2025 Meta-Analysis',
       category: 'Research', date: 'March 2025', readTime: '7 min',
       summary: 'A meta-analysis of 64 studies found no strong evidence linking screen-emitted blue light to permanent retinal damage in healthy adults. Evening screen use can still disrupt sleep timing.',
       tags: ['Blue Light', 'Digital Eye Strain', 'Meta-Analysis'],
@@ -678,7 +678,7 @@ const MedicalNewsPage = () => {
     {
       title: 'Children\'s Vision After COVID-19: Screen Time and the Accelerated Myopia Surge',
       category: 'Pediatric', date: 'February 2025', readTime: '4 min',
-      summary: 'Post-pandemic data from 12 Asian countries show a 2–3× acceleration in myopia progression among school-age children. The WHO recommends at least 2 hours of outdoor time daily as a primary preventative strategy.',
+      summary: 'Post-pandemic data from 12 Asian countries show a 2 to 3 times acceleration in myopia progression among school-age children. The WHO recommends at least 2 hours of outdoor time daily as a primary preventative strategy.',
       tags: ['Myopia', 'Pediatric', 'COVID-19'],
       highlight: false,
       source: 'WHO Global Report',

@@ -111,8 +111,8 @@ const TypingDots = () => (
 
 const ChatBot = ({ diagnosisContext }) => {
   const initialMessage = diagnosisContext
-    ? `Hello! I see your AI screening detected **${diagnosisContext.diagnosis}** with ${diagnosisContext.confidence?.toFixed(1)}% confidence. I am here to explain this result, answer symptoms questions, and offer guidance on next steps. What would you like to ask?`
-    : "Hello! I am OphthalmoAI Doctor, your AI eye health assistant powered by Google Gemini. How can I assist you with your eye health today?"
+    ? `Hi! Your scan indicates signs of **${diagnosisContext.diagnosis}** with ${diagnosisContext.confidence?.toFixed(1)}% confidence. I can explain what this means, answer any questions about your symptoms, or suggest next steps. How can I help?`
+    : "Hi there! I'm here to help you understand your eye scan results, discuss symptoms, or answer questions about eye health. What's on your mind?"
 
   const [isOpen,      setIsOpen]      = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -259,7 +259,7 @@ const ChatBot = ({ diagnosisContext }) => {
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <p className="text-[11px] text-cyan-200/80 truncate">
-                  {diagnosisContext ? `Context: ${diagnosisContext.diagnosis}` : 'AI Eye Health Specialist'}
+                  {diagnosisContext ? `Context: ${diagnosisContext.diagnosis}` : 'Eye Health Assistant'}
                 </p>
               </div>
             </div>
@@ -278,7 +278,7 @@ const ChatBot = ({ diagnosisContext }) => {
               <div className="flex items-start gap-2 px-3.5 py-2 shrink-0 bg-amber-950/40 border-b border-amber-900/40">
                 <AlertCircle className="w-4 h-4 mt-0.5 text-amber-400 shrink-0" />
                 <p className="text-[11px] text-amber-200/90 leading-tight">
-                  Educational AI guidance — not a substitute for professional clinical medical evaluation.
+                  For educational use only. Please consult an eye care professional for medical evaluation.
                 </p>
               </div>
 
