@@ -1,4 +1,4 @@
-# ========================
+﻿# ========================
 # OS & System Files
 # ========================
 .DS_Store
@@ -9,9 +9,10 @@
 ehthumbs.db
 Thumbs.db
 desktop.ini
+*.dmp
 
 # ========================
-# IDE & Editors
+# IDE & Editors & AI Agents
 # ========================
 .vscode/
 .idea/
@@ -19,6 +20,9 @@ desktop.ini
 *.swo
 .project
 .settings/
+.agents/
+.claude/
+.codex-run-logs/
 
 # ========================
 # Python & Backend
@@ -27,16 +31,20 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyd
 
 # Environments
 venv/
+venv*/
+venv_gpu/
 env/
+env*/
 .venv/
-.env/
+.venv*/
 env.bak/
 venv.bak/
 
-# Testing & Coverage
+# Testing, Linting & Coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -46,9 +54,18 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
-# Databases
+# Databases & Local Scan Storage
 *.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
 *.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+ophthalmoai.db*
+mongodb_mock/
+!mongodb_mock/.gitkeep
 
 # ========================
 # Frontend (Node / Vite)
@@ -63,6 +80,7 @@ frontend/.vite/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # ========================
 # Machine Learning & Data
@@ -72,7 +90,7 @@ sample/
 models/
 !models/.gitkeep
 
-# Model weights
+# Model weights (safety fallback if models/ is unignored)
 *.pth
 *.pt
 *.onnx
@@ -80,17 +98,23 @@ models/
 *.h5
 *.tflite
 *.safetensors
+*.bin
+*.weights
+*.tmp
+*checkpoint*
 
 # ========================
-# Environment & Secrets
+# Environment, Secrets & Runtime State
 # ========================
 .env
 .env.*
 !.env.example
 !.env.sample
+.last_tunnel_url
+.cloudflared/
 
 # ========================
-# Logs & Temp Files
+# Logs & Temp Scripts
 # ========================
 *.log
 backend-live*.out.log
@@ -111,3 +135,7 @@ run_diagnostics.bat
 start_tunnel.bat
 run_frontend.bat
 run_backend.bat
+
+# Production automation scripts to keep
+!start_public_gpu.bat
+!run_docker_train.ps1

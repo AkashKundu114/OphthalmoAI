@@ -1,5 +1,5 @@
-# ========================
-# Git & Meta
+﻿# ========================
+# Git & Documentation
 # ========================
 .git/
 .github/
@@ -7,36 +7,46 @@
 .dockerignore
 README.md
 CHANGELOG.md
+ROADMAP.md
+PRODUCTION.md
+LICENSE
 docs/
 
 # ========================
-# IDEs & Editor
+# IDEs, Editors & Agents
 # ========================
 .vscode/
 .idea/
 *.swp
+*.swo
+.agents/
+.claude/
+.codex-run-logs/
 
 # ========================
-# Python & Backend
+# Python Caches & Environments
 # ========================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyd
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 tests/
-
-# Local environments
 venv/
+venv*/
+venv_gpu/
 env/
+env*/
 .venv/
+.venv*/
 
 # ========================
-# Frontend
+# Frontend Dependencies & Local Builds
 # ========================
 node_modules/
 frontend/node_modules/
@@ -45,27 +55,35 @@ frontend/build/
 frontend/.vite/
 
 # ========================
-# Data & Models
+# Raw Datasets & Temporary Files
 # ========================
 dataset/
 sample/
-models/
-*.pth
-*.pt
-*.onnx
-*.keras
-*.h5
-*.tflite
-*.safetensors
-*.db
-*.sqlite3
+models/*.tmp
+models/*checkpoint*
+models/*.bak
 
 # ========================
-# Env & Logs
+# Databases & Local Mock Storage
+# ========================
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+mongodb_mock/*.json
+!mongodb_mock/.gitkeep
+
+# ========================
+# Environments, Secrets & Runtime Logs
 # ========================
 .env
 .env.*
 *.log
-run_*.bat
-start_tunnel.bat
-.codex-run-logs/
+.last_tunnel_url
+.cloudflared/
+*.bat
+*.ps1

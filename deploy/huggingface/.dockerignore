@@ -1,8 +1,9 @@
 ﻿__pycache__
-*.pyc
-*.pyo
+*.py[cod]
+*.so
 *.pyd
 .pytest_cache
+.mypy_cache
 .coverage
 htmlcov
 .git
@@ -13,7 +14,13 @@ venv*
 frontend
 tests
 sample
+dataset
 docs
 k8s
 deploy
 scripts
+*.db*
+*.sqlite*
+.agents
+.claude
+.last_tunnel_url
