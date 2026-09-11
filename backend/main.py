@@ -982,6 +982,7 @@ from .fhir import export_to_fhir_diagnostic_report
 
 
 @app.get("/fhir/export/{scan_id}")
+@app.get("/api/fhir/export/{scan_id}")
 async def get_fhir_report(scan_id: str, db: Session = Depends(get_db)):
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
@@ -1005,6 +1006,7 @@ async def get_fhir_report(scan_id: str, db: Session = Depends(get_db)):
 
 
 @app.get("/clinician/cases")
+@app.get("/api/clinician/cases")
 async def list_clinician_cases(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("clinician", "admin")),
@@ -1036,6 +1038,7 @@ async def list_clinician_cases(
 
 
 @app.post("/clinician/override/{scan_id}")
+@app.post("/api/clinician/override/{scan_id}")
 async def submit_clinician_override(
     scan_id: str,
     override: OverrideRequest,

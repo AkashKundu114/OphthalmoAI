@@ -25,6 +25,23 @@ const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
 
+export const FALLBACK_TUNNEL_URL = 'https://started-balance-vegetation-clocks.trycloudflare.com'
+
+export const getActiveApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    const custom = window.localStorage?.getItem('ophthalmo_api_url')
+    if (custom && custom.trim()) return custom.trim().replace(/\/+$/, '')
+    if (window.location.hostname.includes('vercel.app')) {
+      return '/api'
+    }
+  }
+  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.API_URL
+  if (envUrl && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, '')
+  }
+  return FALLBACK_TUNNEL_URL
+}
+
 const FALLBACK_CONDITIONS = [
   {
     key: 'Cataract',
@@ -726,8 +743,19 @@ export default function App() {
   useEffect(() => {
     const fetchConditions = async () => {
       try {
-        const apiUrl = (import.meta.env.VITE_API_URL || import.meta.env.API_URL || '/api').replace(/\/+$/, '')
-        const { data } = await axios.get(`${apiUrl}/conditions`)
+        const apiUrl = getActiveApiUrl()
+        let data
+        try {
+          const res = await axios.get(`${apiUrl}/conditions`)
+          data = res.data
+        } catch (e) {
+          if (apiUrl === '/api' && FALLBACK_TUNNEL_URL) {
+            const res = await axios.get(`${FALLBACK_TUNNEL_URL}/conditions`)
+            data = res.data
+          } else {
+            throw e
+          }
+        }
         if (data && data.conditions) {
           setConditions(data.conditions)
         }
@@ -767,9 +795,18 @@ export default function App() {
 
   const handleExportFHIR = async () => {
     const scanId = result?.scan_id || result?.id || 'DEMO-SCAN'
-    const apiUrl = (import.meta.env.VITE_API_URL || import.meta.env.API_URL || '/api').replace(/\/+$/, '')
+    const apiUrl = getActiveApiUrl()
     try {
-      const res = await axios.get(`${apiUrl}/fhir/export/${scanId}`)
+      let res
+      try {
+        res = await axios.get(`${apiUrl}/fhir/export/${scanId}`)
+      } catch (e) {
+        if (apiUrl === '/api' && FALLBACK_TUNNEL_URL) {
+          res = await axios.get(`${FALLBACK_TUNNEL_URL}/fhir/export/${scanId}`)
+        } else {
+          throw e
+        }
+      }
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -803,7 +840,7 @@ export default function App() {
     setResult(null)
 
     try {
-      const apiUrl = (import.meta.env.VITE_API_URL || import.meta.env.API_URL || '/api').replace(/\/+$/, '')
+      const apiUrl = getActiveApiUrl()
       const formData = new FormData()
       formData.append('file', selectedFile, 'scan.jpg')
       formData.append('pain', painLevel)
@@ -820,10 +857,21 @@ export default function App() {
       if (hba1c) formData.append('hba1c', hba1c)
       if (isSmoker) formData.append('is_smoker', isSmoker === 'Active Smoker' ? 'true' : 'false')
 
-      const { data } = await axios.post(`${apiUrl}/predict`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      setResult(data)
+      let res
+      try {
+        res = await axios.post(`${apiUrl}/predict`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      } catch (postErr) {
+        if (apiUrl === '/api' && FALLBACK_TUNNEL_URL) {
+          res = await axios.post(`${FALLBACK_TUNNEL_URL}/predict`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        } else {
+          throw postErr
+        }
+      }
+      setResult(res.data)
     } catch (err) {
       const detail = err?.response?.data?.detail || 'An unexpected error occurred during prediction analysis.'
       setError(typeof detail === 'string' ? detail : JSON.stringify(detail))

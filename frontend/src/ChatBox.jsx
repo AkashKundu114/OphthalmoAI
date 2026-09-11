@@ -5,6 +5,7 @@ import {
   Bot, User, AlertCircle, Sparkles, ChevronDown, RefreshCw,
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
+import { getActiveApiUrl, FALLBACK_TUNNEL_URL } from './App'
 
 const MAX_INPUT_LENGTH  = 2000
 const MAX_HISTORY_TURNS = 20
@@ -169,19 +170,33 @@ const ChatBot = ({ diagnosisContext }) => {
     setLoading(true)
 
     try {
-      const apiUrl = (import.meta.env.VITE_API_URL || import.meta.env.API_URL || '/api').replace(/\/+$/, '')
+      const apiUrl = getActiveApiUrl()
 
       const historyToSend = messages
         .slice(1)
         .slice(-MAX_HISTORY_TURNS)
         .map(m => ({ role: m.role, content: m.content }))
 
-      const { data } = await axios.post(`${apiUrl}/chat`, {
-        message:           messageText,
-        history:           historyToSend,
-        diagnosis_context: diagnosisContext || null,
-      })
+      let res
+      try {
+        res = await axios.post(`${apiUrl}/chat`, {
+          message:           messageText,
+          history:           historyToSend,
+          diagnosis_context: diagnosisContext || null,
+        })
+      } catch (postErr) {
+        if (apiUrl === '/api' && FALLBACK_TUNNEL_URL) {
+          res = await axios.post(`${FALLBACK_TUNNEL_URL}/chat`, {
+            message:           messageText,
+            history:           historyToSend,
+            diagnosis_context: diagnosisContext || null,
+          })
+        } else {
+          throw postErr
+        }
+      }
 
+      const data = res.data
       const safeReply = sanitise(data.reply || '')
       setMessages(prev => [...prev, {
         role: 'assistant',
