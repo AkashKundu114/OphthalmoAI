@@ -16,6 +16,9 @@ export default defineConfig(() => {
       globals: true,
       setupFiles: './tests/setup.js'
     },
+    build: {
+      chunkSizeWarningLimit: 1600,
+    },
     server: {
       ...(allowedHosts.length > 0 ? { allowedHosts } : {}),
       proxy: {
