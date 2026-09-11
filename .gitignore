@@ -139,3 +139,6 @@ run_backend.bat
 # Production automation scripts to keep
 !start_public_gpu.bat
 !run_docker_train.ps1
+
+# Synthetic test images generated at runtime
+static/synthetic-*.jpg

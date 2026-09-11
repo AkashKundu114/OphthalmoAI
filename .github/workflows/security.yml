@@ -231,20 +231,36 @@ jobs:
             --suppression .github/owasp-suppressions.xml
         continue-on-error: true
 
+      - name: Check OWASP report output
+        id: check_owasp
+        run: |
+          if [ -f owasp-report/dependency-check-report.sarif ]; then
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
+          if [ -d owasp-report ]; then
+            echo "dir_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "dir_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload OWASP SARIF
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: steps.check_owasp.outputs.sarif_exists == 'true'
         with:
           sarif_file: owasp-report/dependency-check-report.sarif
           category:   owasp-dep-check
+        continue-on-error: true
 
       - name: Upload OWASP HTML report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: steps.check_owasp.outputs.dir_exists == 'true'
         with:
           name: owasp-dependency-report
           path: owasp-report/
           retention-days: 30
+        continue-on-error: true
 
   pip-audit:
     name: Dependency · pip-audit
