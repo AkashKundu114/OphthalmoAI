@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
 from sklearn.metrics import accuracy_score, f1_score
+from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -72,7 +73,8 @@ def main():
         model.train()
         total_loss, correct, total = 0.0, 0, 0
 
-        for idx, (imgs, labels) in enumerate(train_loader):
+        train_bar = tqdm(train_loader, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Train", dynamic_ncols=True, leave=False)
+        for imgs, labels in train_bar:
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad(set_to_none=True)
 
@@ -86,15 +88,15 @@ def main():
             correct += (preds == labels).sum().item()
             total += imgs.size(0)
 
-            if (idx + 1) % 25 == 0 or (idx + 1) == len(train_loader):
-                print(f"  [Epoch {epoch}/{args.epochs}] Batch {idx+1}/{len(train_loader)} - Loss: {loss.item():.4f}, Running Acc: {correct/total*100:.1f}%")
+            train_bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{correct/total*100:.2f}%")
 
         # Validation
         model.eval()
         v_loss, v_correct, v_total = 0.0, 0, 0
         all_preds, all_labels = [], []
+        val_bar = tqdm(val_loader, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Val  ", dynamic_ncols=True, leave=False)
         with torch.no_grad():
-            for imgs, labels in val_loader:
+            for imgs, labels in val_bar:
                 imgs, labels = imgs.to(device), labels.to(device)
                 outputs = model(imgs)
                 loss = criterion(outputs, labels)
@@ -105,6 +107,8 @@ def main():
                 v_total += imgs.size(0)
                 all_preds.extend(preds.numpy())
                 all_labels.extend(labels.numpy())
+
+                val_bar.set_postfix(loss=f"{v_loss/v_total:.4f}", acc=f"{v_correct/v_total*100:.2f}%")
 
         scheduler.step()
         dt = time.time() - t0
@@ -130,8 +134,9 @@ def main():
     model.eval()
     t_correct, t_total = 0, 0
     test_preds, test_labels = [], []
+    test_bar = tqdm(test_loader, desc="Evaluating Test", dynamic_ncols=True)
     with torch.no_grad():
-        for imgs, labels in test_loader:
+        for imgs, labels in test_bar:
             imgs, labels = imgs.to(device), labels.to(device)
             outputs = model(imgs)
             preds = outputs.argmax(dim=1)

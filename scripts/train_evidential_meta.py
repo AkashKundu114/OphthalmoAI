@@ -12,6 +12,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backend.evidential import (
@@ -63,8 +64,9 @@ def main():
     for epoch in range(1, args.epochs + 1):
         model.train()
         total_loss, correct, total, total_vacuity = 0.0, 0, 0, 0.0
+        bar = tqdm(loader, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}]", dynamic_ncols=True, leave=False)
 
-        for batch_x, batch_y in loader:
+        for batch_x, batch_y in bar:
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             optimizer.zero_grad(set_to_none=True)
 
@@ -78,6 +80,7 @@ def main():
             correct += (preds == batch_y).sum().item()
             total += batch_x.size(0)
             total_vacuity += vacuity.sum().item()
+            bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{(correct/total)*100:.2f}%")
 
         scheduler.step()
         epoch_loss = total_loss / total

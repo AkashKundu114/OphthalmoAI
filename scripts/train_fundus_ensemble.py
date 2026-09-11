@@ -16,6 +16,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
 from PIL import Image
 from sklearn.metrics import accuracy_score, classification_report, f1_score
+from tqdm import tqdm
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "dataset" / "processed"
@@ -84,10 +85,11 @@ def build_model(arch: str, num_classes: int = len(CLASSES)):
         raise ValueError(f"Unknown architecture {arch}")
     return m
 
-def train_epoch(model, loader, criterion, optimizer, scaler, device):
+def train_epoch(model, loader, criterion, optimizer, scaler, device, desc="Train"):
     model.train()
     total_loss, correct, total = 0.0, 0, 0
-    for imgs, labels in loader:
+    bar = tqdm(loader, desc=desc, dynamic_ncols=True, leave=False)
+    for imgs, labels in bar:
         imgs, labels = imgs.to(device), labels.to(device)
         optimizer.zero_grad(set_to_none=True)
         with torch.amp.autocast("cuda", enabled=(device.type == "cuda")):
@@ -101,14 +103,16 @@ def train_epoch(model, loader, criterion, optimizer, scaler, device):
         preds = outputs.argmax(dim=1)
         correct += (preds == labels).sum().item()
         total += imgs.size(0)
+        bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{(correct/total)*100:.2f}%")
     return total_loss / total, correct / total
 
 @torch.no_grad()
-def eval_model(model, loader, criterion, device):
+def eval_model(model, loader, criterion, device, desc="Evaluating"):
     model.eval()
     total_loss, correct, total = 0.0, 0, 0
     all_preds, all_labels = [], []
-    for imgs, labels in loader:
+    bar = tqdm(loader, desc=desc, dynamic_ncols=True, leave=False)
+    for imgs, labels in bar:
         imgs, labels = imgs.to(device), labels.to(device)
         with torch.amp.autocast("cuda", enabled=(device.type == "cuda")):
             outputs = model(imgs)
@@ -119,6 +123,7 @@ def eval_model(model, loader, criterion, device):
         total += imgs.size(0)
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(labels.cpu().numpy())
+        bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{(correct/total)*100:.2f}%")
     acc = correct / total
     f1 = f1_score(all_labels, all_preds, average="macro")
     return total_loss / total, acc, f1
@@ -159,8 +164,8 @@ def main():
     best_f1 = 0.0
     for epoch in range(1, epochs + 1):
         t0 = time.time()
-        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, scaler, device)
-        val_loss, val_acc, val_f1 = eval_model(model, val_loader, criterion, device)
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, scaler, device, desc=f"Epoch [{epoch:02d}/{epochs:02d}] Train")
+        val_loss, val_acc, val_f1 = eval_model(model, val_loader, criterion, device, desc=f"Epoch [{epoch:02d}/{epochs:02d}] Val  ")
         scheduler.step()
         dt = time.time() - t0
         print(f"Epoch {epoch:02d}/{epochs:02d} [{dt:.1f}s] - Train Loss: {train_loss:.4f} Acc: {train_acc*100:.2f}% | Val Loss: {val_loss:.4f} Acc: {val_acc*100:.2f}% F1: {val_f1:.4f}")
@@ -173,7 +178,7 @@ def main():
     # Evaluate on held-out test split
     print("\nEvaluating on held-out test split...")
     model.load_state_dict(torch.load(MODELS_DIR / "efficientnet_b4.pth"))
-    test_loss, test_acc, test_f1 = eval_model(model, test_loader, criterion, device)
+    test_loss, test_acc, test_f1 = eval_model(model, test_loader, criterion, device, desc="Evaluating Test")
     print(f"[FINAL TEST RESULTS] Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
 

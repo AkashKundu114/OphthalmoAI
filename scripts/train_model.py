@@ -18,6 +18,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
 from sklearn.metrics import accuracy_score, f1_score
+from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -48,12 +49,13 @@ def build_backbone(arch: str, num_classes: int = NUM_CLASSES):
         raise ValueError(f"Unsupported architecture: {arch}")
     return m
 
-def train_epoch(model, loader, criterion, optimizer, scaler, device, precision_dtype):
+def train_epoch(model, loader, criterion, optimizer, scaler, device, precision_dtype, desc="Train"):
     model.train()
     total_loss, correct, total = 0.0, 0, 0
     use_amp = (device.type == "cuda" and precision_dtype in [torch.float16, torch.bfloat16] and torch.cuda.is_available())
+    bar = tqdm(loader, desc=desc, dynamic_ncols=True, leave=False)
 
-    for imgs, labels in loader:
+    for imgs, labels in bar:
         imgs, labels = imgs.to(device), labels.to(device)
         optimizer.zero_grad(set_to_none=True)
 
@@ -74,17 +76,19 @@ def train_epoch(model, loader, criterion, optimizer, scaler, device, precision_d
         preds = outputs.argmax(dim=1)
         correct += (preds == labels).sum().item()
         total += imgs.size(0)
+        bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{correct/total*100:.2f}%")
 
     return total_loss / total, correct / total
 
 @torch.no_grad()
-def evaluate(model, loader, criterion, device, precision_dtype):
+def evaluate(model, loader, criterion, device, precision_dtype, desc="Evaluating"):
     model.eval()
     total_loss, correct, total = 0.0, 0, 0
     all_preds, all_labels = [], []
     use_amp = (device.type == "cuda" and precision_dtype in [torch.float16, torch.bfloat16] and torch.cuda.is_available())
+    bar = tqdm(loader, desc=desc, dynamic_ncols=True, leave=False)
 
-    for imgs, labels in loader:
+    for imgs, labels in bar:
         imgs, labels = imgs.to(device), labels.to(device)
         if use_amp:
             with torch.amp.autocast(device_type="cuda", dtype=precision_dtype):
@@ -100,6 +104,7 @@ def evaluate(model, loader, criterion, device, precision_dtype):
         total += imgs.size(0)
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(labels.cpu().numpy())
+        bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{correct/total*100:.2f}%")
 
     acc = correct / total
     f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
@@ -179,8 +184,8 @@ def main():
     for epoch in range(1, args.epochs + 1):
         telemetry.start_epoch()
         t0 = time.time()
-        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, scaler, device, precision_dtype)
-        val_loss, val_acc, val_f1 = evaluate(model, val_loader, criterion, device, precision_dtype)
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, scaler, device, precision_dtype, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Train")
+        val_loss, val_acc, val_f1 = evaluate(model, val_loader, criterion, device, precision_dtype, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Val  ")
         scheduler.step()
         dt = time.time() - t0
 
@@ -196,7 +201,7 @@ def main():
     print(f"\n[EVALUATION] Evaluating best model ({out_ckpt_name}) on test split...")
     if out_ckpt_path.exists():
         model.load_state_dict(torch.load(out_ckpt_path, map_location=device))
-    test_loss, test_acc, test_f1 = evaluate(model, test_loader, criterion, device, precision_dtype)
+    test_loss, test_acc, test_f1 = evaluate(model, test_loader, criterion, device, precision_dtype, desc="Evaluating Test")
     print(f"FINAL TEST SET METRICS -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
 

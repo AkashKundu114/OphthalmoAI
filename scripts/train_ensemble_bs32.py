@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
 from sklearn.metrics import accuracy_score, f1_score
+from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -106,7 +107,8 @@ def main():
         ensemble.train()
         total_loss, correct, total = 0.0, 0, 0
 
-        for imgs, labels in train_loader:
+        train_bar = tqdm(train_loader, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Train", dynamic_ncols=True, leave=False)
+        for imgs, labels in train_bar:
             imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad(set_to_none=True)
 
@@ -128,12 +130,15 @@ def main():
             correct += (preds == labels).sum().item()
             total += imgs.size(0)
 
+            train_bar.set_postfix(loss=f"{total_loss/total:.4f}", acc=f"{correct/total*100:.2f}%")
+
         # Validation
         ensemble.eval()
         v_loss, v_correct, v_total = 0.0, 0, 0
         all_preds, all_labels = [], []
+        val_bar = tqdm(val_loader, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Val  ", dynamic_ncols=True, leave=False)
         with torch.no_grad():
-            for imgs, labels in val_loader:
+            for imgs, labels in val_bar:
                 imgs, labels = imgs.to(device), labels.to(device)
                 if device.type == "cuda" and precision_dtype in [torch.float16, torch.bfloat16]:
                     with torch.amp.autocast("cuda", dtype=precision_dtype):
@@ -149,6 +154,8 @@ def main():
                 v_total += imgs.size(0)
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
+
+                val_bar.set_postfix(loss=f"{v_loss/v_total:.4f}", acc=f"{v_correct/v_total*100:.2f}%")
 
         scheduler.step()
         dt = time.time() - t0
