@@ -445,10 +445,12 @@ def read_root():
     }
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
     return {"ok": True, "device": str(DEVICE)}
 
 @app.get("/ready")
+@app.get("/api/ready")
 def readiness_check(response: Response):
     ready = MONOLITHIC_MODEL is not None
     if not ready:
@@ -456,6 +458,7 @@ def readiness_check(response: Response):
     return {"ok": ready, "model_loaded": ready}
 
 @app.get("/conditions")
+@app.get("/api/conditions")
 def get_conditions():
     return {"conditions": [
         {
@@ -496,6 +499,7 @@ def generate_spatial_description(diagnosis: str) -> str:
 
 
 @app.post("/predict")
+@app.post("/api/predict")
 @_predict_limit
 async def predict(
     request: Request,
@@ -847,6 +851,7 @@ async def get_me(current_user: User = Depends(require_role("patient", "clinician
 
 
 @app.post("/chat")
+@app.post("/api/chat")
 @_chat_limit
 async def chat_endpoint(
     request: Request,

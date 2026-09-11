@@ -1,1 +1,12 @@
-{"rewrites": [{"source": "/(.*)", "destination": "/index.html"}]}
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://started-balance-vegetation-clocks.trycloudflare.com/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

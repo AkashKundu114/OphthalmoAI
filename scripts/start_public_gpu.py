@@ -1,4 +1,4 @@
-﻿"""
+"""
 start_public_gpu.py
 
 1-Click launcher that:
@@ -77,6 +77,15 @@ pinned: false
 ---
 """
     readme_path.write_text(readme_content, encoding="utf-8")
+
+    # Update frontend/vercel.json for Vercel deployment
+    vercel_json_path = frontend_dir / "vercel.json"
+    vercel_content = f'{{\n  "rewrites": [\n    {{\n      "source": "/api/:match*",\n      "destination": "{new_url}/:match*"\n    }},\n    {{\n      "source": "/(.*)",\n      "destination": "/index.html"\n    }}\n  ]\n}}\n'
+    try:
+        vercel_json_path.write_text(vercel_content, encoding="utf-8")
+        print("[SYNC] Updated frontend/vercel.json with active tunnel.")
+    except Exception as e:
+        print(f"[NOTE] vercel.json update: {e}")
 
     # Upload to Hugging Face
     if HF_CLI.exists():
@@ -167,10 +176,11 @@ def main():
     print("\n" + "=" * 65)
     print("   ONLINE & READY FOR SCANS!")
     print("=" * 65)
-    print(f"   * Public Web App: https://akashkundu114-ophthalmoai-demo.static.hf.space")
-    print(f"   * Hugging Face:   https://huggingface.co/spaces/{HF_SPACE}")
-    print(f"   * GPU Engine:     NVIDIA GeForce RTX 5060 Laptop GPU")
-    print(f"   * API Tunnel:     {tunnel_url}")
+    print("   * Primary Web App (Vercel):  https://ophthalmo-ai-mu.vercel.app/")
+    print(f"   * Hugging Face Mirror:       https://akashkundu114-ophthalmoai-demo.static.hf.space")
+    print(f"   * Hugging Face Space:        https://huggingface.co/spaces/{HF_SPACE}")
+    print("   * GPU Engine:                NVIDIA GeForce RTX 5060 Laptop GPU")
+    print(f"   * Cloudflare API Tunnel:     {tunnel_url}")
     print("=" * 65)
     print("\nKeep this window open while you or visitors use the site.")
     print("Press Ctrl+C to stop the GPU server and tunnel.\n")
