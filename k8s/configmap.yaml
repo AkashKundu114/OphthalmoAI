@@ -4,12 +4,16 @@ metadata:
   name: ophthalmoai-config
   namespace: ophthalmoai
 data:
-  FORCE_CPU: "false"
-  CORS_ORIGINS: "*"
-  CORS_ALLOW_CREDENTIALS: "false"
+  ENVIRONMENT: "production"
+  FORCE_CPU: "true"
+  CORS_ORIGINS: "http://ophthalmoai.local,https://ophthalmoai.local"
+  CORS_ALLOW_CREDENTIALS: "true"
   OLLAMA_URL: ""
   OLLAMA_MODEL: "llama3.2:3b"
   GEMINI_MODEL: "gemini-2.0-flash"
   MAX_FILE_SIZE_BYTES: "20971520"
+  ENABLE_UNCERTAINTY: "true"
+  ENABLE_IQA: "true"
+  PERSIST_SCANS: "true"
   PREDICT_RATE_LIMIT: "10/minute"
   CHAT_RATE_LIMIT: "30/minute"

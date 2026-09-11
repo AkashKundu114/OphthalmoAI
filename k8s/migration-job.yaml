@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ophthalmoai-migration
+  namespace: ophthalmoai
+  labels:
+    app: ophthalmoai
+    component: migration
+    app.kubernetes.io/name: ophthalmoai-migration
+    app.kubernetes.io/component: migration
+    app.kubernetes.io/part-of: ophthalmoai
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: ophthalmoai
+        component: migration
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: alembic-migration
+          image: ophthalmoai-backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: ophthalmoai-config
+            - secretRef:
+                name: ophthalmoai-secrets
+                optional: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL

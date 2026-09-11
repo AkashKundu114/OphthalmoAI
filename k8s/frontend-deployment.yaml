@@ -6,6 +6,9 @@ metadata:
   labels:
     app: ophthalmoai
     component: frontend
+    app.kubernetes.io/name: ophthalmoai-frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: ophthalmoai
 spec:
   replicas: 2
   selector:
@@ -17,6 +20,9 @@ spec:
       labels:
         app: ophthalmoai
         component: frontend
+        app.kubernetes.io/name: ophthalmoai-frontend
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: ophthalmoai
     spec:
       containers:
         - name: frontend

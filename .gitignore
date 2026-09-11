@@ -1,4 +1,4 @@
-﻿# ========================
+# ========================
 # OS & System Files
 # ========================
 .DS_Store
@@ -87,7 +87,7 @@ pnpm-debug.log*
 # ========================
 dataset/
 sample/
-models/
+models/*
 !models/.gitkeep
 
 # Model weights (safety fallback if models/ is unignored)

@@ -3,9 +3,12 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - configmap.yaml
-  - secret.example.yaml
   - backend-deployment.yaml
   - backend-service.yaml
   - frontend-deployment.yaml
   - frontend-service.yaml
   - ingress.yaml
+  - hpa.yaml
+  # Note: Apply secrets separately (e.g. kubectl apply -f secret.yaml or kubectl create secret)
+  # to prevent overwriting production credentials with example templates.
+  # Migration job: Run on demand using `kubectl apply -f migration-job.yaml`

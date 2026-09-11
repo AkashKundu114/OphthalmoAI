@@ -6,6 +6,9 @@ metadata:
   labels:
     app: ophthalmoai
     component: backend
+    app.kubernetes.io/name: ophthalmoai-backend
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: ophthalmoai
 spec:
   replicas: 1
   selector:
@@ -17,13 +20,17 @@ spec:
       labels:
         app: ophthalmoai
         component: backend
+        app.kubernetes.io/name: ophthalmoai-backend
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: ophthalmoai
     spec:
       containers:
         - name: backend
           image: ophthalmoai-backend:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8000
+            - name: http
+              containerPort: 8000
           envFrom:
             - configMapRef:
                 name: ophthalmoai-config
@@ -33,24 +40,33 @@ spec:
           resources:
             requests:
               cpu: "500m"
-              memory: "2Gi"
+              memory: "1536Mi"
             limits:
-              cpu: "4"
-              memory: "8Gi"
+              cpu: "2"
+              memory: "4Gi"
+          # Startup probe protects against PyTorch model cold-start timeouts
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /ready
               port: 8000
-            initialDelaySeconds: 60
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 90
-            periodSeconds: 30
+            initialDelaySeconds: 10
+            periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
           securityContext:

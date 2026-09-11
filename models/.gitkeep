@@ -1,0 +1,9 @@
+# This file exists solely to keep the models/ directory present in git.
+#
+# Trained .pth weight files are gitignored (see .gitignore) because they are
+# large binaries that don't belong in source control. Without this file,
+# a fresh `git clone` has no models/ directory at all, which breaks
+# `backend/Dockerfile`'s `COPY models/ /app/models/` step during CI image
+# builds (Trivy scans, docker-build jobs, etc.).
+#
+# Do not delete this file even after adding real trained weights here.

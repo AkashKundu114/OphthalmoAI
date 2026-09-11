@@ -79,9 +79,11 @@ kubectl apply -k k8s
 kubectl -n ophthalmoai rollout status deployment/backend
 ```
 
-**Added this session:** run the Alembic migration as a one-shot Job or `kubectl exec`
-into a running backend pod (`alembic upgrade head`) before routing real traffic — not
-automated as part of `kubectl apply -k k8s` in this revision.
+Run the Alembic migration as a one-shot Job before routing real traffic:
+```bash
+kubectl apply -f k8s/migration-job.yaml
+```
+(Or `kubectl exec` into a running backend pod: `alembic upgrade head`).
 
 `backend/Dockerfile` uses the CPU-only PyTorch wheel; GPU scheduling requires a separate
 CUDA-based image (not included).

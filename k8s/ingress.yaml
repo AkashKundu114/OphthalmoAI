@@ -3,6 +3,20 @@ kind: Ingress
 metadata:
   name: ophthalmoai
   namespace: ophthalmoai
+  labels:
+    app: ophthalmoai
+    app.kubernetes.io/name: ophthalmoai-ingress
+    app.kubernetes.io/part-of: ophthalmoai
+  annotations:
+    # Allow retinal fundus image uploads up to 25MB (default NGINX limit is 1MB)
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    # Extended timeouts for PyTorch inference and generative AI explanations
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "15"
+    # Optional SSL redirect (uncomment when TLS secret is provisioned)
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -16,3 +30,8 @@ spec:
                 name: frontend
                 port:
                   number: 80
+  # Optional TLS termination:
+  # tls:
+  #   - hosts:
+  #       - ophthalmoai.local
+  #     secretName: ophthalmoai-tls
