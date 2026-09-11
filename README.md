@@ -24,28 +24,22 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 1. **Asymmetric Clinical-Cost Evidential Meta-Classifier (AC-HDL):** Features a single-forward-pass Dirichlet Evidential network that parameterizes $\text{Dir}(\boldsymbol{\alpha})$ over class representations from ConvNeXt-Small, DenseNet-201, and EfficientNet-V2. Optimized using an asymmetric clinical urgency penalty matrix ($5\times$ penalty for missing sight-threatening conditions like Keratitis or Uveitis) with instant single-pass epistemic vacuity and OOD rejection.
 2. **Urgency-Stratified Conformal Risk Control (US-CRC):** Replaces uncalibrated heuristics with distribution-free conformal prediction sets, mathematically guaranteeing $\ge 99.0\%$ coverage on sight-threatening emergencies and $\ge 95.0\%$ on routine conditions, coupled with an automated 3-tier clinical action policy.
 3. **Saliency-Grounded Multimodal Biomarkers (SGB-LLM):** Extracts quantitative spatial and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding Gemini 2.0 Flash in physical visual evidence to eliminate hallucinations.
-4. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
+4. **Comprehensive Multi-Dataset Retinal Screening:** Supports automated multi-class diagnosis across gold-standard clinical fundus categories: `['Normal', 'Diabetic Retinopathy', 'Glaucoma', 'Cataract', 'Age-related Macular Degeneration', 'Hypertensive Retinopathy / Pathological Myopia']`.
 5. **Hardware Optimized for 8GB VRAM:** Sub-12.5ms inference and fast single-pass uncertainty evaluation natively on a single NVIDIA RTX 5060 Laptop GPU with Automatic Mixed Precision (AMP).
 6. **Comprehensive Automated Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration and novelty validation testing.
 
 ---
 
-## Detectable Conditions
+## Detectable Retinal Conditions
 
-| Condition | Anatomical Group | Clinical Urgency |
-|-----------|-----------------|------------------|
-| **Cataract** | Anterior Segment | Elective |
-| **Uveitis** | Anterior Segment | **Urgent** |
-| **Conjunctivitis** | Ocular Surface | Non-urgent |
-| **Jaundice** *(Scleral Icterus)* | Ocular Surface | **Emergency** |
-| **Pterygium** | Ocular Surface | Elective |
-| **Ptosis** | Adnexal/Oculoplastic | Non-urgent |
-| **Blepharitis** | Adnexal/Oculoplastic | Non-urgent |
-| **Chalazion** | Adnexal/Oculoplastic | Non-urgent |
-| **Stye** | Adnexal/Oculoplastic | Non-urgent |
-| **Keratitis** | Anterior Segment | **Emergency** |
-| **Subconjunctival Hemorrhage**| Ocular Surface | Non-urgent |
-| **Normal** | All Groups | None |
+| Condition | Anatomical Group | Clinical Urgency | Target Pathology |
+|---|---|---|---|
+| **Diabetic Retinopathy (DR)** | Retinal Vascular | **Urgent / Sight-Threatening** | Microaneurysms, hemorrhages, lipid exudates, neovascularization |
+| **Glaucoma** | Optic Neuropathy | **Urgent** | Cup-to-disc enlargement, neuroretinal rim thinning |
+| **Age-related Macular Degeneration (AMD)** | Maculopathy | **Urgent / Emergency** | Central drusen, geographic atrophy, choroidal neovascularization |
+| **Cataract (Media Opacity)** | Anterior / Optical Media | Elective | Optical scattering, vascular attenuation on fundus |
+| **Hypertensive Retinopathy / Myopia** | Vascular & Structural | **Urgent** | Arteriolar attenuation, AV nicking, staphyloma |
+| **Normal (Healthy Fundus)** | Posterior Pole | None | Intact neuroretinal rim, crisp foveal reflex |
 
 ---
 

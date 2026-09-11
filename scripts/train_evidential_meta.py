@@ -1,93 +1,95 @@
 """
-OphthalmoAI - Train Evidential Meta-Classifier with Asymmetric Clinical-Cost Loss
-================================================================================
+OphthalmoAI - Train Evidential Meta-Classifier with Asymmetric Clinical-Cost Loss (AC-HDL)
+========================================================================================
 Trains a DirichletMetaClassifier on concatenated multi-backbone representations
-using the Asymmetric Clinical-Cost Loss (AC-HDL).
+using the Asymmetric Clinical-Cost Loss across the 6 Retinal Fundus classes.
 """
 
 import os
 import sys
+import argparse
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from backend.evidential import (
     DirichletMetaClassifier,
     AsymmetricClinicalLoss,
-    build_clinical_cost_matrix,
     CLASS_NAMES
 )
 
-MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
-os.makedirs(MODELS_DIR, exist_ok=True)
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+NUM_CLASSES = len(CLASS_NAMES)
+IN_FEATURES = NUM_CLASSES * 3  # 6 logits * 3 base models (ConvNeXt, DenseNet, EfficientNet) = 18
 
-NUM_CLASSES = 12
-IN_FEATURES = 36  # 12 logits * 3 base models (ConvNeXt, DenseNet, EfficientNet)
-EPOCHS = int(os.environ.get("EPOCHS", "15"))
-BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "32"))
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--epochs", type=int, default=15)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
+    parser.add_argument("--samples", type=int, default=2000)
+    return parser.parse_args()
 
+def main():
+    args = parse_args()
+    device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
+    print("=" * 70)
+    print(f"TRAINING EVIDENTIAL META-CLASSIFIER (AC-HDL)")
+    print(f"Device: {device} | Classes: {NUM_CLASSES} | In Features: {IN_FEATURES}")
+    print(f"Classes: {', '.join(CLASS_NAMES)}")
+    print("=" * 70)
 
-def train_evidential_classifier(num_samples: int = 1000):
-    print(f"=== Training Evidential Meta-Classifier on {DEVICE} ===")
-    print(f"Target Classes ({NUM_CLASSES}): {', '.join(CLASS_NAMES)}")
-
-    model = DirichletMetaClassifier(in_features=IN_FEATURES, num_classes=NUM_CLASSES).to(DEVICE)
-    loss_fn = AsymmetricClinicalLoss(num_classes=NUM_CLASSES, lambda_cost=1.0, lambda_kl=0.01).to(DEVICE)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    model = DirichletMetaClassifier(in_features=IN_FEATURES, num_classes=NUM_CLASSES).to(device)
+    loss_fn = AsymmetricClinicalLoss(num_classes=NUM_CLASSES, lambda_cost=1.0, lambda_kl=0.01).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
 
-    # Simulated realistic ensemble representations for demonstration/pre-training
-    # (can be swapped with cached features from base model passes)
+    # Simulated backbone ensemble representation tensors
     torch.manual_seed(42)
-    synthetic_targets = torch.randint(0, NUM_CLASSES, (num_samples,))
-    # Add ground-truth class bias to simulate trained base model representations
-    synthetic_inputs = torch.randn(num_samples, IN_FEATURES) * 0.5
-    for i in range(num_samples):
+    synthetic_targets = torch.randint(0, NUM_CLASSES, (args.samples,))
+    synthetic_inputs = torch.randn(args.samples, IN_FEATURES) * 0.5
+    for i in range(args.samples):
         c = synthetic_targets[i].item()
-        synthetic_inputs[i, c] += 3.0
-        synthetic_inputs[i, c + 12] += 2.8
-        synthetic_inputs[i, c + 24] += 2.5
+        synthetic_inputs[i, c] += 3.2
+        synthetic_inputs[i, c + NUM_CLASSES] += 3.0
+        synthetic_inputs[i, c + (NUM_CLASSES * 2)] += 2.8
 
     dataset = torch.utils.data.TensorDataset(synthetic_inputs, synthetic_targets)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
-    for epoch in range(1, EPOCHS + 1):
+    for epoch in range(1, args.epochs + 1):
         model.train()
-        total_loss = 0.0
-        correct = 0
-        total = 0
-        avg_vacuity = 0.0
+        total_loss, correct, total, total_vacuity = 0.0, 0, 0, 0.0
 
         for batch_x, batch_y in loader:
-            batch_x, batch_y = batch_x.to(DEVICE), batch_y.to(DEVICE)
+            batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             optimizer.zero_grad(set_to_none=True)
 
             probs, vacuity, alpha = model(batch_x)
             loss = loss_fn(alpha, batch_y, epoch=epoch)
-
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
             total_loss += loss.item() * batch_x.size(0)
-            preds = torch.argmax(probs, dim=-1)
+            preds = probs.argmax(dim=1)
             correct += (preds == batch_y).sum().item()
             total += batch_x.size(0)
-            avg_vacuity += vacuity.sum().item()
+            total_vacuity += vacuity.sum().item()
 
         scheduler.step()
         epoch_loss = total_loss / total
-        epoch_acc = (correct / total) * 100.0
-        epoch_vac = avg_vacuity / total
-        print(f"Epoch [{epoch:02d}/{EPOCHS:02d}] Loss: {epoch_loss:.4f} | Acc: {epoch_acc:.2f}% | Mean Vacuity: {epoch_vac:.4f}")
+        epoch_acc = (correct / total) * 100
+        epoch_vac = total_vacuity / total
 
-    out_path = os.path.join(MODELS_DIR, "evidential_meta_classifier.pth")
-    torch.save(model.state_dict(), out_path)
-    print(f"--> Saved trained Evidential Meta-Classifier to: {out_path}")
-    return model
+        print(f"Epoch [{epoch:02d}/{args.epochs:02d}] - Loss: {epoch_loss:.4f} | Acc: {epoch_acc:.2f}% | Avg Vacuity: {epoch_vac:.4f}")
 
+    save_path = MODELS_DIR / "evidential_meta_classifier.pth"
+    torch.save(model.state_dict(), save_path)
+    print(f"\n[OK] Evidential Meta-Classifier weights saved to: {save_path}")
+    print("=" * 70)
 
 if __name__ == "__main__":
-    train_evidential_classifier()
+    main()

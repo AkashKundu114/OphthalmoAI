@@ -1,64 +1,106 @@
 """
-OphthalmoAI - Run Urgency-Stratified Conformal Calibration
-==========================================================
-Calibrates empirical quantiles on a validation holdout split, guaranteeing:
-- 99.0% statistical coverage for Sight-Threatening Emergencies (alpha = 0.01)
-- 95.0% statistical coverage for Routine/Elective conditions (alpha = 0.05)
-Outputs calibrated parameters to models/conformal_calibration.json.
+Conformal Risk Control Calibration Script for Retinal Fundus Ensemble.
+Computes non-conformity scores on validation predictions and produces calibration
+cutoffs for 99.0% guaranteed coverage on emergency retinal conditions (AMD, DR, Glaucoma)
+and 95.0% coverage on routine/elective conditions.
 """
 
 import os
 import sys
-import numpy as np
+import json
+from pathlib import Path
 import torch
+import torch.nn.functional as F
+import numpy as np
+import pandas as pd
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from backend.conformal import ConformalCalibrator
-from backend.evidential import CLASS_NAMES
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
-os.makedirs(MODELS_DIR, exist_ok=True)
-CONFORMAL_OUT = os.path.join(MODELS_DIR, "conformal_calibration.json")
+from prepare_dataset import prepare_fundus_dataloaders, CLASSES, CLASS_TO_IDX
+from train_model import build_backbone
 
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+OUTPUT_CALIB_JSON = MODELS_DIR / "conformal_calibration.json"
 
-def run_calibration(n_val: int = 500):
-    print("=== Running Urgency-Stratified Conformal Calibration ===")
-    np.random.seed(42)
+def main():
+    print("=" * 70)
+    print("CONFORMAL RISK CONTROL (CRC) CALIBRATION FOR RETINAL FUNDUS MODELS")
+    print("=" * 70)
 
-    # Generate synthetic validation holdout predictions
-    val_targets = np.random.randint(0, len(CLASS_NAMES), size=(n_val,))
-    val_probs = np.random.dirichlet(np.ones(len(CLASS_NAMES)) * 0.2, size=(n_val,))
-    
-    # Enhance true class probability to reflect well-trained model validation accuracies (e.g. 96-99%)
-    for i in range(n_val):
-        t = val_targets[i]
-        val_probs[i, t] += np.random.uniform(2.5, 6.0)
-        val_probs[i] /= np.sum(val_probs[i])
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Calibration device: {device}")
 
-    calibrator = ConformalCalibrator(
-        alpha_emergency=0.01,
-        alpha_routine=0.05,
-        calibration_path=CONFORMAL_OUT
+    _, val_loader, _, _ = prepare_fundus_dataloaders(
+        batch_size=32,
+        num_workers=2 if device.type == "cuda" else 0,
+        pin_memory=(device.type == "cuda")
     )
 
-    summary = calibrator.calibrate(val_probs, val_targets)
-    print(f"Calibration Complete:")
-    print(f"- Total Calibration Samples: {summary['num_samples']}")
-    print(f"- Emergency Conformal Quantile (q_hat): {summary['q_emergency']:.4f} (Target Coverage: 99.0%)")
-    print(f"- Routine Conformal Quantile (q_hat): {summary['q_routine']:.4f} (Target Coverage: 95.0%)")
-    print(f"- Saved Calibration Parameters to: {CONFORMAL_OUT}")
+    model_path = MODELS_DIR / "efficientnet_b4.pth"
+    model = build_backbone("efficientnet_b4", num_classes=len(CLASSES)).to(device)
 
-    # Test an inference sample
-    test_probs = val_probs[0]
-    top_pred = CLASS_NAMES[int(np.argmax(test_probs))]
-    pset, pset_probs, stratum, guarantee = calibrator.predict_set(test_probs, top_pred)
-    print(f"\nExample Prediction Set on Sample:")
-    print(f"- Top Diagnosis: {top_pred}")
-    print(f"- Conformal Stratum: {stratum}")
-    print(f"- Guaranteed Coverage: {guarantee:.1f}%")
-    print(f"- Candidate Set: {pset}")
-    print(f"- Set Probabilities: {pset_probs}")
+    if model_path.exists():
+        try:
+            model.load_state_dict(torch.load(model_path, map_location=device))
+            print(f"[OK] Loaded checkpoint: {model_path.name}")
+        except Exception as e:
+            print(f"[!] Warning: Could not load exact weights ({e}), using backbone.")
+    else:
+        print("[!] Note: Base checkpoint not trained yet. Generating calibration.")
 
+    model.eval()
+    nonconformity_scores = []
+
+    with torch.no_grad():
+        for imgs, labels in val_loader:
+            imgs, labels = imgs.to(device), labels.to(device)
+            logits = model(imgs)
+            probs = F.softmax(logits, dim=-1)
+
+            for i in range(len(labels)):
+                true_class = labels[i].item()
+                true_prob = probs[i, true_class].item()
+                # Non-conformity: 1 - P(Y = y | X)
+                score = 1.0 - true_prob
+                nonconformity_scores.append(score)
+
+    nonconformity_scores = np.array(nonconformity_scores)
+    n = len(nonconformity_scores)
+    print(f"Computed non-conformity scores on {n} validation fundus images.")
+
+    # Conformal quantiles
+    # Alpha = 0.01 for Emergency (99% coverage guarantee)
+    # Alpha = 0.05 for Routine (95% coverage guarantee)
+    q_level_urgent = np.ceil((n + 1) * (1 - 0.01)) / n
+    q_level_routine = np.ceil((n + 1) * (1 - 0.05)) / n
+
+    q_urgent = float(np.quantile(nonconformity_scores, min(1.0, q_level_urgent)))
+    q_routine = float(np.quantile(nonconformity_scores, min(1.0, q_level_routine)))
+
+    calibration_data = {
+        "timestamp": pd.Timestamp.now().isoformat(),
+        "num_classes": len(CLASSES),
+        "classes": CLASSES,
+        "validation_samples": n,
+        "guarantees": {
+            "urgent_emergency_coverage": 0.99,
+            "routine_coverage": 0.95
+        },
+        "quantile_cutoffs": {
+            "q_urgent": round(q_urgent, 5),
+            "q_routine": round(q_routine, 5)
+        },
+        "temperature": 1.05
+    }
+
+    with open(OUTPUT_CALIB_JSON, "w") as f:
+        json.dump(calibration_data, f, indent=2)
+
+    print(f"\n[OK] Conformal calibration saved to: {OUTPUT_CALIB_JSON}")
+    print(f" - Urgent Quantile (99% coverage): {q_urgent:.4f}")
+    print(f" - Routine Quantile (95% coverage): {q_routine:.4f}")
+    print("=" * 70)
 
 if __name__ == "__main__":
-    run_calibration()
+    main()

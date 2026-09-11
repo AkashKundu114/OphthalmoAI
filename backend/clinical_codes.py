@@ -10,55 +10,83 @@ class ClinicalCodeEntry(TypedDict):
     escalation_message: Optional[str]
 
 CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
-    "Cataract": {"icd10": "H26.9", "snomed_ct": "193570009", "urgency": "elective", "urgency_rank": 1,
-                 "referral": "Ophthalmologist (cataract surgery evaluation)", "escalation_message": None},
-    "Conjunctivitis": {"icd10": "H10.9", "snomed_ct": "9826008", "urgency": "non-urgent", "urgency_rank": 2,
-                        "referral": "GP or optometrist", "escalation_message": None},
-    "Ptosis": {"icd10": "H02.409", "snomed_ct": "111002", "urgency": "non-urgent", "urgency_rank": 2,
-               "referral": "Ophthalmologist or Oculoplastic Surgeon", "escalation_message": None},
-    "Blepharitis": {"icd10": "H01.009", "snomed_ct": "41503000", "urgency": "non-urgent", "urgency_rank": 1,
-                    "referral": "Optometrist or GP", "escalation_message": None},
-    "Chalazion": {"icd10": "H00.19", "snomed_ct": "373686008", "urgency": "elective", "urgency_rank": 1,
-                  "referral": "Optometrist or Ophthalmologist", "escalation_message": None},
-    "Stye": {"icd10": "H00.019", "snomed_ct": "128566001", "urgency": "non-urgent", "urgency_rank": 2,
-             "referral": "GP or Optometrist", "escalation_message": None},
-    "Keratitis": {"icd10": "H16.9", "snomed_ct": "51877002", "urgency": "urgent", "urgency_rank": 3,
-                  "referral": "Ophthalmologist - Same Day", "escalation_message": "Keratitis (corneal inflammation/ulcer) is a medical emergency that can lead to rapid vision loss. Seek immediate ophthalmic care."},
-    "Subconjunctival Hemorrhage": {"icd10": "H11.30", "snomed_ct": "95724003", "urgency": "none", "urgency_rank": 0,
-                                   "referral": "Routine monitor (GP)", "escalation_message": None},
-    "Pterygium": {"icd10": "H11.009", "snomed_ct": "65876009", "urgency": "elective", "urgency_rank": 1,
-                  "referral": "Ophthalmologist (monitor; surgical referral if visually significant)", "escalation_message": None},
-    "Uveitis": {"icd10": "H20.9", "snomed_ct": "128473001", "urgency": "urgent", "urgency_rank": 3,
-                "referral": "Uveitis specialist or ophthalmologist - same-week, sooner if pain/photophobia present",
-                "escalation_message": ("Uveitis is a sight-threatening emergency. Untreated, it can progress to "
-                                        "glaucoma, cataracts, or permanent vision loss. Seek an ophthalmologist "
-                                        "or uveitis specialist as soon as possible - same-day if pain, photophobia, "
-                                        "or vision changes are present.")},
-    "Jaundice": {"icd10": "R17", "snomed_ct": "65142007", "urgency": "emergency", "urgency_rank": 4,
-                 "referral": "Internal medicine / Gastroenterology - same-day evaluation",
-                 "escalation_message": ("Scleral icterus (yellowing of the eye) is a systemic warning sign, not "
-                                         "an eye disease - it indicates elevated bilirubin and possible liver, "
-                                         "gallbladder, or blood disorder. This requires same-day evaluation by a "
-                                         "physician with liver function tests (LFTs), not routine eye care.")},
-    "Normal": {"icd10": "Z01.00", "snomed_ct": "165070006", "urgency": "none", "urgency_rank": 0,
-               "referral": "Routine screening per standard schedule", "escalation_message": None},
-    "Eyelid": {"icd10": "H02.9", "snomed_ct": "193917006", "urgency": "non-urgent", "urgency_rank": 1,
-               "referral": "Oculoplastic Specialist or General Ophthalmologist", "escalation_message": None},
+    "Diabetic Retinopathy": {
+        "icd10": "E11.319 / H36.0",
+        "snomed_ct": "4855003",
+        "urgency": "urgent",
+        "urgency_rank": 3,
+        "referral": "Retina Specialist / Vitreoretinal Surgeon",
+        "escalation_message": (
+            "Diabetic Retinopathy is a microvascular complication of diabetes causing retinal ischemia, "
+            "macular edema, or neovascularization. Urgent evaluation with optical coherence tomography (OCT) "
+            "and dilated funduscopy is indicated. If visual distortion or sudden floaters are present, seek same-day care."
+        )
+    },
+    "Glaucoma": {
+        "icd10": "H40.9",
+        "snomed_ct": "23986001",
+        "urgency": "urgent",
+        "urgency_rank": 3,
+        "referral": "Glaucoma Specialist / Comprehensive Ophthalmologist",
+        "escalation_message": (
+            "Glaucomatous optic neuropathy causes irreversible retinal ganglion cell axon loss and progressive visual field constriction. "
+            "Comprehensive tonometry, gonioscopy, and retinal nerve fiber layer (RNFL) imaging are required promptly."
+        )
+    },
+    "Age-related Macular Degeneration": {
+        "icd10": "H35.30",
+        "snomed_ct": "267718000",
+        "urgency": "urgent",
+        "urgency_rank": 3,
+        "referral": "Retinal Specialist - Urgent (within 24-48 hours if wet AMD suspected)",
+        "escalation_message": (
+            "Macular degeneration damages central photopic vision. Sudden metamorphopsia (distorted straight lines) "
+            "or central scotoma indicates possible choroidal neovascularization ('wet' AMD) requiring emergency anti-VEGF intervention."
+        )
+    },
+    "Cataract": {
+        "icd10": "H26.9",
+        "snomed_ct": "193570009",
+        "urgency": "elective",
+        "urgency_rank": 1,
+        "referral": "Cataract Surgeon / General Ophthalmologist",
+        "escalation_message": None
+    },
+    "Hypertensive Retinopathy / Pathological Myopia": {
+        "icd10": "H35.0 / H44.20",
+        "snomed_ct": "38341003",
+        "urgency": "urgent",
+        "urgency_rank": 2,
+        "referral": "Ophthalmologist & Primary Care / Cardiologist",
+        "escalation_message": (
+            "Retinal vascular changes reflect end-organ microvascular damage or progressive axial elongation. "
+            "Immediate systemic blood pressure evaluation and dilated peripheral retinal examination are indicated."
+        )
+    },
+    "Normal": {
+        "icd10": "Z01.00",
+        "snomed_ct": "165070006",
+        "urgency": "none",
+        "urgency_rank": 0,
+        "referral": "Routine annual dilated retinal screening",
+        "escalation_message": None
+    },
 }
 
-
 def get_clinical_code(diagnosis: str) -> ClinicalCodeEntry:
-    return CLINICAL_CODES.get(diagnosis, {
-        "icd10": "Z01.00", "snomed_ct": "165070006", "urgency": "non-urgent", "urgency_rank": 2,
-        "referral": "Ophthalmologist (diagnosis not recognised by clinical code table)",
-        "escalation_message": ("This diagnosis label isn't recognised by the clinical coding table. "
-                                "Treat this result with caution and consult an ophthalmologist."),
-    })
-
+    # Normalize diagnosis strings
+    diag_clean = diagnosis.strip()
+    for key in CLINICAL_CODES:
+        if key.lower() in diag_clean.lower() or diag_clean.lower() in key.lower():
+            return CLINICAL_CODES[key]
+    return {
+        "icd10": "H35.9",
+        "snomed_ct": "371087003",
+        "urgency": "urgent",
+        "urgency_rank": 2,
+        "referral": "Retina Specialist / Comprehensive Ophthalmologist",
+        "escalation_message": "Unspecified retinal disorder. Comprehensive in-person ophthalmoscopic evaluation recommended.",
+    }
 
 def is_critical(diagnosis: str) -> bool:
     return get_clinical_code(diagnosis)["urgency_rank"] >= 3
-
-
-def sort_by_urgency(diagnoses: List[str]) -> List[str]:
-    return sorted(diagnoses, key=lambda d: get_clinical_code(d)["urgency_rank"], reverse=True)

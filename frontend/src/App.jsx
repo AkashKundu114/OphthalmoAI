@@ -44,148 +44,76 @@ export const getActiveApiUrl = () => {
 
 const FALLBACK_CONDITIONS = [
   {
+    key: 'Diabetic Retinopathy',
+    name: 'Diabetic Retinopathy (DR)',
+    severity: 'High (Sight-Threatening)',
+    color: '#FF0055',
+    group: 'Retinal Vascular',
+    icd10: 'E11.319 / H36.0',
+    snomed: '4855003',
+    description: 'Microvascular retinal damage triggered by chronic hyperglycemia, resulting in microaneurysms, macular edema, or neovascularization.',
+    symptoms: ['Fluctuating vision blur', 'Dark spots or stringy floaters', 'Distorted color vision', 'Central dark empty patches'],
+    advice: 'URGENT: Consult a retina specialist for optical coherence tomography (OCT) and potential anti-VEGF or laser intervention.'
+  },
+  {
+    key: 'Glaucoma',
+    name: 'Glaucoma',
+    severity: 'High (Irreversible Neuropathy)',
+    color: '#7928CA',
+    group: 'Optic Neuropathy',
+    icd10: 'H40.9',
+    snomed: '23986001',
+    description: 'Progressive optic neuropathy with characteristic optic cup enlargement and retinal ganglion cell loss, commonly tied to elevated intraocular pressure.',
+    symptoms: ['Painless peripheral field loss (tunnel vision)', 'Difficulty adjusting to dim lighting', 'Halos around illumination points'],
+    advice: 'URGENT: Comprehensive tonometry, OCT retinal nerve fiber layer (RNFL) imaging, and visual field perimetry needed.'
+  },
+  {
+    key: 'Age-related Macular Degeneration',
+    name: 'Age-related Macular Degeneration (AMD)',
+    severity: 'High (Central Vision Loss)',
+    color: '#FF4D4D',
+    group: 'Maculopathy',
+    icd10: 'H35.30',
+    snomed: '267718000',
+    description: 'Degenerative maculopathy featuring central drusen accumulation and atrophy (dry AMD) or choroidal neovascular exudation (wet AMD).',
+    symptoms: ['Metamorphopsia (wavy straight lines)', 'Dark central blind spot (scotoma)', 'Difficulty recognizing faces or fine text'],
+    advice: 'EMERGENCY: Immediate same-day evaluation if straight lines suddenly appear wavy (indicative of acute wet AMD conversion).'
+  },
+  {
     key: 'Cataract',
-    name: 'Cataract',
+    name: 'Cataract (Media Opacity)',
     severity: 'Moderate to Severe',
     color: '#00F5D4',
-    group: 'Anterior Segment',
-    icd10: 'H25.9',
+    group: 'Anterior / Optical Media',
+    icd10: 'H26.9',
     snomed: '193570009',
-    description: 'Progressive opacification of the crystalline lens causing light scattering, glare, halos, and gradual painless visual acuity loss.',
-    symptoms: ['Blurry/cloudy vision', 'Night glare & halos', 'Faded color perception', 'Frequent eyeglass changes'],
-    advice: 'Consult an ophthalmologist for a slit-lamp examination and optical biometry assessment for phacoemulsification planning.'
+    description: 'Opacification of the crystalline lens causing optical scattering, decreased retinal illumination, and contrast attenuation on fundus photography.',
+    symptoms: ['Generalized foggy or blurry vision', 'Glare and light starbursts at night', 'Faded perception of colors'],
+    advice: 'Evaluation by an ophthalmic surgeon for phacoemulsification and intraocular lens (IOL) power biometry.'
   },
   {
-    key: 'Uveitis',
-    name: 'Uveitis',
-    severity: 'High (Sight-Threatening)',
-    color: '#EF4444',
-    group: 'Anterior Segment',
-    icd10: 'H20.9',
-    snomed: '128473001',
-    description: 'Acute or chronic intraocular inflammation affecting the iris, ciliary body, or choroid. Requires urgent steroid and cycloplegic therapy.',
-    symptoms: ['Deep aching ocular pain', 'Marked photophobia', 'Ciliary flush redness', 'Vitreous floaters'],
-    advice: 'URGENT: Same-day ophthalmology biomicroscopy required to prevent posterior synechiae and secondary glaucoma.'
-  },
-  {
-    key: 'Conjunctivitis',
-    name: 'Conjunctivitis (Pink Eye)',
-    severity: 'Low (Contagious)',
-    color: '#10B981',
-    group: 'Ocular Surface',
-    icd10: 'H10.9',
-    snomed: '9826008',
-    description: 'Diffuse hyperemic inflammation of the bulbar/palpebral conjunctiva caused by viral, bacterial, or allergic triggers.',
-    symptoms: ['Diffuse conjunctival redness', 'Purulent or watery discharge', 'Morning crusting', 'Foreign body sensation'],
-    advice: 'Maintain strict hand hygiene, discard infected cosmetics, avoid contact lenses, and apply targeted antimicrobial drops.'
-  },
-  {
-    key: 'Jaundice',
-    name: 'Jaundice (Scleral Icterus)',
-    severity: 'High (Systemic Emergency)',
+    key: 'Hypertensive Retinopathy / Pathological Myopia',
+    name: 'Hypertensive Retinopathy / Myopia',
+    severity: 'Moderate to High',
     color: '#F59E0B',
-    group: 'Ocular Surface',
-    icd10: 'R17',
-    snomed: '18165001',
-    description: 'Yellowing of the sclera due to systemic bilirubin deposition (>2.5 to 3.0 mg/dL), indicating hepatobiliary or hemolytic dysfunction.',
-    symptoms: ['Bilateral bright yellow sclera', 'Dark tea-colored urine', 'Abdominal pain or pruritus', 'Systemic fatigue'],
-    advice: 'EMERGENCY: Immediate systemic medical evaluation including comprehensive Liver Function Tests (LFTs) and abdominal ultrasound.'
-  },
-  {
-    key: 'Pterygium',
-    name: 'Pterygium (Surfer\'s Eye)',
-    severity: 'Moderate',
-    color: '#8B5CF6',
-    group: 'Ocular Surface',
-    icd10: 'H11.00',
-    snomed: '84521008',
-    description: 'Fibrovascular, wing-shaped triangular growth of conjunctiva encroaching across the limbus onto the clear cornea, often UV-induced.',
-    symptoms: ['Elevated fleshy growth on nasal sclera', 'Ocular surface irritation', 'Induced astigmatism', 'Dryness and foreign body feeling'],
-    advice: 'Wear UV-blocking sunglasses, use lubricating ocular drops, and consider conjunctival autograft excision if encroaching on visual axis.'
-  },
-  {
-    key: 'Ptosis',
-    name: 'Ptosis (Drooping Eyelid)',
-    severity: 'Low to Moderate',
-    color: '#06B6D4',
-    group: 'Adnexal/Oculoplastic',
-    icd10: 'H02.40',
-    snomed: '111516008',
-    description: 'Abnormal downward drooping of the superior eyelid margin due to levator aponeurosis dehiscence, myogenic dystrophy, or neurogenic palsy.',
-    symptoms: ['Asymmetrical eyelid fissure', 'Superior visual field deficit', 'Compensatory brow raising', 'Eyestrain and fatigue'],
-    advice: 'Undergo oculoplastic margin reflex distance (MRD-1) assessment to evaluate levator resection or sling surgery.'
-  },
-  {
-    key: 'Blepharitis',
-    name: 'Blepharitis',
-    severity: 'Low / Chronic',
-    color: '#38BDF8',
-    group: 'Adnexal/Oculoplastic',
-    icd10: 'H01.00',
-    snomed: '65339007',
-    description: 'Chronic inflammatory condition of the eyelid margins, often involving Meibomian gland dysfunction (MGD) or Demodex proliferation.',
-    symptoms: ['Flaking dandruff-like collarettes at lash bases', 'Eyelid margin erythema', 'Burning sensation', 'Foamy tear film'],
-    advice: 'Daily warm lid compresses, gentle eyelid margin hygiene wipes, and topical or oral anti-inflammatory therapies.'
-  },
-  {
-    key: 'Chalazion',
-    name: 'Chalazion',
-    severity: 'Low',
-    color: '#A855F7',
-    group: 'Adnexal/Oculoplastic',
-    icd10: 'H00.1',
-    snomed: '37882006',
-    description: 'Chronic, non-infectious granulomatous inflammatory nodule arising from an obstructed Meibomian lipid gland within the tarsal plate.',
-    symptoms: ['Painless hard eyelid nodule', 'Localized eyelid swelling', 'Mild cosmetic deformity', 'Occasional induced corneal blur'],
-    advice: 'Apply warm compresses 3-4 times daily. Persistent nodules over 4-6 weeks can be treated with minor in-office incision & curettage.'
-  },
-  {
-    key: 'Stye',
-    name: 'Stye (Hordeolum)',
-    severity: 'Low to Moderate',
-    color: '#F43F5E',
-    group: 'Adnexal/Oculoplastic',
-    icd10: 'H00.01',
-    snomed: '74431003',
-    description: 'Acute, tender focal staphylococcal infection of an eyelash follicle, Zeis/Moll gland (external) or Meibomian gland (internal).',
-    symptoms: ['Tender focal erythematous pustule at lid margin', 'Acute localized eyelid pain', 'Swelling and tearing', 'Point tenderness'],
-    advice: 'Apply warm moist compresses for 10-15 minutes, avoid squeezing the lesion, and use topical antibiotic ointment if indicated.'
-  },
-  {
-    key: 'Keratitis',
-    name: 'Keratitis (Corneal Ulcer)',
-    severity: 'Urgent Sight-Threatening Emergency',
-    color: '#DC2626',
-    group: 'Anterior Segment',
-    icd10: 'H16.9',
-    snomed: '58880004',
-    description: 'Severe corneal inflammation or ulceration threatening structural integrity and optical transparency. High risk of perforation.',
-    symptoms: ['Intense excruciating eye pain', 'Severe photophobia and tearing', 'White corneal infiltrate', 'Sudden rapid vision reduction'],
-    advice: 'EMERGENCY: Immediate same-day ophthalmic scraping, culture, and fortified intensive antimicrobial therapy required.'
-  },
-  {
-    key: 'Subconjunctival Hemorrhage',
-    name: 'Subconjunctival Hemorrhage',
-    severity: 'Low / Benign',
-    color: '#14B8A6',
-    group: 'Ocular Surface',
-    icd10: 'H11.30',
-    snomed: '28404000',
-    description: 'Benign rupture of delicate subconjunctival capillaries resulting in dramatic bright red blood pooling without anterior chamber involvement.',
-    symptoms: ['Well-demarcated bright red scleral patch', 'Painless presentation', 'Normal visual acuity', 'Absence of discharge'],
-    advice: 'Self-resolving over 1-2 weeks. Check systemic blood pressure and review anticoagulant medication history.'
+    group: 'Vascular & Degenerative',
+    icd10: 'H35.0 / H44.20',
+    snomed: '38341003',
+    description: 'Retinal vascular sclerosis, crossing changes, or extreme axial elongation producing chorioretinal thinning and staphyloma.',
+    symptoms: ['Episodes of transient visual dimming', 'Prominent myopic floaters and light flashes', 'Severe vascular headaches'],
+    advice: 'Immediate systemic blood pressure control and dilated peripheral indirect ophthalmoscopy to rule out retinal breaks.'
   },
   {
     key: 'Normal',
-    name: 'Normal Healthy Ocular State',
+    name: 'Normal Healthy Retina',
     severity: 'None / Baseline',
-    color: '#22C55E',
-    group: 'All Groups',
+    color: '#10B981',
+    group: 'Healthy Fundus',
     icd10: 'Z01.00',
-    snomed: '371405004',
-    description: 'Unremarkable ocular examination with clear optical media, quiet conjunctiva, crisp vascular architecture, and intact adnexa.',
-    symptoms: ['Clear crisp visual acuity', 'No pain or irritation', 'Quiet non-hyperemic sclera', 'Intact corneal reflex'],
-    advice: 'Maintain annual routine comprehensive dilated eye examinations and wear UV-protective sunglasses during outdoor exposure.'
+    snomed: '165070006',
+    description: 'Healthy posterior pole with sharp neuroretinal rim, well-defined foveal light reflex, and uniform retinal perfusion without focal lesions.',
+    symptoms: ['Crisp uncompromised visual acuity', 'No visual field loss', 'Absence of dark spots or metamorphopsia'],
+    advice: 'Maintain annual routine dilated fundus examinations and wear UV-filtering sunglasses outdoors.'
   },
 ]
 
@@ -692,19 +620,23 @@ export default function App() {
 
   // Clinical Quick Presets
   const applyPreset = (type) => {
-    if (type === 'red_eye') {
-      setPainLevel('Severe')
-      setVisionLoss('Mild')
-      setItchiness('No')
-      setLightSensitivity('Yes')
-      setFloaters('No')
-      setDischarge('Purulent / Crusty')
-      setDuration('<24 Hours (Acute)')
-      setHalos('No')
-      setAffectedEye('Right Eye (OD)')
-    } else if (type === 'cataract') {
+    if (type === 'diabetic_retinopathy') {
       setPainLevel('None')
-      setVisionLoss('Significant')
+      setVisionLoss('Moderate')
+      setItchiness('No')
+      setLightSensitivity('Mild')
+      setFloaters('Yes')
+      setDischarge('None')
+      setDuration('>1 Month (Chronic)')
+      setHalos('No')
+      setAffectedEye('Both Eyes (OU)')
+      setHba1c('8.4')
+      setSystolicBP('138')
+      setDiastolicBP('88')
+      setPatientAge('58')
+    } else if (type === 'glaucoma') {
+      setPainLevel('Mild')
+      setVisionLoss('Mild')
       setItchiness('No')
       setLightSensitivity('Mild')
       setFloaters('No')
@@ -712,16 +644,18 @@ export default function App() {
       setDuration('>1 Month (Chronic)')
       setHalos('Yes')
       setAffectedEye('Both Eyes (OU)')
-    } else if (type === 'jaundice') {
+      setPatientAge('64')
+    } else if (type === 'amd') {
       setPainLevel('None')
-      setVisionLoss('No')
-      setItchiness('Yes')
-      setLightSensitivity('No')
+      setVisionLoss('Significant')
+      setItchiness('No')
+      setLightSensitivity('Moderate')
       setFloaters('No')
       setDischarge('None')
       setDuration('1-4 Weeks')
       setHalos('No')
-      setAffectedEye('Both Eyes (OU)')
+      setAffectedEye('Right Eye (OD)')
+      setPatientAge('72')
     } else {
       setPainLevel('None')
       setVisionLoss('No')

@@ -1,105 +1,114 @@
+"""
+Temperature Calibration Script for Retinal Fundus Classifiers.
+Calibrates Platt / Temperature Scaling on the validation set to produce
+calibrated softmax probabilities (minimizing Expected Calibration Error).
+Saves calibrated temperatures to models/calibration.json.
+"""
 
-import argparse
-import json
 import os
 import sys
-
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-
+import json
+import argparse
+from pathlib import Path
 import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets, models, transforms
 import torch.nn as nn
+from torchvision import models
 
-from backend.calibration import CalibrationRegistry, TemperatureScaler
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-MODELS_DIR = os.path.join(project_root, "models")
-CALIBRATION_PATH = os.path.join(MODELS_DIR, "calibration.json")
+from prepare_dataset import prepare_fundus_dataloaders, CLASSES
+from backend.calibration import TemperatureScaler
 
-SPECIALISTS = {
-    "anterior": {
-        "model_file": "specialist_anterior.pth",
-        "dataset_dir": "Anterior Segment Pathology",
-        "num_classes": 2,
-    },
-    "surface": {
-        "model_file": "specialist_surface.pth",
-        "dataset_dir": "Ocular Surface Disorders",
-        "num_classes": 4,
-    },
-}
+MODELS_DIR = project_root / "models"
+CALIBRATION_PATH = MODELS_DIR / "calibration.json"
+NUM_CLASSES = len(CLASSES)
 
-VAL_TRANSFORMS = transforms.Compose([
-    transforms.Resize((380, 380)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-])
+def build_model(arch: str, num_classes: int = NUM_CLASSES):
+    if arch == "efficientnet_b4":
+        m = models.efficientnet_b4(weights=None)
+        m.classifier[1] = nn.Linear(m.classifier[1].in_features, num_classes)
+    elif arch == "convnext_small":
+        m = models.convnext_small(weights=None)
+        m.classifier[2] = nn.Linear(m.classifier[2].in_features, num_classes)
+    elif arch == "densenet201":
+        m = models.densenet201(weights=None)
+        m.classifier = nn.Linear(m.classifier.in_features, num_classes)
+    elif arch == "resnet50":
+        m = models.resnet50(weights=None)
+        m.fc = nn.Linear(m.fc.in_features, num_classes)
+    else:
+        m = models.efficientnet_b4(weights=None)
+        m.classifier[1] = nn.Linear(m.classifier[1].in_features, num_classes)
+    return m
 
-
-def build_efficientnet(num_classes: int) -> nn.Module:
-    model = models.efficientnet_b4(weights=None)
-    model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-    return model
-
-
-def calibrate_one(
-    group_key: str,
-    model_path: str,
-    val_dir: str,
-    num_classes: int,
-    device: torch.device,
-) -> float:
-    print(f"\n── Calibrating {group_key} ──")
-    if not os.path.exists(model_path):
-        print(f"  SKIP: {model_path} not found")
-        return 1.0
-    if not os.path.isdir(val_dir):
-        print(f"  SKIP: validation dir {val_dir} not found")
+def calibrate_model(model_name: str, device: torch.device):
+    ckpt_path = MODELS_DIR / f"{model_name}.pth"
+    if not ckpt_path.exists():
+        print(f"[SKIP] Model checkpoint not found: {ckpt_path}")
         return 1.0
 
-    dataset = datasets.ImageFolder(val_dir, transform=VAL_TRANSFORMS)
-    loader = DataLoader(dataset, batch_size=16, shuffle=False, num_workers=0)
-    print(f"  Validation set: {len(dataset)} images, {len(dataset.classes)} classes")
+    print(f"\n==================================================")
+    print(f"Calibrating {model_name} on validation split...")
+    print(f"==================================================")
 
-    model = build_efficientnet(num_classes)
-    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
+    _, val_loader, _, _ = prepare_fundus_dataloaders(
+        batch_size=32,
+        img_size=384,
+        num_workers=2 if device.type == "cuda" else 0,
+        pin_memory=(device.type == "cuda")
+    )
+
+    model = build_model(model_name, NUM_CLASSES)
+    model.load_state_dict(torch.load(ckpt_path, map_location=device))
     model.to(device).eval()
 
-    scaler = TemperatureScaler(model)
-    temperature = scaler.fit(loader, device)
-    print(f"  Optimal temperature: {temperature:.4f}")
+    all_logits = []
+    all_labels = []
+    with torch.no_grad():
+        for imgs, labels in val_loader:
+            imgs = imgs.to(device)
+            logits = model(imgs)
+            all_logits.append(logits.cpu())
+            all_labels.append(labels)
+
+    logits_tensor = torch.cat(all_logits)
+    labels_tensor = torch.cat(all_labels)
+
+    scaler = TemperatureScaler()
+    temperature = scaler.fit(logits_tensor, labels_tensor)
+    print(f"Optimal Temperature for {model_name}: {temperature:.4f}")
     return temperature
 
-
 def main():
-    parser = argparse.ArgumentParser(description="Calibrate OphthalmoAI specialist models")
-    parser.add_argument("--data-dir", default=os.path.join(project_root, "dataset"),
-                        help="Root dataset directory")
-    parser.add_argument("--models-dir", default=MODELS_DIR,
-                        help="Directory containing .pth files")
-    parser.add_argument("--device", default="auto",
-                        help="'auto', 'cpu', or 'cuda'")
+    parser = argparse.ArgumentParser(description="Calibrate Retinal Disease Models")
+    parser.add_argument("--model", type=str, default="all", help="Model name or 'all'")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
     args = parser.parse_args()
 
-    if args.device == "auto":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    else:
-        device = torch.device(args.device)
-    print(f"Using device: {device}")
+    device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
+    print(f"Running Temperature Calibration on {device}...")
 
-    temperatures = {}
-    for group_key, cfg in SPECIALISTS.items():
-        model_path = os.path.join(args.models_dir, cfg["model_file"])
-        val_dir = os.path.join(args.data_dir, cfg["dataset_dir"])
-        t = calibrate_one(group_key, model_path, val_dir, cfg["num_classes"], device)
-        temperatures[group_key] = round(t, 6)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    registry = {}
+    if CALIBRATION_PATH.exists():
+        try:
+            with open(CALIBRATION_PATH, "r") as f:
+                registry = json.load(f)
+        except Exception:
+            registry = {}
 
-    os.makedirs(args.models_dir, exist_ok=True)
-    CalibrationRegistry.save(CALIBRATION_PATH, temperatures)
-    print(f"\n✅ Calibration saved to {CALIBRATION_PATH}")
-    print(json.dumps(temperatures, indent=2))
+    models_to_run = ["efficientnet_b4", "convnext_small", "densenet201", "resnet50"] if args.model == "all" else [args.model]
 
+    for m in models_to_run:
+        T = calibrate_model(m, device)
+        registry[m] = round(T, 4)
+
+    with open(CALIBRATION_PATH, "w") as f:
+        json.dump(registry, f, indent=2)
+    print(f"\n[SAVED] Updated calibration parameters saved to {CALIBRATION_PATH}:")
+    print(json.dumps(registry, indent=2))
 
 if __name__ == "__main__":
     main()

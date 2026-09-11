@@ -125,9 +125,12 @@ ENABLE_IQA          = os.getenv("ENABLE_IQA", "true").lower() in {"1", "true", "
 PERSIST_SCANS       = os.getenv("PERSIST_SCANS", "true").lower() in {"1", "true", "yes"}
 
 MONOLITHIC_CLASSES = [
-    "Blepharitis", "Cataract", "Chalazion", "Conjunctivitis", 
-    "Jaundice", "Keratitis", "Normal", "Ptosis", 
-    "Pterygium", "Stye", "Subconjunctival Hemorrhage", "Uveitis"
+    "Normal",
+    "Diabetic Retinopathy",
+    "Glaucoma",
+    "Cataract",
+    "Age-related Macular Degeneration",
+    "Hypertensive Retinopathy / Pathological Myopia"
 ]
 
 MONOLITHIC_MODEL: Optional[nn.Module] = None
@@ -482,18 +485,12 @@ def generate_spatial_description(diagnosis: str) -> str:
     import random
     quadrants = ["superotemporal macular arcade", "inferonasal quadrant near optic disc", "foveal center", "peripapillary region", "inferotemporal retinal periphery"]
     patterns = {
-        "Cataract": f"cloudy optical density cluster noted at the lens core and {random.choice(quadrants)}",
-        "Uveitis": f"focal keratic precipitate spots and white blood cell clusters localized around the {random.choice(quadrants)}",
-        "Jaundice": f"bilirubin yellow-scleral coloration density concentrated at the outer peripheral limbus ring",
-        "Pterygium": f"triangular fibrovascular growth advancing from nasal conjunctiva onto the corneal limbus",
-        "Conjunctivitis": f"diffuse microvascular congestion (injection) spread symmetrically across the scleral surface",
-        "Ptosis": f"superior palpebral fissure narrowing consistent with levator aponeurosis dehiscence",
-        "Blepharitis": f"diffuse eyelid margin erythema with meibomian gland inspissation",
-        "Chalazion": f"focal lipogranulomatous nodule within the tarsal plate",
-        "Stye": f"acute pyogenic nodule at the eyelash follicle base",
-        "Keratitis": f"focal corneal epithelial defect with underlying stromal infiltrate",
-        "Subconjunctival Hemorrhage": f"sharply demarcated confluent sub-bulbar hemorrhage without limbal involvement",
-        "Normal": f"No pathologic abnormalities or localized lesions observed across any macular or peripheral quadrant"
+        "Diabetic Retinopathy": f"microaneurysms, dot-blot hemorrhages, and lipid exudates localized along the {random.choice(quadrants)}",
+        "Glaucoma": f"neuroretinal rim notch and cup-to-disc enlargement centered at the peripapillary optic nerve head",
+        "Age-related Macular Degeneration": f"confluent drusen clusters and subretinal pigment mottling concentrated at the {random.choice(['foveal center', 'parafoveal macula', 'perifoveal zone'])}",
+        "Cataract": f"generalized diffuse light scattering and media attenuation obscuring retinal vasculature across all quadrants",
+        "Hypertensive Retinopathy / Pathological Myopia": f"focal arteriolar attenuation, AV crossing nicking, and flame hemorrhages along the {random.choice(quadrants)}",
+        "Normal": f"intact neuroretinal rim, crisp foveal avascular zone, and healthy retinal perfusion without focal lesions"
     }
     return patterns.get(diagnosis, f"mild focal anomalies noted near the {random.choice(quadrants)}")
 

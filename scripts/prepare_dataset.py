@@ -1,81 +1,97 @@
+"""
+Retinal Fundus Dataset Loader.
+Supports loading from processed CSV manifests (train.csv, val.csv, test.csv)
+and standardized Ben Graham enhanced images for PyTorch training and evaluation.
+"""
+
 import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, datasets
+from torchvision import transforms
 from PIL import Image
-from sklearn.model_selection import train_test_split
-import shutil
+from pathlib import Path
 
-class RetinalDataset(Dataset):
-    def __init__(self, data_frame, root_dir, transform=None):
-        self.data_frame = data_frame
-        self.root_dir = root_dir
+BASE_DIR = Path(__file__).resolve().parent.parent
+PROCESSED_DIR = BASE_DIR / "dataset" / "processed"
+
+CLASSES = [
+    "Normal",
+    "Diabetic Retinopathy",
+    "Glaucoma",
+    "Cataract",
+    "Age-related Macular Degeneration",
+    "Hypertensive Retinopathy / Pathological Myopia"
+]
+CLASS_TO_IDX = {cls_name: i for i, cls_name in enumerate(CLASSES)}
+IDX_TO_CLASS = {i: cls_name for i, cls_name in enumerate(CLASSES)}
+
+class RetinalFundusDataset(Dataset):
+    def __init__(self, csv_file, img_dir, transform=None):
+        self.df = pd.read_csv(csv_file)
+        self.img_dir = Path(img_dir)
         self.transform = transform
-        
-        self.classes = sorted(self.data_frame['class'].unique())
-        self.class_to_idx = {cls_name: i for i, cls_name in enumerate(self.classes)}
 
     def __len__(self):
-        return len(self.data_frame)
+        return len(self.df)
 
     def __getitem__(self, idx):
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-
-        img_path = self.data_frame.iloc[idx, 0].replace('\\', '/')
-        img_name = os.path.join(self.root_dir, img_path)
-        image = Image.open(img_name).convert('RGB')
-        label = self.class_to_idx[self.data_frame.iloc[idx, 1]]
+        row = self.df.iloc[idx]
+        img_name = row["image_id"]
+        img_path = self.img_dir / img_name
+        image = Image.open(img_path).convert("RGB")
+        label = CLASS_TO_IDX[row["class"]]
 
         if self.transform:
             image = self.transform(image)
 
         return image, label
 
-def prepare_dataloaders(csv_file, root_dir, batch_size=16, test_size=0.2, val_size=0.1):
-    df = pd.read_csv(csv_file)
-    
-    train_df, temp_df = train_test_split(df, test_size=(test_size + val_size), stratify=df['class'], random_state=42)
-    val_df, test_df = train_test_split(temp_df, test_size=(test_size / (test_size + val_size)), stratify=temp_df['class'], random_state=42)
-    
+def get_transforms(img_size: int = 384):
     train_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        transforms.Resize((img_size, img_size)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(degrees=20),
+        transforms.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.15),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     
     val_test_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    
-    train_dataset = RetinalDataset(train_df, root_dir, transform=train_transform)
-    val_dataset = RetinalDataset(val_df, root_dir, transform=val_test_transform)
-    test_dataset = RetinalDataset(test_df, root_dir, transform=val_test_transform)
-    
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=False, drop_last=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=False)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=False)
-    
-    print(f"Prepared DataLoaders:")
-    print(f"Training: {len(train_dataset)} images")
-    print(f"Validation: {len(val_dataset)} images")
-    print(f"Testing: {len(test_dataset)} images")
-    
-    return train_loader, val_loader, test_loader, train_dataset.class_to_idx
+    return train_transform, val_test_transform
 
-if __name__ == '__main__':
-    manifest_path = './dataset/manifest.csv'
-    dataset_root = './dataset'
-    
-    BATCH_SIZE = 16 
-    
-    train_loader, val_loader, test_loader, classes = prepare_dataloaders(manifest_path, dataset_root, batch_size=BATCH_SIZE)
-    print("Classes mapped to labels:", classes)
-    print("Data is ready for training on RTX 5060 8GB!")
+def prepare_fundus_dataloaders(
+    data_dir: str = str(PROCESSED_DIR),
+    batch_size: int = 32,
+    img_size: int = 384,
+    num_workers: int = 2,
+    pin_memory: bool = True
+):
+    data_path = Path(data_dir)
+    img_dir = data_path / "images"
+    train_tf, val_tf = get_transforms(img_size)
 
+    train_ds = RetinalFundusDataset(data_path / "train.csv", img_dir, transform=train_tf)
+    val_ds = RetinalFundusDataset(data_path / "val.csv", img_dir, transform=val_tf)
+    test_ds = RetinalFundusDataset(data_path / "test.csv", img_dir, transform=val_tf)
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, drop_last=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
+
+    print(f"DataLoaders prepared successfully:")
+    print(f" - Train samples: {len(train_ds)}")
+    print(f" - Validation samples: {len(val_ds)}")
+    print(f" - Test samples: {len(test_ds)}")
+    print(f" - Batch size: {batch_size} | Resolution: {img_size}x{img_size}")
+
+    return train_loader, val_loader, test_loader, CLASS_TO_IDX
+
+# Backward compatibility alias
+prepare_dataloaders = prepare_fundus_dataloaders
+RetinalDataset = RetinalFundusDataset

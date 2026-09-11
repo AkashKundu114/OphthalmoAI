@@ -1,207 +1,168 @@
+"""
+Bfloat16 (BF16) Specialized Meta-Ensemble Training Script.
+Architected for modern Tensor Core architectures (Ampere / Ada Lovelace / Blackwell)
+Utilizes Native BF16 Autocast without gradient underflow scaling.
+Combines: ConvNeXt-Small + DenseNet-201 + EfficientNet-V2-M
+"""
+
 import os
+import sys
 import gc
+import time
+import argparse
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
-from prepare_dataset import prepare_dataloaders
+from sklearn.metrics import accuracy_score, f1_score
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from prepare_dataset import prepare_fundus_dataloaders, CLASSES
 from metric_logger import HardwareTelemetry
 
-torch.backends.cudnn.benchmark = False
+MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+NUM_CLASSES = len(CLASSES)
 
-MANIFEST_PATH = './dataset/manifest.csv'
-DATASET_ROOT = './dataset'
-NUM_CLASSES = 12
-BATCH_SIZE = int(os.environ.get('BATCH_SIZE', 32))
-EPOCHS = int(os.environ.get('EPOCHS', 40))
+class FundusMetaEnsemble(nn.Module):
+    def __init__(self, num_classes=NUM_CLASSES):
+        super().__init__()
+        c = models.convnext_small(weights=models.ConvNeXt_Small_Weights.DEFAULT)
+        c.classifier[2] = nn.Linear(c.classifier[2].in_features, num_classes)
+        self.convnext = c
 
-def get_convnext(pretrained=True):
-    weights = models.ConvNeXt_Small_Weights.DEFAULT if pretrained else None
-    model = models.convnext_small(weights=weights)
-    num_ftrs = model.classifier[2].in_features
-    model.classifier[2] = nn.Linear(num_ftrs, NUM_CLASSES)
-    return model
+        d = models.densenet201(weights=models.DenseNet201_Weights.DEFAULT)
+        d.classifier = nn.Linear(d.classifier.in_features, num_classes)
+        self.densenet = d
 
-def get_densenet(pretrained=True):
-    weights = models.DenseNet201_Weights.DEFAULT if pretrained else None
-    model = models.densenet201(weights=weights)
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, NUM_CLASSES)
-    return model
+        e = models.efficientnet_v2_m(weights=models.EfficientNet_V2_M_Weights.DEFAULT)
+        e.classifier[1] = nn.Linear(e.classifier[1].in_features, num_classes)
+        self.efficientnet = e
 
-def get_efficientnet_v2(pretrained=True):
-    weights = models.EfficientNet_V2_M_Weights.DEFAULT if pretrained else None
-    model = models.efficientnet_v2_m(weights=weights)
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, NUM_CLASSES)
-    return model
+        # Freeze feature extraction weights
+        for net in [self.convnext, self.densenet, self.efficientnet]:
+            for p in net.parameters():
+                p.requires_grad = False
 
-class MetaEnsemble(nn.Module):
-    def __init__(self, model1, model2, model3):
-        super(MetaEnsemble, self).__init__()
-        self.model1 = model1
-        self.model2 = model2
-        self.model3 = model3
-        
-        for param in self.model1.parameters():
-            param.requires_grad = False
-        for param in self.model2.parameters():
-            param.requires_grad = False
-        for param in self.model3.parameters():
-            param.requires_grad = False
-            
         self.meta_classifier = nn.Sequential(
-            nn.Linear(NUM_CLASSES * 3, 64),
+            nn.Linear(num_classes * 3, 64),
+            nn.LayerNorm(64),
             nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(64, NUM_CLASSES)
+            nn.Dropout(0.25),
+            nn.Linear(64, num_classes)
         )
 
     def forward(self, x):
         with torch.no_grad():
-            out1 = self.model1(x)
-            out2 = self.model2(x)
-            out3 = self.model3(x)
-            
-        stacked = torch.cat((out1, out2, out3), dim=1)
-        return self.meta_classifier(stacked)
+            o1 = self.convnext(x)
+            o2 = self.densenet(x)
+            o3 = self.efficientnet(x)
+        concat = torch.cat([o1, o2, o3], dim=1)
+        return self.meta_classifier(concat)
 
-def train_base_model(model_name, model_fn, device, train_loader):
-    save_path = f"models/{model_name.lower().replace('-', '_')}_bf16.pth"
-    
-    # Auto-resume without redundant weight downloads
-    if os.path.exists(save_path):
-        print(f"\n=======================================================")
-        print(f"⏩ Found existing checkpoint: {save_path}")
-        print(f"Loading {model_name} from disk (skipping re-training)...")
-        print(f"=======================================================")
-        model = model_fn(pretrained=False)
-        model.load_state_dict(torch.load(save_path, map_location='cpu'))
-        return model
+def parse_args():
+    parser = argparse.ArgumentParser(description="BF16 Meta-Ensemble Training")
+    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size (default: 32)")
+    parser.add_argument("--epochs", type=int, default=15, help="Training epochs")
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
+    parser.add_argument("--img-size", type=int, default=384)
+    return parser.parse_args()
 
-    print(f"\n=======================================================")
-    print(f"--- Training Base Model: {model_name} (BF16, BS={BATCH_SIZE}) ---")
-    print(f"=======================================================")
-    
-    model = model_fn(pretrained=True).to(device)
-    telemetry = HardwareTelemetry(use_gpu=True, model_name=f"{model_name}_BF16_BS{BATCH_SIZE}")
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
-    
-    total_steps = len(train_loader)
-    for epoch in range(1, EPOCHS + 1):
-        telemetry.start_epoch()
-        model.train()
-        running_loss = 0.0
-        correct = 0
-        total = 0
-        
-        for i, (inputs, labels) in enumerate(train_loader):
-            inputs = inputs.to(device, non_blocking=True)
-            labels = labels.to(device, non_blocking=True)
-            optimizer.zero_grad(set_to_none=True)
-            
-            with torch.amp.autocast('cuda', dtype=torch.bfloat16):
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-            
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-            
-            running_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
-            
-            if (i + 1) % 10 == 0 or (i + 1) == total_steps:
-                print(f"[{model_name}] Epoch [{epoch}/{EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}, Acc: {100. * correct / total:.2f}%")
-        
-        epoch_loss = running_loss / total_steps
-        epoch_acc = 100. * correct / total
-        telemetry.end_epoch(epoch, epoch_loss, epoch_acc)
-    
-    # Save checkpoint immediately
-    torch.save(model.state_dict(), save_path)
-    print(f"✅ Checkpoint saved: {save_path}")
-    
-    # Safe cleanup & sync
-    torch.cuda.synchronize()
-    model.to('cpu')
-    del optimizer
-    gc.collect()
-    torch.cuda.empty_cache()
-    torch.cuda.synchronize()
-    
-    return model
+def main():
+    args = parse_args()
+    device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
+    print("=" * 70)
+    print("BFLOAT16 (BF16) RETINAL FUNDUS META-ENSEMBLE TRAINING")
+    print(f"Device: {device} | Precision: BF16 (bfloat16) | Batch Size: {args.batch_size} | Epochs: {args.epochs}")
+    if device.type == "cuda":
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"BF16 Supported: {torch.cuda.is_bf16_supported()}")
+    print("=" * 70)
 
-def train():
-    print(f"Initializing Meta-Classifier Ensemble Training [Precision: BF16, Batch Size: {BATCH_SIZE}, Epochs: {EPOCHS}]...")
-    os.makedirs('models', exist_ok=True)
-    
-    train_loader, val_loader, test_loader, classes = prepare_dataloaders(
-        MANIFEST_PATH, DATASET_ROOT, batch_size=BATCH_SIZE
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    telemetry = HardwareTelemetry(use_gpu=(device.type == "cuda"), model_name=f"MetaClassifier_BF16_bs{args.batch_size}")
+
+    train_loader, val_loader, test_loader, _ = prepare_fundus_dataloaders(
+        batch_size=args.batch_size,
+        img_size=args.img_size,
+        num_workers=2 if device.type == "cuda" else 0,
+        pin_memory=(device.type == "cuda")
     )
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Active Device: {device} | Total Batches per Epoch: {len(train_loader)}")
-    
-    # 1. Train Base Models with individual telemetry logs & auto-resume
-    convnext = train_base_model("ConvNeXt-Small", get_convnext, device, train_loader)
-    densenet = train_base_model("DenseNet-201", get_densenet, device, train_loader)
-    effnet = train_base_model("EfficientNet-V2-M", get_efficientnet_v2, device, train_loader)
-    
-    # 2. Train Meta-Classifier Head with dedicated telemetry log
-    meta_path = 'models/meta_classifier_bf16.pth'
-    if os.path.exists(meta_path):
-        print(f"⏩ Meta-Classifier checkpoint already exists: {meta_path}")
-        return
 
-    print("\n=======================================================")
-    print(f"--- Training Meta-Classifier Head (BF16, BS={BATCH_SIZE}) ---")
-    print("=======================================================")
-    meta_telemetry = HardwareTelemetry(use_gpu=True, model_name=f"MetaClassifier_BF16_BS{BATCH_SIZE}")
-    ensemble = MetaEnsemble(convnext, densenet, effnet).to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(ensemble.meta_classifier.parameters(), lr=1e-3)
-    
-    total_steps = len(train_loader)
-    for epoch in range(1, EPOCHS + 1):
-        meta_telemetry.start_epoch()
+    ensemble = FundusMetaEnsemble(NUM_CLASSES).to(device)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
+    optimizer = optim.AdamW(ensemble.meta_classifier.parameters(), lr=args.lr, weight_decay=1e-3)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+
+    out_ckpt = MODELS_DIR / f"meta_classifier_bf16_bs{args.batch_size}.pth"
+    best_f1 = 0.0
+
+    for epoch in range(1, args.epochs + 1):
+        telemetry.start_epoch()
+        t0 = time.time()
         ensemble.train()
-        
-        running_loss = 0.0
-        correct = 0
-        total = 0
-        
-        for i, (inputs, labels) in enumerate(train_loader):
-            inputs = inputs.to(device, non_blocking=True)
-            labels = labels.to(device, non_blocking=True)
+        total_loss, correct, total = 0.0, 0, 0
+
+        for imgs, labels in train_loader:
+            imgs, labels = imgs.to(device), labels.to(device)
             optimizer.zero_grad(set_to_none=True)
-            
-            with torch.amp.autocast('cuda', dtype=torch.bfloat16):
-                outputs = ensemble(inputs)
-                loss = criterion(outputs, labels)
-            
+
+            if device.type == "cuda":
+                with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+                    logits = ensemble(imgs)
+                    loss = criterion(logits, labels)
+            else:
+                logits = ensemble(imgs)
+                loss = criterion(logits, labels)
+
             loss.backward()
             optimizer.step()
-            
-            running_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
-            
-            if (i + 1) % 10 == 0 or (i + 1) == total_steps:
-                current_acc = 100. * correct / total
-                print(f"[Meta-Classifier] Epoch [{epoch}/{EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.4f}, Acc: {current_acc:.2f}%")
-            
-        epoch_loss = running_loss / total_steps
-        epoch_acc = 100. * correct / total
-        meta_telemetry.end_epoch(epoch, epoch_loss, epoch_acc)
 
-    print(f"\nSaving meta classifier weights to {meta_path}...")
-    torch.save(ensemble.meta_classifier.state_dict(), meta_path)
-    print(f"🎉 Training Complete! Individual Telemetry Logs & Checkpoints Saved for All 4 Models.")
+            total_loss += loss.item() * imgs.size(0)
+            preds = logits.argmax(dim=1)
+            correct += (preds == labels).sum().item()
+            total += imgs.size(0)
 
-if __name__ == '__main__':
-    train()
+        # Validation
+        ensemble.eval()
+        v_loss, v_correct, v_total = 0.0, 0, 0
+        all_preds, all_labels = [], []
+        with torch.no_grad():
+            for imgs, labels in val_loader:
+                imgs, labels = imgs.to(device), labels.to(device)
+                if device.type == "cuda":
+                    with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+                        logits = ensemble(imgs)
+                        loss = criterion(logits, labels)
+                else:
+                    logits = ensemble(imgs)
+                    loss = criterion(logits, labels)
+
+                v_loss += loss.item() * imgs.size(0)
+                preds = logits.argmax(dim=1)
+                v_correct += (preds == labels).sum().item()
+                v_total += imgs.size(0)
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
+        scheduler.step()
+        dt = time.time() - t0
+        val_acc = v_correct / v_total
+        val_f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
+        telemetry.end_epoch(epoch, v_loss / v_total, val_acc * 100)
+
+        print(f"Epoch [{epoch:02d}/{args.epochs:02d}] ({dt:.1f}s) - Train Loss: {total_loss/total:.4f}, Acc: {correct/total*100:.2f}% | Val Loss: {v_loss/v_total:.4f}, Acc: {val_acc*100:.2f}%, F1: {val_f1:.4f}")
+
+        if val_f1 > best_f1:
+            best_f1 = val_f1
+            torch.save(ensemble.state_dict(), out_ckpt)
+            print(f"  --> Saved new best BF16 ensemble checkpoint to {out_ckpt.name} (Val F1: {val_f1:.4f})")
+
+    print(f"\nBF16 Ensemble Training Complete. Best Val F1: {best_f1:.4f}")
+    print("=" * 70)
+
+if __name__ == "__main__":
+    main()

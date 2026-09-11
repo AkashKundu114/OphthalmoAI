@@ -1,7 +1,17 @@
-import pynvml
+try:
+    import pynvml
+    PYNVML_AVAILABLE = True
+except ImportError:
+    PYNVML_AVAILABLE = False
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+
 import torch
 import time
-import psutil
 import os
 import json
 from datetime import datetime
@@ -10,12 +20,12 @@ class HardwareTelemetry:
     def __init__(self, use_gpu=True, model_name="unknown"):
         self.start_time = None
         self.handle = None
-        self.use_gpu = use_gpu
-        self.process = psutil.Process(os.getpid())
+        self.use_gpu = use_gpu and PYNVML_AVAILABLE
+        self.process = psutil.Process(os.getpid()) if PSUTIL_AVAILABLE else None
         self.model_name = model_name
         self.gpu_name = "CPU Only"
         
-        if self.use_gpu:
+        if self.use_gpu and PYNVML_AVAILABLE:
             try:
                 pynvml.nvmlInit()
                 self.handle = pynvml.nvmlDeviceGetHandleByIndex(0)
@@ -27,9 +37,10 @@ class HardwareTelemetry:
                 print(f"Failed to initialize pynvml: {e}")
                 self.use_gpu = False
         else:
-            print("Hardware Telemetry Initialized for CPU-Only execution.")
+            print("Hardware Telemetry Initialized for CPU/Standard execution.")
             
-        psutil.cpu_percent(interval=None)
+        if PSUTIL_AVAILABLE:
+            psutil.cpu_percent(interval=None)
         
         self.log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dataset', 'logs')
         os.makedirs(self.log_dir, exist_ok=True)
@@ -50,19 +61,21 @@ class HardwareTelemetry:
     def end_epoch(self, epoch, loss, acc):
         epoch_time = time.time() - self.start_time
         
-        mem_info = self.process.memory_info()
-        ram_usage = mem_info.rss / (1024 ** 3)
-        sys_ram_percent = psutil.virtual_memory().percent
-        
-        cpu_usage = psutil.cpu_percent(interval=None)
-        
+        ram_usage = 0.0
+        sys_ram_percent = 0.0
+        cpu_usage = 0.0
         cpu_temp = 0.0
-        try:
-            temps = psutil.sensors_temperatures()
-            if temps and 'coretemp' in temps:
-                cpu_temp = temps['coretemp'][0].current
-        except Exception:
-            pass
+        if PSUTIL_AVAILABLE and self.process:
+            try:
+                mem_info = self.process.memory_info()
+                ram_usage = mem_info.rss / (1024 ** 3)
+                sys_ram_percent = psutil.virtual_memory().percent
+                cpu_usage = psutil.cpu_percent(interval=None)
+                temps = psutil.sensors_temperatures() if hasattr(psutil, "sensors_temperatures") else None
+                if temps and 'coretemp' in temps:
+                    cpu_temp = temps['coretemp'][0].current
+            except Exception:
+                pass
 
         print(f"--- Epoch {epoch} Metrics ---")
         print(f"Time Total: {epoch_time:.2f} seconds")
