@@ -292,7 +292,9 @@ export default function TermsPage({ onNavigate }) {
               For regulatory oversight, institutional licensing, academic collaborations, or IRB compliance inquiries, contact our clinical governance desk:
             </p>
             <div className="pt-1 font-mono text-xs text-cyan-300">
-              clinical-governance@ophthalmoai.org
+              <a href="mailto:akashkundu1152@gmail.com" className="hover:underline text-cyan-300">
+                akashkundu1152@gmail.com
+              </a>
             </div>
           </div>
 

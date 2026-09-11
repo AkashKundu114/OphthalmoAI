@@ -13,7 +13,7 @@ import {
   ExternalLink, Search, Calendar, TrendingUp,
   ArrowRight, Sparkles, X, Send, Loader2, Bot, User,
   MessageCircle, Heart, Zap, Target, BarChart2,
-  ChevronLeft, Star, Clock, Tag, Scale, Lock
+  ChevronLeft, Star, Clock, Tag, Scale, Lock, Mail
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -2100,6 +2100,15 @@ export default function App() {
                     <Lock className="w-3.5 h-3.5 text-teal-400" />
                     <span>Privacy Policy</span>
                   </button>
+                </li>
+                <li>
+                  <a
+                    href="mailto:akashkundu1152@gmail.com"
+                    className="hover:text-cyan-400 transition flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-slate-400" />
+                    <span>akashkundu1152@gmail.com</span>
+                  </a>
                 </li>
                 <li className="pt-2">
                   <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 text-[11px] text-slate-400 space-y-1">

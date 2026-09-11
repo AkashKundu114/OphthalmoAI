@@ -335,7 +335,9 @@ export default function PrivacyPolicyPage({ onNavigate }) {
               If you have inquiries regarding medical data privacy, HIPAA compliance verification, or wish to exercise data subject deletion rights:
             </p>
             <div className="pt-1 font-mono text-xs text-teal-300">
-              dpo-privacy@ophthalmoai.org
+              <a href="mailto:akashkundu1152@gmail.com" className="hover:underline text-teal-300">
+                akashkundu1152@gmail.com
+              </a>
             </div>
           </div>
 

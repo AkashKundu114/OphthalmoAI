@@ -18,11 +18,12 @@ describe('Terms & Conditions Page', () => {
 
     // Medical disclaimer
     expect(screen.getAllByText(/Medical AI & Clinical Use Disclaimer/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Auxiliary Decision-Support Only — Not Autonomous Medical Care/i)).toBeInTheDocument()
+    expect(screen.getByText(/Auxiliary Decision-Support Only/i)).toBeInTheDocument()
 
-    // Acceptable use and patient consent
+    // Acceptable use, patient consent, and contact email
     expect(screen.getAllByText(/Acceptable Use & User Qualifications/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/Patient Consent, HIPAA & De-Identification/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/akashkundu1152@gmail\.com/i)).toBeInTheDocument()
 
     // Navigation trigger
     const backBtn = screen.getByRole('button', { name: /Back to Diagnostic Screening/i })
@@ -60,6 +61,7 @@ describe('Privacy Policy Page', () => {
     expect(screen.getAllByText(/Privacy Philosophy & Clinical Data Ethics/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/HIPAA, GDPR & Patient De-Identification Standards/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/Technical Security & Encryption Architecture/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/akashkundu1152@gmail\.com/i)).toBeInTheDocument()
 
     // Navigation to terms
     const termsBtn = screen.getByRole('button', { name: /View Terms & Conditions/i })
