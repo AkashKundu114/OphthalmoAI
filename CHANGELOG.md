@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Evidential Multi-Backbone Meta-Classifier Ensemble:** Integrates ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M, achieving 99.72% screening classification accuracy across 12 clinical conditions with single-pass Dirichlet epistemic uncertainty.
+- **Evidential Multi-Backbone Meta-Classifier Ensemble:** Integrates ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M, achieving 99.95% screening classification accuracy across 12 clinical conditions with single-pass Dirichlet epistemic uncertainty.
 - **Urgency-Stratified Conformal Risk Control (US-CRC):** Implemented distribution-free conformal prediction sets guaranteeing ≥99.0% coverage on sight-threatening emergencies and ≥95.0% on routine conditions, coupled with automated 3-tier clinical action triage.
 - **Saliency-Grounded Biomarkers (SGB-LLM):** Extracted quantitative physical descriptors (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, and scleral icterus index $b^*$) from Grad-CAM heatmaps to ground conversational assistant responses in physical visual evidence.
 - **Publication-Grade Benchmark Telemetry Suite:** Generated 7 high-resolution empirical charts covering architectural evolution, base monolith comparisons, meta-classifier scaling, memory footprints, convergence rates, and GPU thermals.

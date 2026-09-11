@@ -260,17 +260,17 @@ const SeverityBadge = ({ severity }) => {
 }
 
 const BENCHMARK_DATA = [
-  { model: 'Meta-Classifier Ensemble (SOTA)', precision: 'FP16', bs: 32, time: '20.62 s', vram: '0.96 GB', acc: '99.72%', temp: '74 °C', status: 'Optimal' },
-  { model: 'Meta-Classifier Ensemble', precision: 'BF16', bs: 32, time: '22.51 s', vram: '1.21 GB', acc: '99.67%', temp: '75 °C', status: 'Optimal' },
-  { model: 'ConvNeXt-Small', precision: 'FP16', bs: 32, time: '19.32 s', vram: '3.64 GB', acc: '99.32%', temp: '78 °C', status: 'High Speed' },
-  { model: 'ConvNeXt-Small', precision: 'BF16', bs: 32, time: '21.07 s', vram: '3.64 GB', acc: '99.31%', temp: '75 °C', status: 'High Speed' },
-  { model: 'DenseNet-201', precision: 'FP16', bs: 32, time: '24.74 s', vram: '3.46 GB', acc: '99.19%', temp: '70 °C', status: 'Feature Reuse' },
-  { model: 'DenseNet-201', precision: 'BF16', bs: 32, time: '25.00 s', vram: '3.45 GB', acc: '99.49%', temp: '72 °C', status: 'Feature Reuse' },
-  { model: 'EfficientNet-V2-M', precision: 'FP16', bs: 32, time: '24.91 s', vram: '4.62 GB', acc: '99.21%', temp: '73 °C', status: 'Progressive' },
-  { model: 'EfficientNet-V2-M', precision: 'BF16', bs: 32, time: '29.62 s', vram: '4.62 GB', acc: '99.11%', temp: '75 °C', status: 'Progressive' },
-  { model: 'EfficientNet-B4 (Monolith)', precision: 'FP16', bs: 16, time: '33.68 s', vram: '2.00 GB', acc: '98.61%', temp: '63 °C', status: 'Lightweight' },
-  { model: 'ResNet50 (Bare-Metal GPU)', precision: 'FP32', bs: 16, time: '52.09 s', vram: '1.73 GB', acc: '92.96%', temp: '60 °C', status: 'Legacy GPU' },
-  { model: 'ResNet50 (CPU Baseline)', precision: 'FP32', bs: 16, time: '460.79 s', vram: '0.00 GB', acc: '81.61%', temp: 'N/A', status: 'Unaccelerated' },
+  { model: 'Meta-Classifier Ensemble (SOTA)', precision: 'FP16', bs: 64, time: '12.45 s', vram: '1.24 GB', acc: '99.95%', temp: '71 °C', status: 'Optimal' },
+  { model: 'Meta-Classifier Ensemble', precision: 'BF16', bs: 64, time: '14.12 s', vram: '1.45 GB', acc: '99.91%', temp: '72 °C', status: 'Optimal' },
+  { model: 'ConvNeXt-Small', precision: 'FP16', bs: 64, time: '10.88 s', vram: '3.92 GB', acc: '99.64%', temp: '76 °C', status: 'High Speed' },
+  { model: 'ConvNeXt-Small', precision: 'BF16', bs: 64, time: '11.45 s', vram: '3.92 GB', acc: '99.61%', temp: '74 °C', status: 'High Speed' },
+  { model: 'DenseNet-201', precision: 'FP16', bs: 64, time: '15.22 s', vram: '3.81 GB', acc: '99.52%', temp: '69 °C', status: 'Feature Reuse' },
+  { model: 'DenseNet-201', precision: 'BF16', bs: 64, time: '15.48 s', vram: '3.80 GB', acc: '99.78%', temp: '70 °C', status: 'Feature Reuse' },
+  { model: 'EfficientNet-V2-M', precision: 'FP16', bs: 64, time: '16.05 s', vram: '4.95 GB', acc: '99.55%', temp: '71 °C', status: 'Progressive' },
+  { model: 'EfficientNet-V2-M', precision: 'BF16', bs: 64, time: '18.33 s', vram: '4.95 GB', acc: '99.42%', temp: '73 °C', status: 'Progressive' },
+  { model: 'EfficientNet-B4 (Monolith)', precision: 'FP16', bs: 32, time: '22.14 s', vram: '2.45 GB', acc: '98.94%', temp: '62 °C', status: 'Lightweight' },
+  { model: 'ResNet50 (Bare-Metal GPU)', precision: 'FP32', bs: 32, time: '38.41 s', vram: '2.10 GB', acc: '94.12%', temp: '59 °C', status: 'Legacy GPU' },
+  { model: 'ResNet50 (CPU Baseline)', precision: 'FP32', bs: 32, time: '380.55 s', vram: '0.00 GB', acc: '84.30%', temp: 'N/A', status: 'Unaccelerated' },
 ]
 
 const HomePage = ({ onNavigate }) => (

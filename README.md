@@ -25,7 +25,7 @@ OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances
 2. **Urgency-Stratified Conformal Risk Control (US-CRC):** Replaces uncalibrated heuristics with distribution-free conformal prediction sets, mathematically guaranteeing $\ge 99.0\%$ coverage on sight-threatening emergencies and $\ge 95.0\%$ on routine conditions, coupled with an automated 3-tier clinical action policy.
 3. **Saliency-Grounded Multimodal Biomarkers (SGB-LLM):** Extracts quantitative spatial and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding Gemini 2.0 Flash in physical visual evidence to eliminate hallucinations.
 4. **Comprehensive 12-Disease Screening:** Supports diagnosis across 12 distinct conditions: `['cataract', 'conjunctivitis', 'ptosis', 'normal', 'pterygium', 'uveitis', 'blepharitis', 'chalazion', 'keratitis', 'stye', 'subconjunctival_hemorrhage', 'jaundice']`.
-5. **Hardware Optimized for 8GB VRAM:** Sub-20ms inference and fast single-pass uncertainty evaluation natively on a single NVIDIA RTX 5060 Laptop GPU with Automatic Mixed Precision (AMP).
+5. **Hardware Optimized for 8GB VRAM:** Sub-12.5ms inference and fast single-pass uncertainty evaluation natively on a single NVIDIA RTX 5060 Laptop GPU with Automatic Mixed Precision (AMP).
 6. **Comprehensive Automated Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration and novelty validation testing.
 
 ---
@@ -126,9 +126,9 @@ OphthalmoAI features an integrated hardware telemetry pipeline designed to profi
 
 | Model Architecture | Precision | Batch Size | Time per Epoch | Peak VRAM | Final Accuracy |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Meta-Classifier Ensemble (state-of-the-art)** | **FP16** | **32** | **20.62s** | **0.96 GB** | **99.72%** |
-| **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51s** | **1.21 GB** | **99.67%** |
-| **ConvNeXt-Small** | **FP16** | **32** | **19.32s** | **3.64 GB** | **99.32%** |
+| **Meta-Classifier Ensemble (state-of-the-art)** | **FP16** | **32** | **12.45s** | **1.24 GB** | **99.95%** |
+| **Meta-Classifier Ensemble** | **BF16** | **32** | **14.12s** | **1.45 GB** | **99.91%** |
+| **ConvNeXt-Small** | **FP16** | **32** | **10.88s** | **3.64 GB** | **99.64%** |
 | **ConvNeXt-Small** | **BF16** | **32** | **21.07s** | **3.64 GB** | **99.31%** |
 | **DenseNet-201** | **BF16** | **32** | **25.00s** | **3.45 GB** | **99.49%** |
 | **DenseNet-201** | **FP16** | **32** | **24.74s** | **3.46 GB** | **99.19%** |

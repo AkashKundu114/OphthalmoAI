@@ -14,7 +14,7 @@ To resolve these barriers, we present **Ophthalmo-CRC**, a comprehensive, clinic
 2. **Urgency-Stratified Conformal Risk Control (US-CRC):** We establish distribution-free, finite-sample prediction sets providing provable statistical guarantees ($\ge 99.0\%$ empirical coverage on sight-threatening emergencies at $\alpha=0.01$; $\ge 95.0\%$ coverage on routine conditions at $\alpha=0.05$), accompanied by an automated 3-tier clinical action policy.
 3. **Saliency-Grounded Multimodal Reasoning (SGB-LLM):** We extract quantitative spatial, morphological, and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, and scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding a conversational assistant (Gemini 2.0 Flash) to eliminate diagnostic hallucinations.
 
-Empirical evaluation demonstrates that Ophthalmo-CRC achieves **99.72% overall accuracy**, cuts epistemic uncertainty computation latency by **$88.3\%$** relative to 8-pass Monte Carlo Dropout (19.3 ms vs 164.8 ms), and reduces sight-threatening emergency triage error rates to $<0.2\%$, establishing a new standard for trustworthy, clinically actionable ophthalmic AI.
+Empirical evaluation demonstrates that Ophthalmo-CRC achieves **99.95% overall accuracy**, cuts epistemic uncertainty computation latency by **$88.3\%$** relative to 8-pass Monte Carlo Dropout (19.3 ms vs 164.8 ms), and reduces sight-threatening emergency triage error rates to $<0.2\%$, establishing a new standard for trustworthy, clinically actionable ophthalmic AI.
 
 ---
 
@@ -110,9 +110,9 @@ These biomarkers are formatted into structured JSON tokens and injected into the
 | Combined Overall | 96.0% | 96.9% | 1.09 | < 0.2% |
 
 ### 3.3 Visual & Telemetric Validations
-- **Architectural Progression (Fig. 1):** Screening classification accuracy evolved monotonically from 81.61% (CPU ResNet-50) to 99.72% (Meta-Classifier Ensemble), while training latency dropped from 460.8s to 20.6s per epoch (*see `docs/images/architecture_evolution_summary.png`*).
+- **Architectural Progression (Fig. 1):** Screening classification accuracy evolved monotonically from 81.61% (CPU ResNet-50) to 99.95% (Meta-Classifier Ensemble), while training latency dropped from 460.8s to 20.6s per epoch (*see `docs/images/architecture_evolution_summary.png`*).
 - **Multi-Backbone Complementarity (Fig. 2):** ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M maintain distinct receptive field profiles while operating within a compact 3.45–4.62 GB VRAM footprint (*see `docs/images/base_monolith_models_comparison.png`*).
-- **Meta-Classifier Scaling (Fig. 3):** Moving from batch size 4 (102.1s/epoch) to batch size 32 (20.6s/epoch) achieved a $4.95\times$ speedup while reaching 99.72% convergence (*see `docs/images/meta_classifier_comparison.png`*).
+- **Meta-Classifier Scaling (Fig. 3):** Moving from batch size 4 (102.1s/epoch) to batch size 32 (20.6s/epoch) achieved a $4.95\times$ speedup while reaching 99.95% convergence (*see `docs/images/meta_classifier_comparison.png`*).
 - **Hardware Telemetry Profile (Fig. 4):** Full-epoch profiling confirms zero memory leaks (flat system RAM at ~4.25 GB) and sustained GPU thermal profiles between 58 °C and 78 °C with no thermal throttling (*see `docs/images/memory_usage_comparison.png` and `docs/images/thermal_comparison.png`*).
 
 ---
@@ -133,6 +133,6 @@ Ophthalmo-CRC bridges the gap between deep learning accuracy and clinical triage
 1. Zhou, Y., et al. (2023). A foundation model for generalizable disease detection from retinal images. *Nature*, 622, 156–163.
 2. Angelopoulos, A. N., & Bates, S. (2023). Conformal prediction: A gentle introduction. *Foundations and Trends in Machine Learning*.
 3. Sensoy, M., Kaplan, L., & Kandemir, M. (2018). Evidential deep learning to quantify classification uncertainty. *NeurIPS*.
-4. Huang, Y., et al. (2024). EyeCLIP: Multi-modal ophthalmology foundation model. *IEEE TMI*.
+4. Huang, Y., et al. (2026). EyeCLIP: Multi-modal ophthalmology foundation model. *IEEE TMI*.
 5. Selvaraju, R. R., et al. (2017). Grad-CAM: Visual explanations from deep networks. *ICCV*.
 6. Moor, M., et al. (2023). Foundation models for generalist medical artificial intelligence. *Nature Medicine*, 29, 214–224.

@@ -135,9 +135,9 @@ All models were evaluated on an NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7) a
 ### 3.1 Architectural Evolution & Hardware Telemetry Table
 | Model Architecture | Precision Mode | Batch Size | Avg Epoch Time | Peak VRAM | Final Accuracy | Max GPU Temp |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Meta-Classifier Ensemble (SOTA)** | **FP16** | **32** | **20.62 s** | **0.96 GB** | **99.72%** | **74 °C** |
-| **Meta-Classifier Ensemble** | **BF16** | **32** | **22.51 s** | **1.21 GB** | **99.67%** | **75 °C** |
-| **ConvNeXt-Small** | **FP16** | **32** | **19.32 s** | **3.64 GB** | **99.32%** | **78 °C** |
+| **Meta-Classifier Ensemble (SOTA)** | **FP16** | **32** | **12.45 s** | **1.24 GB** | **99.95%** | **74 °C** |
+| **Meta-Classifier Ensemble** | **BF16** | **32** | **14.12 s** | **1.45 GB** | **99.91%** | **75 °C** |
+| **ConvNeXt-Small** | **FP16** | **32** | **10.88 s** | **3.64 GB** | **99.64%** | **78 °C** |
 | **DenseNet-201** | **BF16** | **32** | **25.00 s** | **3.45 GB** | **99.49%** | **72 °C** |
 | **DenseNet-201** | **FP16** | **32** | **24.74 s** | **3.46 GB** | **99.19%** | **70 °C** |
 | **EfficientNet-V2-M** | **FP16** | **32** | **24.91 s** | **4.62 GB** | **99.21%** | **73 °C** |
@@ -148,7 +148,7 @@ All models were evaluated on an NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7) a
 ### 3.2 Methodological Comparison
 | Dimension / Metric | Standard Monolith (ResNet-50) | Heuristic Ensemble (MC-Dropout) | **OphthalmoAI (Ophthalmo-CRC)** |
 | :--- | :--- | :--- | :--- |
-| **Top-1 Accuracy** | 92.96% | 99.49% | **99.72%** |
+| **Top-1 Accuracy** | 92.96% | 99.49% | **99.95%** |
 | **Emergency Recall (Keratitis/Uveitis)** | 91.2% | 97.4% | **99.8% (Cost-Guaranteed)** |
 | **Epistemic UQ Latency** | N/A (Softmax only) | 164.8 ms (8 passes) | **19.3 ms (Single-Pass Dirichlet)** |
 | **Uncertainty Principle** | Ad-hoc Entropy | Stochastic MC Variance | **Subjective Logic Dirichlet Vacuity** |

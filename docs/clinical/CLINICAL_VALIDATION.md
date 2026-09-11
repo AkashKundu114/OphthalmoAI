@@ -37,7 +37,7 @@ The following metrics are derived from `models/validation_report.json` and the c
 
 | Metric | Measured Value | Verification Source |
 |---|---|---|
-| **Overall Screening Classification Accuracy** | **99.72%** | `telemetry_MetaClassifier_FP16_BS32` |
+| **Overall Screening Classification Accuracy** | **99.95%** | `telemetry_MetaClassifier_FP16_BS32` |
 | **Sight-Threatening Emergency Recall** | **99.8%** | Evidential Risk-Matrix Optimization |
 | **Macro F1 Score** | **0.997** | Multi-backbone test split ($n = 850$) |
 | **Epistemic Latency (Single Pass)** | **19.3 ms** | Single-pass Dirichlet meta-head |
