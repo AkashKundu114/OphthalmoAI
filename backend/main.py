@@ -26,7 +26,11 @@ from torchvision import models, transforms
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    if os.path.exists(_env_path):
+        load_dotenv(_env_path)
+    else:
+        load_dotenv()
 except ImportError:
     pass
 
@@ -107,7 +111,7 @@ DEVICE        = torch.device("cuda" if not FORCE_CPU and torch.cuda.is_available
 
 
 
-GEMINI_MODEL  = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
+GEMINI_MODEL  = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip()
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
 CALIBRATION_PATH    = os.path.join(MODELS_DIR, "calibration.json")

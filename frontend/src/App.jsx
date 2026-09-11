@@ -13,11 +13,13 @@ import {
   ExternalLink, Search, Calendar, TrendingUp,
   ArrowRight, Sparkles, X, Send, Loader2, Bot, User,
   MessageCircle, Heart, Zap, Target, BarChart2,
-  ChevronLeft, Star, Clock, Tag
+  ChevronLeft, Star, Clock, Tag, Scale, Lock
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import ChatBot from './ChatBox'
+import TermsPage from './TermsPage'
+import PrivacyPolicyPage from './PrivacyPolicyPage'
 const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
@@ -432,6 +434,40 @@ const HomePage = ({ onNavigate }) => (
             <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
           </div>
         ))}
+      </div>
+    </section>
+
+    {/* Clinical Compliance & Legal Governance Strip */}
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+            <ShieldCheck className="w-3.5 h-3.5" /> Clinical Governance & HIPAA Compliance
+          </div>
+          <h3 className="text-lg font-bold text-white tracking-tight">
+            Responsible AI, Patient Safety & Rigorous Data Protection
+          </h3>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            OphthalmoAI operates under strict patient de-identification standards, volatile in-memory processing, zero data commercialization, and transparent clinical AI disclaimers.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onClick={() => onNavigate('terms')}
+            className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5"
+          >
+            <Scale className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Terms & Conditions</span>
+          </button>
+          <button
+            onClick={() => onNavigate('privacy')}
+            className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5"
+          >
+            <Lock className="w-3.5 h-3.5 text-teal-400" />
+            <span>Privacy Policy</span>
+          </button>
+        </div>
       </div>
     </section>
   </div>
@@ -1945,6 +1981,10 @@ export default function App() {
         {activeTab === 'workflow' && <ArchitectureTelemetryPage />}
 
         {activeTab === 'news' && <MedicalNewsPage />}
+
+        {activeTab === 'terms' && <TermsPage onNavigate={setActiveTab} />}
+
+        {activeTab === 'privacy' && <PrivacyPolicyPage onNavigate={setActiveTab} />}
       </main>
 
       {}
@@ -1974,10 +2014,125 @@ export default function App() {
       {}
       <ChatBot diagnosisContext={result ? { diagnosis: result.diagnosis, confidence: result.confidence, group_name: result.group_name, details: result.details } : null} />
 
-      {}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          OphthalmoAI Retinal Disease Predictor · Clinical AI Screening Platform · Enterprise Security & Gemini Free Tier
+      {/* Platform Clinical Footer */}
+      <footer className="border-t border-slate-800/80 bg-slate-950 pt-12 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Column 1: Brand & Clinical Mission */}
+            <div className="md:col-span-5 space-y-3">
+              <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-400 text-white shadow-md shadow-cyan-500/20">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <span className="text-base font-extrabold tracking-wide text-white font-display">
+                  Ophthalmo<span className="text-cyan-400">AI</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+                Next-generation point-of-care ocular triage and retinal screening platform powered by a Meta-Classifier Vision Ensemble, Grad-CAM explainability, and Gemini 2.0 Flash clinical assistant.
+              </p>
+              <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-mono">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Diagnostic Pipeline v2.4 (RTX-Accelerated)</span>
+              </div>
+            </div>
+
+            {/* Column 2: Clinical Screening Navigation */}
+            <div className="md:col-span-4 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Clinical Platform
+              </p>
+              <ul className="space-y-2 text-xs text-slate-400">
+                <li>
+                  <button onClick={() => setActiveTab('home')} className="hover:text-cyan-400 transition">
+                    Home & Overview
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setActiveTab('diagnostic')} className="hover:text-cyan-400 transition">
+                    AI Diagnostic Screening Tool
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setActiveTab('conditions')} className="hover:text-cyan-400 transition">
+                    12 Detectable Conditions Directory
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setActiveTab('workflow')} className="hover:text-cyan-400 transition">
+                    Architecture Benchmarks & Telemetry
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setActiveTab('news')} className="hover:text-cyan-400 transition">
+                    Ophthalmology Research & Highlights
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Governance & Legal */}
+            <div className="md:col-span-3 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Legal & Governance
+              </p>
+              <ul className="space-y-2 text-xs text-slate-400">
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab('terms')
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    className="hover:text-cyan-400 transition flex items-center gap-1.5"
+                  >
+                    <Scale className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Terms & Conditions</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab('privacy')
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                    className="hover:text-teal-400 transition flex items-center gap-1.5"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Privacy Policy</span>
+                  </button>
+                </li>
+                <li className="pt-2">
+                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
+                    <span className="font-semibold text-slate-300 block">HIPAA Safe Harbor</span>
+                    <span>De-identified volatile processing for medical images.</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Clinical Advisory Alert */}
+          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-[11px] text-slate-400 leading-relaxed">
+            <strong className="text-slate-300">Clinical Advisory Notice:</strong> OphthalmoAI is an assistive screening system designed to support clinical evaluation and ophthalmic research. It is not an autonomous medical device. Immediate direct emergency care is required for acute sight-threatening symptoms or ocular trauma.
+          </div>
+
+          {/* Copyright & Disclaimer Bar */}
+          <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div>
+              &copy; {new Date().getFullYear()} OphthalmoAI. Clinical AI Screening Platform. All rights reserved.
+            </div>
+            <div className="flex items-center gap-4 text-[11px]">
+              <button onClick={() => { setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
+                Terms
+              </button>
+              <span>·</span>
+              <button onClick={() => { setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
+                Privacy
+              </button>
+              <span>·</span>
+              <span>HL7 FHIR R4 Compliant</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

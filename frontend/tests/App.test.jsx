@@ -5,6 +5,6 @@ import App from '../src/App';
 describe('App Component', () => {
   it('renders without crashing', () => {
     render(<App />);
-    expect(screen.getByText(/OphthalmoAI/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/OphthalmoAI/i).length).toBeGreaterThan(0);
   });
 });
