@@ -9,6 +9,7 @@ Supports:
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 import argparse
@@ -41,7 +42,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train EfficientNet-V2 on Retinal Fundus Dataset")
     parser.add_argument("--variant", type=str, default="s", choices=["s", "m"], help="V2 variant (s or m)")
     parser.add_argument("--precision", type=str, default="fp16", choices=["fp32", "fp16", "bf16"], help="Precision")
-    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size")
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=10, help="Training epochs")
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"], help="Compute device")

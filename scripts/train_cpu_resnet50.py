@@ -149,6 +149,7 @@ def main():
     test_f1 = f1_score(test_labels, test_preds, average="macro", zero_division=0)
     print(f"FINAL TEST SET -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

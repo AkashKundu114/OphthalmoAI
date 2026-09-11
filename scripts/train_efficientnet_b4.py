@@ -9,6 +9,7 @@ Supports:
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 import argparse
@@ -37,7 +38,7 @@ def get_efficientnet_b4(num_classes=NUM_CLASSES):
 def parse_args():
     parser = argparse.ArgumentParser(description="Train EfficientNet-B4 on Retinal Fundus Dataset")
     parser.add_argument("--precision", type=str, default="fp16", choices=["fp32", "fp16", "bf16"], help="Floating-point precision")
-    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size (16, 32, 64)")
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs")
     parser.add_argument("--lr", type=float, default=3e-4, help="AdamW learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"], help="Compute device")
@@ -142,7 +143,18 @@ def main():
         dt = time.time() - t0
         val_acc = v_correct / v_total
         val_f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
-        telemetry.end_epoch(epoch, v_loss / v_total, val_acc * 100)
+        curr_lr = optimizer.param_groups[0]["lr"]
+
+        telemetry.end_epoch(
+            epoch=epoch,
+            loss=total_loss / total,
+            acc=(correct / total) * 100,
+            val_loss=v_loss / v_total,
+            val_acc=val_acc * 100,
+            val_f1=val_f1,
+            samples_count=total,
+            lr=curr_lr
+        )
 
         print(f"Epoch [{epoch:02d}/{args.epochs:02d}] ({dt:.1f}s) - Train Loss: {total_loss/total:.4f}, Acc: {correct/total*100:.2f}% | Val Loss: {v_loss/v_total:.4f}, Acc: {val_acc*100:.2f}%, F1: {val_f1:.4f}")
 
@@ -173,6 +185,7 @@ def main():
     test_f1 = f1_score(test_labels, test_preds, average="macro", zero_division=0)
     print(f"FINAL TEST SET METRICS -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

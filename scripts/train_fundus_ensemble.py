@@ -5,6 +5,7 @@ Saves calibrated checkpoints with Conformal Risk Control metrics.
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 from pathlib import Path
@@ -144,7 +145,7 @@ def main():
     val_set = FundusDataset(DATA_DIR / "val.csv", DATA_DIR / "images", transform=val_tf)
     test_set = FundusDataset(DATA_DIR / "test.csv", DATA_DIR / "images", transform=val_tf)
 
-    batch_size = 32 if device.type == "cuda" else 8
+    batch_size = 16 if device.type == "cuda" else 8
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=(device.type == "cuda"))
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=2)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=2)

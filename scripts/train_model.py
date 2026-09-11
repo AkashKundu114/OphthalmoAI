@@ -9,6 +9,7 @@ Supports:
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 import argparse
@@ -118,7 +119,7 @@ def parse_args():
     parser.add_argument("--precision", type=str, default="fp16",
                         choices=["fp32", "fp16", "bf16"],
                         help="Floating point precision")
-    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size")
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs")
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"], help="Hardware device")
@@ -188,8 +189,18 @@ def main():
         val_loss, val_acc, val_f1 = evaluate(model, val_loader, criterion, device, precision_dtype, desc=f"Epoch [{epoch:02d}/{args.epochs:02d}] Val  ")
         scheduler.step()
         dt = time.time() - t0
+        curr_lr = optimizer.param_groups[0]["lr"]
 
-        telemetry.end_epoch(epoch, val_loss, val_acc * 100)
+        telemetry.end_epoch(
+            epoch=epoch,
+            loss=train_loss,
+            acc=train_acc * 100,
+            val_loss=val_loss,
+            val_acc=val_acc * 100,
+            val_f1=val_f1,
+            samples_count=len(train_loader.dataset),
+            lr=curr_lr
+        )
         print(f"Epoch [{epoch:02d}/{args.epochs:02d}] ({dt:.1f}s) - Train Loss: {train_loss:.4f}, Acc: {train_acc*100:.2f}% | Val Loss: {val_loss:.4f}, Acc: {val_acc*100:.2f}%, F1: {val_f1:.4f}")
 
         if val_f1 > best_f1:
@@ -204,6 +215,7 @@ def main():
     test_loss, test_acc, test_f1 = evaluate(model, test_loader, criterion, device, precision_dtype, desc="Evaluating Test")
     print(f"FINAL TEST SET METRICS -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

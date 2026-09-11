@@ -6,6 +6,7 @@ Combines: ConvNeXt-Small + DenseNet-201 + EfficientNet-V2-M
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import gc
 import time
@@ -65,7 +66,7 @@ class FundusMetaEnsemble(nn.Module):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="BF16 Meta-Ensemble Training")
-    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size (default: 32)")
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=15, help="Training epochs")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
@@ -159,7 +160,18 @@ def main():
         dt = time.time() - t0
         val_acc = v_correct / v_total
         val_f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
-        telemetry.end_epoch(epoch, v_loss / v_total, val_acc * 100)
+        curr_lr = optimizer.param_groups[0]["lr"]
+
+        telemetry.end_epoch(
+            epoch=epoch,
+            loss=total_loss / total,
+            acc=(correct / total) * 100,
+            val_loss=v_loss / v_total,
+            val_acc=val_acc * 100,
+            val_f1=val_f1,
+            samples_count=total,
+            lr=curr_lr
+        )
 
         print(f"Epoch [{epoch:02d}/{args.epochs:02d}] ({dt:.1f}s) - Train Loss: {total_loss/total:.4f}, Acc: {correct/total*100:.2f}% | Val Loss: {v_loss/v_total:.4f}, Acc: {val_acc*100:.2f}%, F1: {val_f1:.4f}")
 
@@ -170,6 +182,7 @@ def main():
 
     print(f"\nBF16 Ensemble Training Complete. Best Val F1: {best_f1:.4f}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

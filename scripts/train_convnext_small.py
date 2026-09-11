@@ -11,6 +11,7 @@ Supports:
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 import argparse
@@ -39,7 +40,7 @@ def get_convnext_small(num_classes=NUM_CLASSES):
 def parse_args():
     parser = argparse.ArgumentParser(description="Train ConvNeXt-Small on Retinal Fundus Dataset")
     parser.add_argument("--precision", type=str, default="fp16", choices=["fp32", "fp16", "bf16"], help="Floating-point precision")
-    parser.add_argument("--batch-size", type=int, default=32, help="Mini-batch size (16, 32, 64)")
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs")
     parser.add_argument("--lr", type=float, default=2e-4, help="AdamW learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"], help="Compute target")
@@ -185,6 +186,7 @@ def main():
     test_f1 = f1_score(test_labels, test_preds, average="macro", zero_division=0)
     print(f"FINAL TEST SET -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

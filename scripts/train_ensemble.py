@@ -9,6 +9,7 @@ Supports:
 """
 
 import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys
 import time
 import argparse
@@ -73,7 +74,7 @@ def build_models(device):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--precision", type=str, default="fp16", choices=["fp32", "fp16", "bf16"])
-    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--batch-size", type=int, default=16, help="Mini-batch size (default: 16 for 8GB VRAM budgets)")
     parser.add_argument("--epochs", type=int, default=15)
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
     args = parser.parse_args()
@@ -167,8 +168,18 @@ def main():
         train_acc = correct / total
         val_acc = val_correct / val_total
         val_f1 = f1_score(all_labels, all_preds, average="macro", zero_division=0)
+        curr_lr = optimizer.param_groups[0]["lr"]
 
-        telemetry.end_epoch(epoch, val_loss / val_total, val_acc * 100)
+        telemetry.end_epoch(
+            epoch=epoch,
+            loss=total_loss / total,
+            acc=train_acc * 100,
+            val_loss=val_loss / val_total,
+            val_acc=val_acc * 100,
+            val_f1=val_f1,
+            samples_count=total,
+            lr=curr_lr
+        )
         print(f"Epoch [{epoch:02d}/{args.epochs:02d}] ({dt:.1f}s) - Train Loss: {total_loss/total:.4f}, Acc: {train_acc*100:.2f}% | Val Loss: {val_loss/val_total:.4f}, Acc: {val_acc*100:.2f}%, F1: {val_f1:.4f}")
 
         if val_f1 > best_f1:
@@ -178,6 +189,7 @@ def main():
 
     print(f"\n[OK] Meta-Ensemble Training Completed. Checkpoint saved to: {save_path}")
     print("=" * 70)
+    telemetry.close()
 
 if __name__ == "__main__":
     main()

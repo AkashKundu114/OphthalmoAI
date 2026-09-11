@@ -65,7 +65,7 @@ def main():
                         help="Benchmark orchestration profile")
     parser.add_argument("--model", type=str, default="efficientnet_b4", choices=MODELS + ["all"])
     parser.add_argument("--precision", type=str, default="fp16", choices=PRECISIONS + ["all"])
-    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--epochs", type=int, default=3)
     args = parser.parse_args()
@@ -75,7 +75,7 @@ def main():
     if args.mode == "smoke":
         print("[SMOKE TEST] Running 1 epoch of ResNet50 (CPU) and EfficientNet-B4 (GPU/FP16)...")
         results.append(run_single("resnet50", "fp32", 16, "cpu", epochs=1))
-        results.append(run_single("efficientnet_b4", "fp16", 32, "cuda", epochs=1))
+        results.append(run_single("efficientnet_b4", "fp16", 16, "cuda", epochs=1))
 
     elif args.mode == "precision_sweep":
         print(f"[PRECISION SWEEP] Comparing FP32 vs FP16 vs BF16 on {args.model}...")

@@ -67,7 +67,7 @@ def get_transforms(img_size: int = 384):
 
 def prepare_fundus_dataloaders(
     data_dir: str = str(PROCESSED_DIR),
-    batch_size: int = 32,
+    batch_size: int = 16,
     img_size: int = 384,
     num_workers: int = 2,
     pin_memory: bool = True

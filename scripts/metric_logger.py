@@ -14,6 +14,7 @@ import sys
 import time
 import json
 import subprocess
+import threading
 from datetime import datetime
 from pathlib import Path
 import torch
@@ -86,6 +87,80 @@ class HardwareTelemetry:
             "epochs": []
         }
 
+        self.session_start_time = time.time()
+
+        # Background continuous telemetry sampler
+        self._stop_event = threading.Event()
+        self._monitor_thread = None
+        self._start_disk_io = None
+        self._start_proc_io = None
+        self._samples = {
+            "gpu_util": [],
+            "gpu_mem_ctrl": [],
+            "gpu_power": [],
+            "gpu_clock": [],
+            "gpu_temp": [],
+            "cpu_util": [],
+            "proc_ram_gb": [],
+            "sys_ram_percent": [],
+            "pcie_tx": [],
+            "pcie_rx": [],
+        }
+
+    def _sampling_loop(self):
+        """Continuously samples GPU, CPU, RAM, and system metrics during active training/validation."""
+        while not self._stop_event.is_set():
+            if self.use_gpu and self.nvml_initialized and self.handle:
+                try:
+                    util = pynvml.nvmlDeviceGetUtilizationRates(self.handle)
+                    self._samples["gpu_util"].append(float(util.gpu))
+                    self._samples["gpu_mem_ctrl"].append(float(util.memory))
+                except Exception:
+                    pass
+
+                try:
+                    p = pynvml.nvmlDeviceGetPowerUsage(self.handle) / 1000.0
+                    self._samples["gpu_power"].append(float(p))
+                except Exception:
+                    pass
+
+                try:
+                    clk = pynvml.nvmlDeviceGetClockInfo(self.handle, pynvml.NVML_CLOCK_GRAPHICS)
+                    self._samples["gpu_clock"].append(float(clk))
+                except Exception:
+                    pass
+
+                try:
+                    t = pynvml.nvmlDeviceGetTemperature(self.handle, pynvml.NVML_TEMPERATURE_GPU)
+                    self._samples["gpu_temp"].append(float(t))
+                except Exception:
+                    pass
+
+                try:
+                    tx = pynvml.nvmlDeviceGetPcieThroughput(self.handle, pynvml.NVML_PCIE_UTIL_TX_BYTES) / (1024 ** 2)
+                    rx = pynvml.nvmlDeviceGetPcieThroughput(self.handle, pynvml.NVML_PCIE_UTIL_RX_BYTES) / (1024 ** 2)
+                    self._samples["pcie_tx"].append(float(tx))
+                    self._samples["pcie_rx"].append(float(rx))
+                except Exception:
+                    pass
+
+            if PSUTIL_AVAILABLE:
+                try:
+                    c_u = psutil.cpu_percent(interval=None)
+                    if c_u > 0:
+                        self._samples["cpu_util"].append(float(c_u))
+
+                    vmem = psutil.virtual_memory()
+                    self._samples["sys_ram_percent"].append(float(vmem.percent))
+
+                    if self.process:
+                        mem_info = self.process.memory_info()
+                        self._samples["proc_ram_gb"].append(float(mem_info.rss / (1024 ** 3)))
+                except Exception:
+                    pass
+
+            self._stop_event.wait(0.5)
+
     def start_epoch(self):
         self.start_time = time.time()
         if torch.cuda.is_available():
@@ -93,6 +168,25 @@ class HardwareTelemetry:
                 torch.cuda.reset_peak_memory_stats()
             except Exception:
                 pass
+
+        # Reset active telemetry samples and record start disk/process I/O
+        self._stop_event.clear()
+        for k in self._samples:
+            self._samples[k] = []
+
+        if PSUTIL_AVAILABLE:
+            try:
+                self._start_disk_io = psutil.disk_io_counters()
+            except Exception:
+                self._start_disk_io = None
+            try:
+                if self.process and hasattr(self.process, "io_counters"):
+                    self._start_proc_io = self.process.io_counters()
+            except Exception:
+                self._start_proc_io = None
+
+        self._monitor_thread = threading.Thread(target=self._sampling_loop, daemon=True)
+        self._monitor_thread.start()
 
     def _get_cpu_temp(self):
         """Attempts to query thermal sensors via psutil or Windows WMI."""
@@ -110,6 +204,11 @@ class HardwareTelemetry:
     def end_epoch(self, epoch, loss, acc, val_loss=None, val_acc=None, val_f1=None, samples_count=None, lr=None, scaler_scale=None):
         epoch_duration = time.time() - self.start_time if self.start_time else 0.0
         throughput = round(samples_count / epoch_duration, 2) if (samples_count and epoch_duration > 0) else None
+
+        # Stop background continuous sampler
+        if self._monitor_thread and self._monitor_thread.is_alive():
+            self._stop_event.set()
+            self._monitor_thread.join(timeout=1.0)
 
         # ==========================================
         # 1. CPU & SYSTEM RAM METRICS
@@ -147,6 +246,44 @@ class HardwareTelemetry:
                     mem_info = self.process.memory_info()
                     proc_ram_rss_gb = round(mem_info.rss / (1024 ** 3), 3)
                     proc_ram_vms_gb = round(mem_info.vms / (1024 ** 3), 3)
+            except Exception:
+                pass
+
+        avg_cpu_util = round(sum(self._samples["cpu_util"]) / len(self._samples["cpu_util"]), 1) if self._samples["cpu_util"] else cpu_usage_overall
+        peak_cpu_util = max(self._samples["cpu_util"]) if self._samples["cpu_util"] else cpu_usage_overall
+        avg_proc_ram_gb = round(sum(self._samples["proc_ram_gb"]) / len(self._samples["proc_ram_gb"]), 3) if self._samples["proc_ram_gb"] else proc_ram_rss_gb
+        peak_proc_ram_gb = round(max(self._samples["proc_ram_gb"]), 3) if self._samples["proc_ram_gb"] else proc_ram_rss_gb
+        avg_sys_ram_percent = round(sum(self._samples["sys_ram_percent"]) / len(self._samples["sys_ram_percent"]), 1) if self._samples["sys_ram_percent"] else sys_ram_percent
+        peak_sys_ram_percent = round(max(self._samples["sys_ram_percent"]), 1) if self._samples["sys_ram_percent"] else sys_ram_percent
+
+        # SSD / Disk I/O metrics
+        proc_disk_read_mb = 0.0
+        proc_disk_write_mb = 0.0
+        proc_disk_read_speed_mb_s = 0.0
+        proc_disk_write_speed_mb_s = 0.0
+        sys_disk_read_mb = 0.0
+        sys_disk_write_mb = 0.0
+        sys_disk_read_speed_mb_s = 0.0
+        sys_disk_write_speed_mb_s = 0.0
+
+        if PSUTIL_AVAILABLE and epoch_duration > 0:
+            try:
+                if self.process and hasattr(self.process, "io_counters") and self._start_proc_io:
+                    end_proc_io = self.process.io_counters()
+                    proc_disk_read_mb = round(max(0, end_proc_io.read_bytes - self._start_proc_io.read_bytes) / (1024 ** 2), 2)
+                    proc_disk_write_mb = round(max(0, end_proc_io.write_bytes - self._start_proc_io.write_bytes) / (1024 ** 2), 2)
+                    proc_disk_read_speed_mb_s = round(proc_disk_read_mb / epoch_duration, 2)
+                    proc_disk_write_speed_mb_s = round(proc_disk_write_mb / epoch_duration, 2)
+            except Exception:
+                pass
+
+            try:
+                if self._start_disk_io:
+                    end_sys_io = psutil.disk_io_counters()
+                    sys_disk_read_mb = round(max(0, end_sys_io.read_bytes - self._start_disk_io.read_bytes) / (1024 ** 2), 2)
+                    sys_disk_write_mb = round(max(0, end_sys_io.write_bytes - self._start_disk_io.write_bytes) / (1024 ** 2), 2)
+                    sys_disk_read_speed_mb_s = round(sys_disk_read_mb / epoch_duration, 2)
+                    sys_disk_write_speed_mb_s = round(sys_disk_write_mb / epoch_duration, 2)
             except Exception:
                 pass
 
@@ -223,26 +360,44 @@ class HardwareTelemetry:
 
         vram_headroom_mb = round(nvml_vram_free_mb, 2)
 
+        # Aggregate continuous active training samples
+        avg_gpu_util = round(sum(self._samples["gpu_util"]) / len(self._samples["gpu_util"]), 1) if self._samples["gpu_util"] else gpu_util_percent
+        peak_gpu_util = max(self._samples["gpu_util"]) if self._samples["gpu_util"] else gpu_util_percent
+        avg_gpu_mem_ctrl = round(sum(self._samples["gpu_mem_ctrl"]) / len(self._samples["gpu_mem_ctrl"]), 1) if self._samples["gpu_mem_ctrl"] else gpu_mem_ctrl_percent
+        avg_gpu_power = round(sum(self._samples["gpu_power"]) / len(self._samples["gpu_power"]), 2) if self._samples["gpu_power"] else gpu_power_watts
+        peak_gpu_power = round(max(self._samples["gpu_power"]), 2) if self._samples["gpu_power"] else gpu_power_watts
+        peak_gpu_clock = max(self._samples["gpu_clock"]) if self._samples["gpu_clock"] else gpu_clock_graphics
+        peak_gpu_temp = max(self._samples["gpu_temp"]) if self._samples["gpu_temp"] else gpu_temp_c
+
+        mins, secs = divmod(int(epoch_duration), 60)
+        time_str = f"{mins}m {secs:02d}s ({epoch_duration:.2f}s)" if mins > 0 else f"{epoch_duration:.2f}s"
+        throughput_str = f"{throughput} samples/sec" if throughput else "N/A"
+
         # ==========================================
         # 3. PRINT FORMATTED CONSOLE TELEMETRY
         # ==========================================
         print(f"\n==================== [EPOCH {epoch:02d} HARDWARE & MODEL TELEMETRY] ====================")
-        print(f"Throughput: {epoch_duration:.2f}s total ({throughput or 'N/A'} samples/sec) | LR: {lr or 'auto'}")
+        print(f"Time Taken: {time_str} | Throughput: {throughput_str} | LR: {lr or 'auto'}")
         print(f"Training Loss: {loss:.4f} | Train Acc: {acc:.2f}% | Val Loss: {val_loss or 'N/A'} | Val Acc: {val_acc or 'N/A'}% | Val F1: {val_f1 or 'N/A'}")
 
         print("\n--- CPU & SYSTEM RAM METRICS ---")
-        print(f"CPU Total Utilization: {cpu_usage_overall}% | Frequency: {cpu_freq_current} MHz")
+        print(f"CPU Utilization: {avg_cpu_util}% avg (Peak: {peak_cpu_util}%) | Frequency: {cpu_freq_current} MHz")
         if cpu_temp:
             print(f"CPU Temperature: {cpu_temp} C")
-        print(f"Process RSS RAM: {proc_ram_rss_gb} GB | System RAM: {sys_ram_used_gb} / {self.history['metadata']['system_ram_total_gb']} GB ({sys_ram_percent}%)")
+        print(f"Process RAM (RSS): {avg_proc_ram_gb} GB avg (Peak: {peak_proc_ram_gb} GB) | Virtual: {proc_ram_vms_gb} GB")
+        print(f"System RAM: {sys_ram_used_gb} / {self.history['metadata']['system_ram_total_gb']} GB ({avg_sys_ram_percent}% avg, Peak: {peak_sys_ram_percent}%)")
         print(f"Swap / Pagefile Usage: {swap_used_gb} GB ({swap_percent}%)")
+
+        print("\n--- STORAGE & DISK I/O (SSD) METRICS ---")
+        print(f"Process Disk Read: {proc_disk_read_mb} MB ({proc_disk_read_speed_mb_s} MB/s) | Write: {proc_disk_write_mb} MB ({proc_disk_write_speed_mb_s} MB/s)")
+        print(f"System Total Disk Read: {sys_disk_read_mb} MB ({sys_disk_read_speed_mb_s} MB/s) | Write: {sys_disk_write_mb} MB ({sys_disk_write_speed_mb_s} MB/s)")
 
         if self.use_gpu and self.nvml_initialized:
             print("\n--- GPU & DEDICATED VRAM (RTX 5060 8GB) METRICS ---")
-            print(f"GPU Compute Util: {gpu_util_percent}% | Memory Controller Util: {gpu_mem_ctrl_percent}%")
-            print(f"GPU Core Temp: {gpu_temp_c} C (Slowdown Thresh: {gpu_slowdown_temp} C | Shutdown: {gpu_shutdown_temp} C)")
-            print(f"GPU Power Draw: {gpu_power_watts} W / {gpu_power_limit_watts} W TGP")
-            print(f"GPU Clocks: Core {gpu_clock_graphics} MHz | VRAM {gpu_clock_mem} MHz | SM {gpu_clock_sm} MHz")
+            print(f"GPU Active Compute: {avg_gpu_util}% avg (Peak: {peak_gpu_util}%) | Memory Controller: {avg_gpu_mem_ctrl}% avg")
+            print(f"GPU Core Temp: {gpu_temp_c} C (Peak: {peak_gpu_temp} C | Slowdown: {gpu_slowdown_temp} C | Shutdown: {gpu_shutdown_temp} C)")
+            print(f"GPU Active Power: {avg_gpu_power} W avg (Peak: {peak_gpu_power} W / {gpu_power_limit_watts} W TGP)")
+            print(f"GPU Clocks: Core Peak {peak_gpu_clock} MHz | VRAM {gpu_clock_mem} MHz | SM {gpu_clock_sm} MHz")
             print(f"PCIe Throughput: TX {pcie_tx_mb_s} MB/s | RX {pcie_rx_mb_s} MB/s")
             print(f"VRAM Used: {nvml_vram_used_mb} MB / {nvml_vram_total_mb} MB ({vram_util_percent}%) | Headroom: {vram_headroom_mb} MB free")
             if pytorch_vram_allocated_mb > 0:
@@ -268,30 +423,46 @@ class HardwareTelemetry:
                 "grad_scaler_scale": scaler_scale
             },
             "cpu_telemetry": {
-                "cpu_util_overall_percent": cpu_usage_overall,
+                "cpu_util_avg_percent": avg_cpu_util,
+                "cpu_util_peak_percent": peak_cpu_util,
                 "cpu_freq_mhz": cpu_freq_current,
                 "cpu_temp_c": cpu_temp,
                 "cpu_per_core_percent": cpu_per_core
             },
             "system_ram_telemetry": {
-                "process_ram_rss_gb": proc_ram_rss_gb,
+                "process_ram_rss_avg_gb": avg_proc_ram_gb,
+                "process_ram_rss_peak_gb": peak_proc_ram_gb,
                 "process_ram_vms_gb": proc_ram_vms_gb,
                 "sys_ram_used_gb": sys_ram_used_gb,
                 "sys_ram_free_gb": sys_ram_free_gb,
-                "sys_ram_percent": sys_ram_percent,
+                "sys_ram_avg_percent": avg_sys_ram_percent,
+                "sys_ram_peak_percent": peak_sys_ram_percent,
                 "swap_used_gb": swap_used_gb,
                 "swap_percent": swap_percent
             },
+            "disk_telemetry": {
+                "process_disk_read_mb": proc_disk_read_mb,
+                "process_disk_write_mb": proc_disk_write_mb,
+                "process_disk_read_speed_mb_s": proc_disk_read_speed_mb_s,
+                "process_disk_write_speed_mb_s": proc_disk_write_speed_mb_s,
+                "system_disk_read_mb": sys_disk_read_mb,
+                "system_disk_write_mb": sys_disk_write_mb,
+                "system_disk_read_speed_mb_s": sys_disk_read_speed_mb_s,
+                "system_disk_write_speed_mb_s": sys_disk_write_speed_mb_s
+            },
             "gpu_telemetry": {
                 "gpu_name": self.gpu_name,
-                "gpu_util_percent": gpu_util_percent,
-                "gpu_mem_ctrl_percent": gpu_mem_ctrl_percent,
+                "gpu_util_avg_percent": avg_gpu_util,
+                "gpu_util_peak_percent": peak_gpu_util,
+                "gpu_mem_ctrl_avg_percent": avg_gpu_mem_ctrl,
                 "gpu_temp_c": gpu_temp_c,
+                "gpu_temp_peak_c": peak_gpu_temp,
                 "gpu_slowdown_temp_c": gpu_slowdown_temp,
                 "gpu_shutdown_temp_c": gpu_shutdown_temp,
-                "gpu_power_watts": gpu_power_watts,
+                "gpu_power_watts_avg": avg_gpu_power,
+                "gpu_power_watts_peak": peak_gpu_power,
                 "gpu_power_limit_watts": gpu_power_limit_watts,
-                "gpu_clock_graphics_mhz": gpu_clock_graphics,
+                "gpu_clock_graphics_peak_mhz": peak_gpu_clock,
                 "gpu_clock_mem_mhz": gpu_clock_mem,
                 "gpu_clock_sm_mhz": gpu_clock_sm,
                 "pcie_tx_mb_s": pcie_tx_mb_s,
@@ -313,6 +484,20 @@ class HardwareTelemetry:
             json.dump(self.history, f, indent=2)
 
     def close(self):
+        total_session_sec = round(time.time() - self.session_start_time, 2)
+        mins, secs = divmod(int(total_session_sec), 60)
+        dur_str = f"{mins}m {secs:02d}s ({total_session_sec:.2f}s)" if mins > 0 else f"{total_session_sec:.2f}s"
+        self.history["metadata"]["total_duration_sec"] = total_session_sec
+        self.history["metadata"]["total_duration_human"] = dur_str
+        try:
+            with open(self.log_file, "w") as f:
+                json.dump(self.history, f, indent=2)
+        except Exception:
+            pass
+
+        print(f"\n[BENCHMARK] Total Training Session Duration: {dur_str}")
+        print(f"[BENCHMARK] Hardware & performance log saved: {self.log_file.name}")
+
         if self.nvml_initialized and PYNVML_AVAILABLE:
             try:
                 pynvml.nvmlShutdown()
