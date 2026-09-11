@@ -1,0 +1,36 @@
+{
+  "_id": "9be7cc0e-4986-4918-9338-780c45f8f1d1",
+  "probabilities": {
+    "Blepharitis": 0.10776329040527344,
+    "Cataract": 0.08962022513151169,
+    "Chalazion": 0.030383653938770294,
+    "Conjunctivitis": 0.16073009371757507,
+    "Jaundice": 0.003142694942653179,
+    "Keratitis": 0.03774425759911537,
+    "Normal": 0.44870421290397644,
+    "Ptosis": 0.005318712908774614,
+    "Pterygium": 0.011747712269425392,
+    "Stye": 0.021917421370744705,
+    "Subconjunctival Hemorrhage": 0.033647626638412476,
+    "Uveitis": 0.04928002506494522
+  },
+  "review_reasons": [
+    "Confidence (44.9%) is below the 75% review threshold.",
+    "Evidential vacuity (0.642) indicates elevated model ignorance/OOD risk (threshold 0.40)."
+  ],
+  "hybrid_warnings": [],
+  "hybrid_warnings_structured": [],
+  "iqa_warnings": [
+    "Image appears blurry (sharpness score 69)."
+  ],
+  "symptoms_reported": {
+    "pain": "None",
+    "vision": "No",
+    "itch": "No",
+    "halos": "No",
+    "discharge": "None",
+    "light_sensitivity": "No",
+    "floaters": "No",
+    "duration": "Not Sure"
+  }
+}
