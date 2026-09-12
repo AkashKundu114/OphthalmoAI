@@ -59,14 +59,26 @@ class RetinalMetaEnsemble(nn.Module):
         return self.meta_classifier(concat)
 
 def build_models(device):
-    c = models.convnext_small(weights=models.ConvNeXt_Small_Weights.DEFAULT)
+    c = models.convnext_small(weights=None)
     c.classifier[2] = nn.Linear(c.classifier[2].in_features, NUM_CLASSES)
+    ckpt_c = MODELS_DIR / "convnext_small.pth"
+    if ckpt_c.exists():
+        c.load_state_dict(torch.load(ckpt_c, map_location=device))
+        print(f"[OK] Loaded fine-tuned ConvNeXt-Small from {ckpt_c}")
 
-    d = models.densenet201(weights=models.DenseNet201_Weights.DEFAULT)
+    d = models.densenet201(weights=None)
     d.classifier = nn.Linear(d.classifier.in_features, NUM_CLASSES)
+    ckpt_d = MODELS_DIR / "densenet201.pth"
+    if ckpt_d.exists():
+        d.load_state_dict(torch.load(ckpt_d, map_location=device))
+        print(f"[OK] Loaded fine-tuned DenseNet-201 from {ckpt_d}")
 
-    e = models.efficientnet_v2_m(weights=models.EfficientNet_V2_M_Weights.DEFAULT)
+    e = models.efficientnet_v2_m(weights=None)
     e.classifier[1] = nn.Linear(e.classifier[1].in_features, NUM_CLASSES)
+    ckpt_e = MODELS_DIR / "efficientnet_v2_m.pth"
+    if ckpt_e.exists():
+        e.load_state_dict(torch.load(ckpt_e, map_location=device))
+        print(f"[OK] Loaded fine-tuned EfficientNet-V2-M from {ckpt_e}")
 
     ensemble = RetinalMetaEnsemble(c, d, e, num_classes=NUM_CLASSES).to(device)
     return ensemble

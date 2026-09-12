@@ -13,26 +13,52 @@ DEFAULT_TEMPERATURE = 1.0
 
 class TemperatureScaler(nn.Module):
 
-    def __init__(self, model: nn.Module):
+    def __init__(self, model: Optional[nn.Module] = None):
         super().__init__()
         self.model = model
         self.temperature = nn.Parameter(torch.ones(1) * 1.5)
 
     def forward(self, x):
-        return self.model(x) / self.temperature
+        if self.model is not None:
+            return self.model(x) / self.temperature
+        return x / self.temperature
 
-    def fit(self, val_loader, device, max_iter: int = 50, lr: float = 0.01) -> float:
-        self.model.eval()
+    def fit(
+        self,
+        val_loader_or_logits,
+        device_or_labels=None,
+        max_iter: int = 50,
+        lr: float = 0.01,
+    ) -> float:
+        if isinstance(val_loader_or_logits, torch.Tensor):
+            logits = val_loader_or_logits
+            labels = device_or_labels
+            if labels is None:
+                raise ValueError("labels must be provided when logits tensor is passed to fit()")
+        else:
+            val_loader = val_loader_or_logits
+            device = device_or_labels if device_or_labels is not None else torch.device("cpu")
+            if isinstance(device, str):
+                device = torch.device(device)
+            if self.model is not None:
+                self.model.eval()
+            logits_list, labels_list = [], []
+            with torch.no_grad():
+                for inputs, labels_batch in val_loader:
+                    inputs = inputs.to(device)
+                    if self.model is not None:
+                        logits_list.append(self.model(inputs))
+                    else:
+                        logits_list.append(inputs)
+                    labels_list.append(labels_batch.to(device))
+            logits = torch.cat(logits_list)
+            labels = torch.cat(labels_list)
+
+        logits = logits.to(self.temperature.device)
+        labels = labels.to(self.temperature.device)
+
         nll_criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.LBFGS([self.temperature], lr=lr, max_iter=max_iter)
-
-        logits_list, labels_list = [], []
-        with torch.no_grad():
-            for inputs, labels in val_loader:
-                logits_list.append(self.model(inputs.to(device)))
-                labels_list.append(labels.to(device))
-        logits = torch.cat(logits_list)
-        labels = torch.cat(labels_list)
 
         def closure():
             optimizer.zero_grad()

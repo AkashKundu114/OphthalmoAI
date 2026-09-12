@@ -30,6 +30,22 @@ class TestProbabilityCalibration(unittest.TestCase):
 
         self.assertTrue(torch.allclose(output_logits, torch.tensor([2.0, 4.0])))
 
+    def test_temperature_scaler_without_model(self):
+        scaler = TemperatureScaler()
+        scaler.temperature.data = torch.tensor([2.0])
+        input_logits = torch.tensor([4.0, 8.0])
+        output_logits = scaler(input_logits)
+        self.assertTrue(torch.allclose(output_logits, torch.tensor([2.0, 4.0])))
+
+    def test_temperature_scaler_fit_logits(self):
+        scaler = TemperatureScaler()
+        # Create synthetic overconfident logits: high magnitude logits for 2 classes
+        logits = torch.tensor([[10.0, -10.0], [-10.0, 10.0], [8.0, -8.0], [-8.0, 8.0]])
+        labels = torch.tensor([0, 1, 0, 1])
+        T = scaler.fit(logits, labels)
+        self.assertIsInstance(T, float)
+        self.assertGreater(T, 0.0)
+
     def test_apply_temperature(self):
         logits = torch.tensor([3.0, 6.0])
 

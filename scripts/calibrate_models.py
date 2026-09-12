@@ -38,6 +38,9 @@ def build_model(arch: str, num_classes: int = NUM_CLASSES):
     elif arch == "resnet50":
         m = models.resnet50(weights=None)
         m.fc = nn.Linear(m.fc.in_features, num_classes)
+    elif arch == "efficientnet_v2_m":
+        m = models.efficientnet_v2_m(weights=None)
+        m.classifier[1] = nn.Linear(m.classifier[1].in_features, num_classes)
     else:
         m = models.efficientnet_b4(weights=None)
         m.classifier[1] = nn.Linear(m.classifier[1].in_features, num_classes)
@@ -76,7 +79,7 @@ def calibrate_model(model_name: str, device: torch.device):
     logits_tensor = torch.cat(all_logits)
     labels_tensor = torch.cat(all_labels)
 
-    scaler = TemperatureScaler()
+    scaler = TemperatureScaler(model).to(device)
     temperature = scaler.fit(logits_tensor, labels_tensor)
     print(f"Optimal Temperature for {model_name}: {temperature:.4f}")
     return temperature
@@ -99,7 +102,7 @@ def main():
         except Exception:
             registry = {}
 
-    models_to_run = ["efficientnet_b4", "convnext_small", "densenet201", "resnet50"] if args.model == "all" else [args.model]
+    models_to_run = ["efficientnet_b4", "convnext_small", "densenet201", "resnet50", "efficientnet_v2_m"] if args.model == "all" else [args.model]
 
     for m in models_to_run:
         T = calibrate_model(m, device)

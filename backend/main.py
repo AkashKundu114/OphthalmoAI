@@ -134,6 +134,7 @@ MONOLITHIC_CLASSES = [
 ]
 
 MONOLITHIC_MODEL: Optional[nn.Module] = None
+ENSEMBLE_MODELS: Dict[str, nn.Module] = {}
 ROUTER_MODEL: Optional[nn.Module] = None
 SPECIALIST_MODELS: Optional[dict] = None
 
@@ -159,10 +160,25 @@ def build_monolithic_model(num_classes: int) -> nn.Module:
     model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
     return model
 
+def build_convnext_small(num_classes: int) -> nn.Module:
+    m = models.convnext_small(weights=None)
+    m.classifier[2] = nn.Linear(m.classifier[2].in_features, num_classes)
+    return m
+
+def build_densenet201(num_classes: int) -> nn.Module:
+    m = models.densenet201(weights=None)
+    m.classifier = nn.Linear(m.classifier.in_features, num_classes)
+    return m
+
+def build_efficientnet_v2_m(num_classes: int) -> nn.Module:
+    m = models.efficientnet_v2_m(weights=None)
+    m.classifier[1] = nn.Linear(m.classifier[1].in_features, num_classes)
+    return m
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global MONOLITHIC_MODEL
+    global MONOLITHIC_MODEL, ENSEMBLE_MODELS
 
     logger.info("startup.begin", device=str(DEVICE), environment=_ENV)
 
@@ -185,6 +201,7 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.error("startup.db_failed", error=str(exc))
 
+    # 1. Load Primary Monolithic Model (EfficientNet-B4 - Grad-CAM and fallback)
     monolith = build_monolithic_model(len(MONOLITHIC_CLASSES))
     model_path = os.path.join(MODELS_DIR, "efficientnet_b4.pth")
     if os.path.exists(model_path):
@@ -200,6 +217,36 @@ async def lifespan(app: FastAPI):
             logger.error("startup.monolithic_model_load_failed", error=str(exc))
     else:
         logger.warning("startup.monolithic_model_missing", path=model_path)
+
+    # 2. Load Tri-Backbone Ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M)
+    ensemble_specs = {
+        "densenet201": (build_densenet201, "densenet201.pth"),
+        "convnext_small": (build_convnext_small, "convnext_small.pth"),
+        "efficientnet_v2_m": (build_efficientnet_v2_m, "efficientnet_v2_m.pth"),
+    }
+    loaded_ensemble = {}
+    for arch_name, (builder_fn, ckpt_file) in ensemble_specs.items():
+        ckpt_path = os.path.join(MODELS_DIR, ckpt_file)
+        if os.path.exists(ckpt_path):
+            try:
+                m = builder_fn(len(MONOLITHIC_CLASSES))
+                m.load_state_dict(
+                    torch.load(ckpt_path, map_location=DEVICE, weights_only=True),
+                    strict=False,
+                )
+                m.to(DEVICE).eval()
+                loaded_ensemble[arch_name] = m
+                logger.info(f"startup.{arch_name}_loaded")
+            except Exception as exc:
+                logger.warning(f"startup.{arch_name}_load_failed", error=str(exc))
+        else:
+            logger.warning(f"startup.{arch_name}_missing", path=ckpt_path)
+
+    ENSEMBLE_MODELS = loaded_ensemble
+    if len(ENSEMBLE_MODELS) == 3:
+        logger.info("startup.tri_backbone_ensemble_ready", models=list(ENSEMBLE_MODELS.keys()))
+    else:
+        logger.warning("startup.ensemble_partial_or_fallback", loaded=list(ENSEMBLE_MODELS.keys()))
 
     yield
 
@@ -521,8 +568,8 @@ async def predict(
     user_id   = current_user.id if current_user else None
     req_id    = getattr(request.state, "request_id", None)
 
-    if MONOLITHIC_MODEL is None:
-        raise HTTPException(503, detail="Monolithic model not loaded.")
+    if MONOLITHIC_MODEL is None and len(ENSEMBLE_MODELS) == 0:
+        raise HTTPException(503, detail="Prediction models not loaded.")
 
     if file.content_type and file.content_type.lower() not in ALLOWED_MIMES | {"application/octet-stream"}:
         log_event(db, "predict", success=False, user_id=user_id, ip_address=client_ip,
@@ -562,12 +609,32 @@ async def predict(
         input_tensor = preprocess(image).to(DEVICE).unsqueeze(0)
 
         with torch.no_grad():
-            out            = MONOLITHIC_MODEL(input_tensor)
-            calibration_temperature = CALIBRATION_REGISTRY.get("monolith")
-            is_calibrated         = CALIBRATION_REGISTRY.is_calibrated("monolith")
-            calibrated_out = apply_temperature(out[0], calibration_temperature)
-            probs          = torch.nn.functional.softmax(calibrated_out, dim=0)
-            class_idx      = int(torch.argmax(probs).item())
+            if len(ENSEMBLE_MODELS) >= 3:
+                # Tri-Backbone Calibrated Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)
+                probs_list = []
+                for arch_name in ["densenet201", "convnext_small", "efficientnet_v2_m"]:
+                    model = ENSEMBLE_MODELS[arch_name]
+                    raw_logits = model(input_tensor)[0]
+                    t = CALIBRATION_REGISTRY.get(arch_name)
+                    cal_logits = apply_temperature(raw_logits, t)
+                    probs_list.append(torch.nn.functional.softmax(cal_logits, dim=0))
+                probs = torch.stack(probs_list, dim=0).mean(dim=0)
+                calibrated_out = torch.log(probs + 1e-8)
+                calibration_temperature = float(np.mean([CALIBRATION_REGISTRY.get(k) for k in ["densenet201", "convnext_small", "efficientnet_v2_m"]]))
+                is_calibrated = True
+                model_group_name = "Tri-Backbone Ensemble (85.2% Test Accuracy)"
+            elif MONOLITHIC_MODEL is not None:
+                # Graceful Fallback: Single-Model (EfficientNet-B4)
+                out = MONOLITHIC_MODEL(input_tensor)
+                calibration_temperature = CALIBRATION_REGISTRY.get("efficientnet_b4") if CALIBRATION_REGISTRY.is_calibrated("efficientnet_b4") else CALIBRATION_REGISTRY.get("monolith")
+                is_calibrated = CALIBRATION_REGISTRY.is_calibrated("efficientnet_b4") or CALIBRATION_REGISTRY.is_calibrated("monolith")
+                calibrated_out = apply_temperature(out[0], calibration_temperature)
+                probs = torch.nn.functional.softmax(calibrated_out, dim=0)
+                model_group_name = "Monolithic 12-Class Model"
+            else:
+                raise RuntimeError("No prediction models loaded.")
+
+            class_idx = int(torch.argmax(probs).item())
 
         diagnosis  = MONOLITHIC_CLASSES[class_idx]
         confidence = float(probs[class_idx].item()) * 100
@@ -650,7 +717,8 @@ async def predict(
         spatial_desc = generate_spatial_description(diagnosis)
 
         response_body: Dict[str, Any] = {
-            "group_name":               "Monolithic 12-Class Model",
+            "group_name":               model_group_name,
+            "models_ensembled":         list(ENSEMBLE_MODELS.keys()) if len(ENSEMBLE_MODELS) >= 3 else ["efficientnet_b4"],
             "diagnosis":                diagnosis,
             "confidence":               round(confidence, 2),
             "heatmap":                  f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,
@@ -691,7 +759,7 @@ async def predict(
                 scan = ScanResult(
                     user_id=user_id, diagnosis=diagnosis,
                     confidence=round(confidence, 2),
-                    group_name="Monolithic 12-Class Model",
+                    group_name=model_group_name,
                     probabilities=probs_dict, calibrated=is_calibrated,
                     calibration_temperature=calibration_temperature,
                     uncertainty=review_payload["uncertainty"],

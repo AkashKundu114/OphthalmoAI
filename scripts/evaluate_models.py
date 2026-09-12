@@ -170,9 +170,9 @@ def evaluate_checkpoint(checkpoint_path: Path, arch: str, device: torch.device, 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate Retinal Disease Classifiers")
-    parser.add_argument("--model", type=str, default="efficientnet_b4",
-                        choices=["convnext_small", "densenet201", "efficientnet_v2_m", "efficientnet_b4", "resnet50"],
-                        help="Neural backbone architecture")
+    parser.add_argument("--model", type=str, default="all",
+                        choices=["all", "convnext_small", "densenet201", "efficientnet_v2_m", "efficientnet_b4", "resnet50"],
+                        help="Neural backbone architecture or 'all'")
     parser.add_argument("--checkpoint", type=str, default=None, help="Custom checkpoint path")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
     parser.add_argument("--batch-size", type=int, default=32)
@@ -181,8 +181,17 @@ def parse_args():
 def main():
     args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
-    ckpt_path = Path(args.checkpoint) if args.checkpoint else MODELS_DIR / f"{args.model}.pth"
-    evaluate_checkpoint(ckpt_path, args.model, device, args.batch_size)
+    if args.model == "all":
+        models_to_eval = ["efficientnet_b4", "convnext_small", "densenet201", "resnet50", "efficientnet_v2_m"]
+        for m in models_to_eval:
+            ckpt = MODELS_DIR / f"{m}.pth"
+            if ckpt.exists():
+                evaluate_checkpoint(ckpt, m, device, args.batch_size)
+            else:
+                print(f"[SKIP] Checkpoint not found: {ckpt}")
+    else:
+        ckpt_path = Path(args.checkpoint) if args.checkpoint else MODELS_DIR / f"{args.model}.pth"
+        evaluate_checkpoint(ckpt_path, args.model, device, args.batch_size)
 
 if __name__ == "__main__":
     main()
