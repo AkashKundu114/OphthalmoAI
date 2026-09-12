@@ -10,10 +10,10 @@ import { getActiveApiUrl, FALLBACK_TUNNEL_URL } from './App'
 const MAX_INPUT_LENGTH  = 2000
 const MAX_HISTORY_TURNS = 20
 const QUICK_QUESTIONS   = [
-  'What are the early signs of cataracts?',
-  'How can I prevent eye disease?',
-  'When should I see an eye doctor urgently?',
   'What does my screening result mean?',
+  'How does the Tri-Backbone AI Ensemble work?',
+  'What are the early signs of cataracts or glaucoma?',
+  'When should I see an eye doctor urgently?',
 ]
 
 const PURIFY_CONFIG = {

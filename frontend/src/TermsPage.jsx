@@ -101,7 +101,7 @@ export default function TermsPage({ onNavigate }) {
       content: (
         <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
           <p>
-            The OphthalmoAI platform, including but not limited to its Meta-Classifier ensemble architecture, model weights, Grad-CAM visual heatmapping pipeline, FHIR R4 mapping algorithms, user interface source code, brand assets, and technical documentation are the proprietary intellectual property of the OphthalmoAI project authors and contributors.
+            The OphthalmoAI platform, including but not limited to its Calibrated Tri-Backbone Vision Ensemble architecture (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M, EfficientNet-B4), model weights, Grad-CAM visual heatmapping pipeline, FHIR R4 mapping algorithms, user interface source code, brand assets, and technical documentation are the proprietary intellectual property of the OphthalmoAI project authors and contributors.
           </p>
           <p>
             Users retain full ownership of their original diagnostic image inputs and exported patient reports. By submitting imagery for inference, you grant OphthalmoAI a transient, non-exclusive, royalty-free license solely to execute requested neural network inference, Grad-CAM visualization, and temporary session display.
@@ -213,10 +213,10 @@ export default function TermsPage({ onNavigate }) {
         <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1.5">
           <div className="flex items-center gap-2 text-cyan-400">
             <Cpu className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Meta-Classifier Ensemble</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Calibrated Vision Ensemble</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-normal">
-            Multi-backbone deep learning with Monte Carlo epistemic uncertainty estimations for balanced evidence.
+            Multi-backbone deep learning (85.18% SOTA accuracy) with Monte Carlo epistemic uncertainty estimations for balanced clinical evidence.
           </p>
         </div>
       </div>

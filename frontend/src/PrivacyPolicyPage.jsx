@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage({ onNavigate }) {
           </p>
           <ol className="space-y-2 list-decimal list-inside pl-1 text-slate-300">
             <li>
-              <strong>Vision Ensemble Inference:</strong> Images are normalized and processed across our ensemble models (ConvNeXt-Small, DenseNet-201, EfficientNet-V2, EfficientNet-B4) to calculate probability distributions across 12 ocular conditions.
+              <strong>Vision Ensemble Inference:</strong> Images are normalized and processed across our calibrated ensemble models (ConvNeXt-Small, DenseNet-201, EfficientNet-V2-M, and EfficientNet-B4 Grad-CAM) to calculate probability distributions across 6 validated retinal and ocular condition categories (Diabetic Retinopathy, Glaucoma, Cataract, AMD, Hypertensive Retinopathy / Pathological Myopia, Normal Healthy Retina).
             </li>
             <li>
               <strong>Explainability Heatmaps (Grad-CAM):</strong> Gradient-weighted Class Activation Mapping calculates visual heatmaps showing the precise anatomical regions influencing model activation.
