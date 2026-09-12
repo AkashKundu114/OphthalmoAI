@@ -11,5 +11,5 @@ RUN pip install --upgrade --force-reinstall python-dateutil wcwidth tabulate pan
 # But we will copy the code scripts
 COPY scripts/ ./scripts/
 
-# Set the entrypoint to the EfficientNet-B4 training script
-CMD ["python", "scripts/train_efficientnet_b4.py"]
+# Set the entrypoint to the universal model training script
+CMD ["python", "scripts/train_model.py", "--model", "efficientnet_b4"]

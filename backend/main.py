@@ -605,6 +605,23 @@ async def predict(
         except Exception as iqa_err:
             logger.warning("predict.iqa_failed", error=str(iqa_err))
 
+    # Guardrail: Retinal Fundus Domain Verification
+    try:
+        from backend.fundus_validator import validate_fundus_image
+        is_fundus, fundus_score, fundus_reason, fundus_metrics = validate_fundus_image(image)
+        if not is_fundus:
+            log_event(db, "predict.rejected_non_fundus", success=False, user_id=user_id, ip_address=client_ip,
+                      error_detail=fundus_reason)
+            logger.warning("predict.non_fundus_rejected", score=fundus_score, reason=fundus_reason)
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unsupported image type: The uploaded image does not appear to be a retinal fundus photograph. {fundus_reason} Please upload an authentic color fundus scan of the posterior pole."
+            )
+    except HTTPException:
+        raise
+    except Exception as val_err:
+        logger.warning("predict.fundus_validator_error", error=str(val_err))
+
     try:
         input_tensor = preprocess(image).to(DEVICE).unsqueeze(0)
 
@@ -944,6 +961,17 @@ async def chat_endpoint(
             "is_emergency": True,
             "disclaimer": "🚨 EMERGENCY NOTICE: Seek immediate in-person emergency medical care.",
         }
+
+    # Guardrail: Refusal to diagnose unsupported / non-fundus images
+    if chat_request.diagnosis_context:
+        ctx = chat_request.diagnosis_context
+        if ctx.get("status") == "unsupported_image" or ctx.get("is_fundus") is False:
+            return {
+                "reply": "I cannot provide a diagnostic interpretation for this upload because the image could not be verified as an authentic retinal fundus photograph. OphthalmoAI only analyzes color fundus photographs of the posterior pole. Please upload a genuine retinal fundus scan for clinical evaluation.",
+                "model_used": "guardrail_refusal",
+                "is_emergency": False,
+                "disclaimer": "⚠️ Notice: Clinical interpretation requires an authentic color fundus photograph.",
+            }
 
     system = OPHTHALMOLOGY_SYSTEM_PROMPT
     if chat_request.diagnosis_context:

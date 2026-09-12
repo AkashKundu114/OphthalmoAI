@@ -1723,13 +1723,68 @@ export default function App() {
               {}
               <div className="space-y-6">
                 {error && (
-                  <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold">Screening Notice</p>
-                      <p className="mt-0.5 leading-relaxed">{error}</p>
-                    </div>
-                  </div>
+                  (() => {
+                    const isFundusError = typeof error === 'string' && (
+                      error.toLowerCase().includes('not appear to be a retinal fundus') ||
+                      error.toLowerCase().includes('unsupported image') ||
+                      error.toLowerCase().includes('non-fundus') ||
+                      error.toLowerCase().includes('circular aperture') ||
+                      error.toLowerCase().includes('backscatter')
+                    )
+                    return isFundusError ? (
+                      <div className="p-5 rounded-2xl bg-amber-950/80 border border-amber-500/40 text-amber-200 text-xs shadow-xl relative overflow-hidden animate-fade-in">
+                        <div className="flex items-start gap-3.5">
+                          <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 border border-amber-500/30">
+                            <ShieldAlert className="w-6 h-6" />
+                          </div>
+                          <div className="space-y-2.5 flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-amber-300 text-sm tracking-wide flex items-center gap-2">
+                                Fundus Domain Guardrail Active
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">Rejected (HTTP 422)</span>
+                              </span>
+                              <button 
+                                onClick={() => { setError(null); setSelectedFile(null); setPreviewUrl(null); }}
+                                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                                title="Dismiss and clear upload"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-slate-200 leading-relaxed bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
+                              {error}
+                            </p>
+                            <div className="pt-2 border-t border-amber-500/20 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                              <div className="flex items-center gap-2 text-emerald-300">
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                                <span><strong>Supported:</strong> Authentic color fundus photograph (CFP) of retina, macula, or optic disc</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-red-300">
+                                <X className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                                <span><strong>Rejected:</strong> Everyday objects, animals, selfies, documents, or synthetic noise</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-bold">Screening Notice</p>
+                            <button 
+                              onClick={() => setError(null)}
+                              className="text-slate-400 hover:text-white p-0.5 rounded hover:bg-slate-800 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <p className="mt-0.5 leading-relaxed">{error}</p>
+                        </div>
+                      </div>
+                    )
+                  })()
                 )}
 
                 {result ? (

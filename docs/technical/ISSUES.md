@@ -14,7 +14,9 @@ This log tracks architectural items, resolved engineering blockers, and ongoing 
 | **R4** | High | Frontend / UX | Implemented dual Audience Mode switcher (`[ Public View | Academic / Clinical ]`) with persistent `localStorage` preference. |
 | **R5** | Medium | Security | Hardened CORS configuration, magic-byte image validation, slowapi rate-limiting, and JWT authentication. |
 | **R6** | Medium | Asynchronous DB | Migrated auth paths to `AsyncSession` with `asyncpg` / `aiosqlite` and Alembic schema migrations. |
-| **R7** | Low | Telemetry & Visuals | Created unified benchmark visualizer generating 7 high-resolution charts in `docs/images/`. |
+| **R7** | Low | Telemetry & Visuals | Created unified benchmark visualizer generating 10 high-resolution charts in `docs/images/` including dual RAM+VRAM and training speedups. |
+| **R8** | High | Precision Engineering | Evaluated full BF16 suite across all backbones vs FP16 (+4.16% accuracy gain for FP16); saved weights and calibrated with Platt scaling. |
+| **R9** | Critical | Clinical Safety / Guardrails | Built multi-spectral retinal fundus domain validator and hardened Gemini conversational API against prompt injection and jailbreaks. |
 
 ---
 

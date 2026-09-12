@@ -12,10 +12,16 @@ All notable changes to this project are documented in this file.
 - **Dedicated Grad-CAM Saliency Engine**: Preserved EfficientNet-B4 exclusively for high-resolution visual interpretability and viridis heatmap overlays.
 - **Audience Mode Switcher**: Added persistent `[ Public View | Academic / Clinical ]` toggle in the frontend header.
 - **Modern Clinical PDF Generation**: Completely redesigned vector PDF report generator embedding side-by-side color fundus photography and Grad-CAM saliency, clinical ICD-10/SNOMED-CT codes, and clinician attestation signature block.
-- **Comprehensive Benchmark Visuals**: Generated high-resolution publication figures in `docs/images/` for accuracy comparison, calibration temperatures, multiclass ROC curves, sensitivity/specificity, confusion matrix, and GPU telemetry.
+- **Precision Engineering & BF16 Comparative Suite**: Evaluated all 6 models in both FP16 and BF16 precision. FP16 demonstrated +4.16% higher accuracy (85.18% vs 81.02%) and was retained for production, while BF16 is saved for research.
+- **Retinal Fundus Domain Validator & Guardrails**: Added pre-inference optical aperture, chorioretinal chromophore backscatter, and spatial autocorrelation validation to reject non-fundus imagery with HTTP 422.
+- **Red-Team Hardened Conversational Assistant**: Hardened Gemini conversational endpoint against prompt injection, jailbreaks, diagnostic hallucinations on invalid uploads, and off-topic queries with 100% test suite defense.
+- **Dual-Resource Telemetry & Visuals**: Upgraded memory graph to display both Dedicated GPU VRAM and Host System RAM; revamped training time graph with dual-panel layout showing 25x GPU speedup.
+- **Novel Algorithmic Formulations**: Integrated 4 formal mathematical formulations (TC-MBE, OAC-DG, US-CRC, and PASG-GradCAM) into research draft and technical white paper.
 - **Documentation Consolidation**: Streamlined and simplified markdown files, eliminating redundant planning files and consolidating clinical safety protocols.
 
 ### Fixed
+- Fixed training time comparison chart scaling (separated GPU from CPU baseline to eliminate distorted linear scales).
+- Fixed memory chart to display both Host System RAM and Dedicated GPU VRAM.
 - Resolved telemetry schema inconsistencies across nested and flat log structures.
 - Eliminated all frontend compilation warnings and verified production build (`npm run build`).
 
