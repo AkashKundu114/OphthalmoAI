@@ -1,185 +1,115 @@
-<div align="center">
-  
-# OphthalmoAI 
-### **Point-of-Care Eye Disease Screening Platform**
+# OphthalmoAI: Point-of-Care Retinal Disease Screening Platform
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)
-![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![React 19](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Accuracy 85.18%](https://img.shields.io/badge/Test%20Accuracy-85.18%25-brightgreen)
+![AUROC 0.9805](https://img.shields.io/badge/Macro%20AUROC-0.9805-blue)
 
-OphthalmoAI is a comprehensive full-stack ophthalmology platform that **enhances diagnostic screening capabilities across 12 visible eye conditions**. It employs a state-of-the-art **Evidential Multi-Backbone Meta-Classifier Ensemble (ConvNeXt-Small + DenseNet-201 + EfficientNet-V2-M)** with **Urgency-Stratified Conformal Risk Control (US-CRC)**, backed by **interpretable Grad-CAM heatmaps**, quantitative physical biomarkers, and an **AI-driven clinical conversational assistant**.
-
-</div>
-
----
-
-> **MEDICAL DISCLAIMER:** OphthalmoAI is provided strictly for **research, educational, and informational purposes**. It is **not** an FDA-cleared or CE-marked medical device. It does **not** constitute professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider or ophthalmologist. See the `LICENSE` file for full liability details.
+**OphthalmoAI** is an AI-powered retinal disease screening and clinical decision-support platform. It utilizes a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, paired with a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine and an interactive **dual-mode interface (Public vs Academic/Clinical)**.
 
 ---
 
-## Architecture & Design Principles
-1. **Asymmetric Clinical-Cost Evidential Meta-Classifier (AC-HDL):** Features a single-forward-pass Dirichlet Evidential network that parameterizes $\text{Dir}(\boldsymbol{\alpha})$ over class representations from ConvNeXt-Small, DenseNet-201, and EfficientNet-V2. Optimized using an asymmetric clinical urgency penalty matrix ($5\times$ penalty for missing sight-threatening conditions like Keratitis or Uveitis) with instant single-pass epistemic vacuity and OOD rejection.
-2. **Urgency-Stratified Conformal Risk Control (US-CRC):** Replaces uncalibrated heuristics with distribution-free conformal prediction sets, mathematically guaranteeing $\ge 99.0\%$ coverage on sight-threatening emergencies and $\ge 95.0\%$ on routine conditions, coupled with an automated 3-tier clinical action policy.
-3. **Saliency-Grounded Multimodal Biomarkers (SGB-LLM):** Extracts quantitative spatial and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding Gemini 2.0 Flash in physical visual evidence to eliminate hallucinations.
-4. **Comprehensive Multi-Dataset Retinal Screening:** Supports automated multi-class diagnosis across gold-standard clinical fundus categories: `['Normal', 'Diabetic Retinopathy', 'Glaucoma', 'Cataract', 'Age-related Macular Degeneration', 'Hypertensive Retinopathy / Pathological Myopia']`.
-5. **Hardware Optimized for 8GB VRAM:** Sub-12.5ms inference and fast single-pass uncertainty evaluation natively on a single NVIDIA RTX 5060 Laptop GPU with Automatic Mixed Precision (AMP).
-6. **Comprehensive Automated Test Suite:** Automated frontend (Vitest + JSDOM) and backend (Pytest + FastAPI TestClient) integration and novelty validation testing.
+> **MEDICAL DISCLAIMER**: OphthalmoAI is designed strictly for research, educational, and screening-aid purposes. It is not an FDA-cleared or CE-marked medical device. All findings must be confirmed by a licensed ophthalmologist or optometrist.
 
 ---
 
-## Detectable Retinal Conditions
+## Key Features
 
-| Condition | Anatomical Group | Clinical Urgency | Target Pathology |
-|---|---|---|---|
-| **Diabetic Retinopathy (DR)** | Retinal Vascular | **Urgent / Sight-Threatening** | Microaneurysms, hemorrhages, lipid exudates, neovascularization |
-| **Glaucoma** | Optic Neuropathy | **Urgent** | Cup-to-disc enlargement, neuroretinal rim thinning |
-| **Age-related Macular Degeneration (AMD)** | Maculopathy | **Urgent / Emergency** | Central drusen, geographic atrophy, choroidal neovascularization |
-| **Cataract (Media Opacity)** | Anterior / Optical Media | Elective | Optical scattering, vascular attenuation on fundus |
-| **Hypertensive Retinopathy / Myopia** | Vascular & Structural | **Urgent** | Arteriolar attenuation, AV nicking, staphyloma |
-| **Normal (Healthy Fundus)** | Posterior Pole | None | Intact neuroretinal rim, crisp foveal reflex |
+1. **Calibrated Tri-Backbone Vision Ensemble**:
+   - Concurrently executes **DenseNet-201**, **ConvNeXt-Small**, and **EfficientNet-V2-M**.
+   - Applies post-hoc **Platt Temperature Scaling** ($T \in [1.06, 1.34]$) to eliminate neural overconfidence.
+   - Achieves **85.18% empirical test accuracy** and **0.9805 Macro AUROC** on 938 held-out clinical fundus images.
+2. **Pixel-Level Interpretability (Grad-CAM)**:
+   - Dedicated **EfficientNet-B4** backbone generates high-resolution saliency maps overlaid directly on fundus imagery.
+3. **Dual Audience Persona Modes**:
+   - **Public View**: Patient-friendly explanations, triage urgency indicators, personalized action plans, and "Questions for Your Doctor".
+   - **Academic / Clinical View**: In-depth statistical metrics (AUROC, Macro F1, calibration temperature $T$, ECE), multi-class probability distribution, 1-click BibTeX citation copy, and raw tensor JSON export.
+4. **Modern Clinical PDF Generation**:
+   - Clean, professional vector PDF export containing side-by-side color fundus scans, Grad-CAM overlays, ICD-10/SNOMED-CT codes, confidence bars, and clinician attestation blocks.
+5. **AI Clinical Assistant**:
+   - Natural language conversational helper grounded in visual findings and physical biomarkers, powered by Google Gemini 2.0 Flash with local Ollama fallback.
 
 ---
 
-## Getting Started (Docker / GPU)
+## Empirical Benchmark Performance
 
-The easiest and most performant way to run OphthalmoAI is via our pre-configured Docker pipeline.
+<p align="center">
+  <img src="docs/images/benchmark_accuracy_comparison.png" alt="Benchmark Accuracy Comparison" width="90%" />
+</p>
 
+| Architecture / Model | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Calibrated Tri-Backbone Ensemble (SOTA)** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| DenseNet-201 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
+| ConvNeXt-Small | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
+| EfficientNet-V2-M | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
+| EfficientNet-B4 (Grad-CAM Engine) | 81.88% | 0.9685 | 0.7934 | 1.3275 | 0.0582 |
+| ResNet-50 (Baseline) | 75.69% | 0.9320 | 0.7240 | 1.0947 | 0.0412 |
+
+<p align="center">
+  <img src="docs/images/multiclass_roc_curves.png" alt="ROC Curves" width="48%" />
+  <img src="docs/images/calibration_temperatures_chart.png" alt="Calibration Temperatures" width="48%" />
+</p>
+
+---
+
+## Target Retinal Conditions (6 Classes)
+
+| Diagnostic Class | Clinical Urgency | Target Retinal Pathology | ICD-10 Code | SNOMED-CT |
+| :--- | :--- | :--- | :--- | :--- |
+| **Normal** | None | Healthy retina, clear optic disc, crisp foveal reflex | `Z01.00` | `17621005` |
+| **Diabetic Retinopathy** | **Urgent** | Microaneurysms, blot hemorrhages, hard exudates | `E11.319` | `4855003` |
+| **Glaucoma** | **Urgent** | Cup-to-disc ratio enlargement, neuroretinal rim loss | `H40.9` | `23986001` |
+| **Cataract** | Elective | Optical scattering and vascular attenuation on fundus | `H25.9` | `193570009` |
+| **Age-related Macular Degeneration** | **Urgent** | Macular drusen, geographic atrophy, CNV | `H35.30` | `267718000` |
+| **Hypertensive Retinopathy / Myopia** | **Urgent** | Arteriolar narrowing, AV nicking, staphyloma | `H35.00` | `39934008` |
+
+---
+
+## Quick Start (Local Setup)
+
+### 1. Backend Setup
 ```bash
-# 1. Clone the repository
-git clone https://github.com/AkashKundu114/Eye-Disease-AI-Diagnosis.git
-cd Eye-Disease-AI-Diagnosis
+# Clone the repository
+git clone https://github.com/AkashKundu114/OphthalmoAI.git
+cd OphthalmoAI
 
-# 2. Configure Environment (Set GEMINI_API_KEY)
-cp env.example .env           
-
-# 3. Spin up the cluster
-docker compose up --build -d
-
-# 4. Initialize Database Schema
-docker compose exec backend alembic upgrade head
-```
-
-Navigate to **[http://localhost:8080](http://localhost:8080)** to access the platform.
-
----
-
-## Local Development Environment (Development)
-
-If you wish to build the FastAPI backend and React frontend locally:
-
-### 1. Backend API
-```bash
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate # On Windows: .\venv\Scripts\activate
+# On Windows: .\venv\Scripts\activate
+# On Linux/macOS: source venv/bin/activate
 
-# Install PyTorch (CUDA 12.4 example)
+# Install PyTorch and dependencies
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 pip install -r backend/requirements.txt
 
-# Run migrations and start the server
-alembic upgrade head
-python backend/main.py    
+# Start backend server
+python backend/main.py
 ```
-> The API will be served at `http://localhost:8000`, with interactive Swagger Docs at `/docs`.
+> Backend API serves at `http://localhost:8000` (Swagger UI at `/docs`).
 
-### 2. Frontend SPA
+### 2. Frontend Setup
 ```bash
 cd frontend
 npm install
-npm run dev               
+npm run dev
 ```
-> The React app will be served at `http://localhost:5173`.
+> Frontend SPA serves at `http://localhost:5173`.
 
 ---
 
-## Project Architecture
+## Documentation Suite
 
-```
-OphthalmoAI/
- backend/
-    main.py, auth.py, db_async.py, routes_admin.py
-    security.py, clinical_codes.py, calibration.py
-    audit.py, logging_config.py, requirements.txt
- frontend/
-    src/App.jsx, ChatBox.jsx, index.css
-    nginx.conf, vite.config.js
- scripts/ # Training, Telemetry, and Evaluation tools
- alembic/ # Database schema migrations
- docs/ # PRD, Technical Specs, Clinical Guidelines
- docker-compose.yml # Orchestration
-```
+- **[System Specification](docs/SYSTEM_SPECIFICATION.md)**: Technical architecture, pipeline stages, and QA checklist.
+- **[Clinical Evaluation & Safety](docs/clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Intended use, clinical risk controls, and validation protocols.
+- **[Performance & Telemetry](docs/PERFORMANCE_METRICS.md)**: Comprehensive empirical metrics, ROC curves, calibration charts, and GPU profiling.
+- **[Technical White Paper](docs/OphthalmoAI_Technical_White_Paper.md)**: Engineering methodology, ensemble formulations, and explainability.
+- **[Production Guide](PRODUCTION.md)**: Deployment guidelines for Docker, Kubernetes, and cloud environments.
 
 ---
 
-## Performance Benchmarks & Telemetry
-
-OphthalmoAI features an integrated hardware telemetry pipeline designed to profile training runs across different compute architectures and precision formats. Below are the verified benchmark results:
-
-| Model Architecture | Precision | Batch Size | Time per Epoch | Peak VRAM | Final Accuracy |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Meta-Classifier Ensemble (state-of-the-art)** | **FP16** | **32** | **12.45s** | **1.24 GB** | **99.95%** |
-| **Meta-Classifier Ensemble** | **BF16** | **32** | **14.12s** | **1.45 GB** | **99.91%** |
-| **ConvNeXt-Small** | **FP16** | **32** | **10.88s** | **3.64 GB** | **99.64%** |
-| **ConvNeXt-Small** | **BF16** | **32** | **21.07s** | **3.64 GB** | **99.31%** |
-| **DenseNet-201** | **BF16** | **32** | **25.00s** | **3.45 GB** | **99.49%** |
-| **DenseNet-201** | **FP16** | **32** | **24.74s** | **3.46 GB** | **99.19%** |
-| **EfficientNet-V2-M** | **FP16** | **32** | **24.91s** | **4.62 GB** | **99.21%** |
-| **EfficientNet-V2-M** | **BF16** | **32** | **29.62s** | **4.62 GB** | **99.11%** |
-| *EfficientNet-B4 (Docker Single)* | *FP16* | *16* | *33.68s* | *2.00 GB* | *98.61%* |
-| *Meta-Ensemble Baseline* | *FP16* | *4* | *102.08s* | *1.01 GB* | *99.60%* |
-| *ResNet50 (Bare-Metal GPU)* | *FP32* | *16* | *52.09s* | *1.73 GB* | *92.96%* |
-| *ResNet50 (CPU Baseline)* | *FP32* | *16* | *460.79s* | *0.00 GB* | *81.61%* |
-
-<p align="center">
-  <img src="docs/images/architecture_evolution_summary.png" alt="Architecture Evolution Summary" width="95%" />
-</p>
-
-### Detailed Comparative Analysis
-* **Base Monolith Models (ConvNeXt vs DenseNet vs EfficientNet):**
-  <p align="center">
-    <img src="docs/images/base_monolith_models_comparison.png" alt="Base Monolith Comparison" width="95%" />
-  </p>
-* **Meta-Classifier Ensemble Optimization (BS=4 vs BS=32 Scaling):**
-  <p align="center">
-    <img src="docs/images/meta_classifier_comparison.png" alt="Meta Classifier Comparison" width="90%" />
-  </p>
-
-> **Note**: For detailed telemetry charts spanning Model Convergence, GPU VRAM Consumption, and Thermal Performance, please read [`docs/PERFORMANCE_METRICS.md`](docs/PERFORMANCE_METRICS.md).
-
----
-
-## Core API Reference
-
-| Method | Path | Auth Required | Description |
-|--------|------|---------------|-------------|
-| `GET` | `/health` / `/ready` | | Liveness and readiness probes |
-| `POST` | `/predict` | | Run an eye scan inference (rate-limited) |
-| `POST` | `/chat` | | AI Doctor chat (Gemini Flash free tier / Ollama) |
-| `POST` | `/auth/register` / `/token` | | Account creation and login |
-| `POST` | `/scans/{id}/override` | Clinician/Admin | Record a second opinion |
-| `GET` | `/admin/audit-logs` | Admin | Query the administrative audit trail |
-
-*(For the complete schema, refer to `docs/technical/BACKEND_SCHEMA.md`)*
-
----
-
-## Technical Documentation
-
-If you want to understand the clinical design, telemetry tracking, or backend architecture, check out our comprehensive documentation suite:
-
-- **[OphthalmoAI Technical White Paper](docs/OphthalmoAI_Technical_White_Paper.md)** - Explains the Monolithic Vision Pipeline and LLM Structural Guardrails.
-- **[Performance Metrics](docs/PERFORMANCE_METRICS.md)** - Details on the PyTorch NGC Docker performance and VRAM optimizations.
-- **[Implementation Plan](docs/planning/IMPLEMENTATION_PLAN.md)** - Project checklist and phase tracking.
-- **[Technical Issues & Resolutions](docs/technical/ISSUES.md)** - Deep dive into resolved architecture and dependency conflicts.
-- **[Clinical Safety Specs](docs/clinical/CLINICAL_SAFETY.md)** - Intended use and safety mechanisms.
-
----
-
-## License & Copyright
-
-**Apache License 2.0** - Copyright © 2026 Akash Kundu.
-
-Please carefully review the `LICENSE` file for the strict **Medical and Clinical Liability Disclaimer**. This software cannot be used for clinical decision-making without independent validation.
+## License
+Apache License 2.0. Copyright (c) 2026 Akash Kundu. See `LICENSE` for details.

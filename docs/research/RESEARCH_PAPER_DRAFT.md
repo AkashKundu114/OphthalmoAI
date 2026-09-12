@@ -1,138 +1,54 @@
-# Ophthalmo-CRC: Clinically-Constrained Evidential Ensembles with Distribution-Free Conformal Risk Control for Point-of-Care Ophthalmic Screening
+# Deep Learning-Based Multi-Backbone Calibrated Ensemble for Automated Retinal Disease Screening from Color Fundus Photography
 
 **Author:** Akash Kundu  
-**Affiliation:** Department of Computer Science & Engineering / Healthcare AI Systems  
-**Target Journal:** IEEE Journal of Biomedical and Health Informatics (J-BHI) / Elsevier Computer Methods and Programs in Biomedicine (CMPB)
+**Target:** IEEE Journal of Biomedical and Health Informatics / Elsevier Computer Methods and Programs in Biomedicine  
 
 ---
 
 ## Abstract
-Artificial intelligence (AI) triage systems for ocular pathologies hold immense promise for democratizing eye health in underserved areas. However, conventional multi-class deep neural networks suffer from three fundamental limitations: (1) symmetric loss formulations that penalize benign classification discrepancies identically to sight-threatening diagnostic failures; (2) excessive computational latency in existing multi-pass Bayesian and Monte Carlo uncertainty estimators, precluding deployment on edge devices; and (3) a lack of rigorous statistical guarantees against diagnostic hallucinations in downstream vision-language assistants. 
+Automated screening of retinal diseases from color fundus photography is essential for preventing vision loss in primary care and resource-constrained environments. However, individual deep learning models frequently demonstrate uncalibrated overconfidence and variable sensitivity across diverse retinal pathologies. 
 
-To resolve these barriers, we present **Ophthalmo-CRC**, a comprehensive, clinically aligned point-of-care screening framework across 12 visible anterior segment, ocular surface, and adnexal conditions. Our core algorithmic contributions are threefold:
-1. **Asymmetric Clinical-Cost Hierarchical Dirichlet Learning (AC-HDL):** We formulate a deterministic, single-forward-pass evidential meta-classifier that parameterizes a Dirichlet distribution over disease states, optimized using an asymmetric clinical risk matrix that penalizes catastrophic cross-urgency false negatives (e.g. Keratitis or Uveitis misclassified as routine conditions) with a severe penalty factor ($5\times$).
-2. **Urgency-Stratified Conformal Risk Control (US-CRC):** We establish distribution-free, finite-sample prediction sets providing provable statistical guarantees ($\ge 99.0\%$ empirical coverage on sight-threatening emergencies at $\alpha=0.01$; $\ge 95.0\%$ coverage on routine conditions at $\alpha=0.05$), accompanied by an automated 3-tier clinical action policy.
-3. **Saliency-Grounded Multimodal Reasoning (SGB-LLM):** We extract quantitative spatial, morphological, and colorimetric biomarkers (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, and scleral icterus index $b^*$) from Grad-CAM activation maps, strictly grounding a conversational assistant (Gemini 2.0 Flash) to eliminate diagnostic hallucinations.
+In this work, we introduce a **Calibrated Tri-Backbone Soft-Voting Ensemble** that integrates three complementary modern computer vision architectures: **DenseNet-201**, **ConvNeXt-Small**, and **EfficientNet-V2-M**, supplemented by a dedicated **EfficientNet-B4** backbone for pixel-level Explainable AI (Grad-CAM). Outputs are calibrated using empirical Platt temperature scaling ($T \in [1.06, 1.34]$) to ensure probability alignment with true accuracy.
 
-Empirical evaluation demonstrates that Ophthalmo-CRC achieves **99.95% overall accuracy**, cuts epistemic uncertainty computation latency by **$88.3\%$** relative to 8-pass Monte Carlo Dropout (19.3 ms vs 164.8 ms), and reduces sight-threatening emergency triage error rates to $<0.2\%$, establishing a new standard for trustworthy, clinically actionable ophthalmic AI.
+Benchmarked on a held-out test cohort of $n = 938$ clinical fundus images across six categories (Normal, Diabetic Retinopathy, Glaucoma, Cataract, AMD, and Hypertensive Retinopathy / Myopia), the calibrated ensemble achieves **85.18% top-1 accuracy**, a **Macro AUROC of 0.9805**, a **Macro F1 of 0.8292**, and an **Expected Calibration Error (ECE) of 0.0644**. This outperforms all individual constituent models (DenseNet-201: 84.43%, ConvNeXt-Small: 83.80%, EfficientNet-V2-M: 82.20%, ResNet-50 baseline: 75.69%) while executing within 35ms on consumer GPU hardware.
 
 ---
 
 ## 1. Introduction
-Vision impairment and blindness affect over 2.2 billion people worldwide, with at least 1 billion suffering from preventable or unaddressed conditions. Point-of-care visual screening can prevent irreversible visual loss from conditions like **Keratitis** (corneal ulceration) and **Acute Anterior Uveitis**, while accurately filtering routine conditions like **Blepharitis** and **Conjunctivitis**.
+Retinal diseases including Diabetic Retinopathy (DR), Glaucoma, and Age-related Macular Degeneration (AMD) represent the leading causes of avoidable blindness globally. Regular posterior pole screening enables early intervention, yet specialist shortages create substantial diagnostic delays.
 
-### The Gap in Prior Work
-Prior ophthalmic deep learning literature has primarily focused on maximizing flat top-1 classification accuracy. However:
-- **Asymmetry of Clinical Risk:** In ophthalmology, false negatives for high-urgency conditions carry devastating consequences, whereas intra-tier discrepancies (e.g. Chalazion vs Stye) carry negligible clinical harm. Standard Cross-Entropy treats all error classes symmetrically.
-- **Latency of Epistemic UQ:** Monte Carlo Dropout requires repeated stochastic passes ($T \ge 8$), imposing prohibitive latency and energy drain on clinic tablets and edge GPUs.
-- **Heuristic Confidence vs Statistical Guarantees:** Fixed confidence cutoffs (e.g., $p > 0.75$) deteriorate under real-world domain shift. Conformal prediction offers exact, finite-sample coverage guarantees without distribution assumptions.
-- **Unverifiable Conversational AI:** Decoupled LLMs generate persuasive but ungrounded explanations. Vision models must supply verified physical biomarkers to the language model.
+Automated convolutional neural networks offer scalable screening solutions. However, deploying AI in clinical practice requires:
+1. High multi-class discriminative accuracy.
+2. Well-calibrated confidence estimates to prevent misleading overconfidence.
+3. Visual interpretability to support clinical trust and regulatory compliance.
 
----
-
-## 2. Mathematical Methodology
-
-### 2.1 Problem Formulation & Clinical Taxonomy
-Let $\mathcal{X} \subset \mathbb{R}^{H \times W \times 3}$ denote the space of ocular photographs, and let $\mathcal{Y} = \{1, 2, \dots, K\}$ denote the set of $K = 12$ conditions:
-$$\mathcal{Y} = \{\text{Blepharitis, Cataract, Chalazion, Conjunctivitis, Jaundice, Keratitis, Normal, Ptosis, Pterygium, Stye, Subconj. Hemorrhage, Uveitis}\}$$
-Each condition is mapped to an anatomical group $\mathcal{G}(y)$ and an urgency tier $\mathcal{U}(y) \in \{\text{Emergency}, \text{Urgent}, \text{Elective}, \text{Non-urgent}, \text{None}\}$.
-
-### 2.2 Asymmetric Clinical-Cost Evidential Meta-Classifier
-We extract multi-backbone representations using three distinct deep convolutional and modern convnet architectures: ConvNeXt-Small ($f_1$), DenseNet-201 ($f_2$), and EfficientNet-V2-M ($f_3$). The concatenated representations $z = [f_1(X) \parallel f_2(X) \parallel f_3(X)] \in \mathbb{R}^{36}$ are mapped to non-negative class evidence:
-$$e_k = \text{softplus}(W z + b)_k \ge 0, \quad \alpha_k = e_k + 1.0, \quad S = \sum_{k=1}^K \alpha_k$$
-The expected probability vector and epistemic vacuity (model ignorance) are:
-$$\hat{p}_k = \frac{\alpha_k}{S}, \quad u = \frac{K}{S} \in [0, 1]$$
-
-The **Asymmetric Clinical Cost Matrix** $C \in \mathbb{R}^{K \times K}$ enforces severe penalties on hazardous under-triage:
-$$C_{i, j} = \begin{cases} 
-0 & i = j \\
-5.0 & \text{Urgency}(i) = \text{Emergency}, \ \text{Urgency}(j) \in \{\text{Elective}, \text{Non-urgent}, \text{None}\} \\
-3.0 & \text{Urgency}(i) = \text{Urgent}, \ \text{Urgency}(j) \in \{\text{Elective}, \text{None}\} \\
-0.2 & \text{Urgency}(i) < \text{Urgency}(j) \quad (\text{Safe over-triage}) \\
-0.5 & \text{Urgency}(i) = \text{Urgency}(j), \ i \neq j
-\end{cases}$$
-
-The total optimization objective is:
-$$\mathcal{L}_{\text{AC-HDL}} = \sum_{k=1}^K y_k \left( \psi(S) - \psi(\alpha_k) \right) + \lambda_{\text{cost}} \sum_{j=1}^K C_{y, j} \, \hat{p}_j + \lambda_{\text{KL}} \, \lambda_t \, \text{KL}\left[ \text{Dir}(\tilde{\boldsymbol{\alpha}}) \parallel \text{Dir}(\mathbf{1}) \right]$$
-
-### 2.3 Urgency-Stratified Conformal Risk Control (US-CRC)
-Given an exchangeable calibration split $\mathcal{D}_{\text{cal}} = \{(X_i, y_i)\}_{i=1}^n$, we define the non-conformity score:
-$$s_i = 1 - \hat{p}_{y_i}(X_i)$$
-We partition $\mathcal{D}_{\text{cal}}$ into:
-- $\mathcal{D}_{\text{cal}}^{\text{Emerg}}$ (Emergency/Urgent conditions) calibrated with risk bound $\alpha_{\text{emerg}} = 0.01$ ($99\%$ guaranteed coverage).
-- $\mathcal{D}_{\text{cal}}^{\text{Routine}}$ (Elective/Non-urgent conditions) calibrated with $\alpha_{\text{routine}} = 0.05$ ($95\%$ guaranteed coverage).
-
-The conformal quantile with finite-sample adjustment is:
-$$\hat{q} = \text{Quantile}\left( \frac{\lceil (n+1)(1-\alpha) \rceil}{n}, \{s_i\}_{i=1}^n \right)$$
-At inference, the conformal prediction set is:
-$$\mathcal{C}(X_{\text{test}}) = \{ k \in \mathcal{Y} : \hat{p}_k(X_{\text{test}}) \ge 1 - \hat{q}_{\text{strata}} \}$$
-
-**Theorem 1 (Coverage Guarantee):**  
-For any new test sample $(X_{\text{test}}, Y_{\text{test}})$ drawn exchangeably from the same data generating distribution:
-$$\mathbb{P}\left( Y_{\text{test}} \in \mathcal{C}(X_{\text{test}}) \right) \ge 1 - \alpha$$
-*Proof:* Direct consequence of split-conformal exchangeability and the order statistics of rank $\lceil (n+1)(1-\alpha) \rceil$.
-
-### 2.4 Saliency-Grounded Biomarkers (SGB-LLM)
-We extract quantitative spatial descriptors from the Grad-CAM activation map $M$:
-1. **Corneal Involvement Ratio ($\rho_{\text{anterior}}$):** Intersection over active lesion area with the detected iris contour $M_{\text{cornea}}$.
-2. **Vascular Erythema Index ($\Delta\text{EI}$):** Chromatic saturation in CIELAB space within the conjunctival region.
-3. **Scleral Icterus Index ($b^*_{\text{sclera}}$):** Yellow-blue coordinate shift in the non-cornea scleral region ($L^* > 90$).
-
-These biomarkers are formatted into structured JSON tokens and injected into the Gemini 2.0 Flash context, requiring the model to cite the exact values in its clinical response.
+To address these needs, we formulate a calibrated ensemble pipeline optimized for real-time edge execution.
 
 ---
 
-## 3. Experimental Setup & Benchmarks
+## 2. Experimental Results
 
-### 3.1 Dataset Description & Experimental Setup
-- **Taxonomy:** 12 clinically validated conditions spanning anterior segment, ocular surface, and adnexal categories.
-- **Dataset Scale:** $N = 5,663$ high-resolution clinical photographs, stratified 70/15/15 into train ($n = 3,964$), validation ($n = 849$), and test ($n = 850$) splits.
-- **Class Distribution:** Normal ($n = 1,452$), Ptosis ($n = 1,152$), Conjunctivitis ($n = 647$), Cataract ($n = 645$), Uveitis ($n = 474$), Pterygium ($n = 321$), Jaundice ($n = 273$), Subconjunctival Hemorrhage ($n = 167$), Blepharitis ($n = 154$), Chalazion ($n = 146$), Stye ($n = 127$), and Keratitis ($n = 105$).
-- **Hardware Profile:** All models benchmarked on an NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7) with an AMD Ryzen 9 8940HX host processor running containerized PyTorch mixed precision (AMP FP16 and Native BF16).
+### Table 1: Empirical Test Performance ($n = 938$)
+| Architecture / Model | Test Accuracy (%) | Macro AUROC | Macro F1 | Calibration Temp ($T$) | Calibrated ECE |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Calibrated Tri-Backbone Ensemble** | **85.18** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| DenseNet-201 | 84.43 | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
+| ConvNeXt-Small | 83.80 | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
+| EfficientNet-V2-M | 82.20 | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
+| EfficientNet-B4 (Grad-CAM Engine) | 81.88 | 0.9685 | 0.7934 | 1.3275 | 0.0582 |
+| ResNet-50 Baseline | 75.69 | 0.9320 | 0.7240 | 1.0947 | 0.0412 |
 
-### 3.2 Quantitative Results
-
-#### Table 1: Model Accuracy, Emergency Sensitivity, and Computational Latency
-| Model / Pipeline | Precision Mode | Overall Acc (%) | Macro F1 | Emergency Sensitivity (%) | Epistemic UQ Latency (ms) | Peak VRAM (GB) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ResNet-50 Baseline | FP32 (Bare-Metal) | 92.96 | 0.912 | 91.2 | N/A | 1.73 |
-| EfficientNet-B4 Monolith | FP16 (Docker) | 98.61 | 0.981 | 96.5 | 33.7 | 2.00 |
-| ConvNeXt-Small Base | FP16 (BS=32) | 99.32 | 0.991 | 97.1 | 19.3 | 3.64 |
-| DenseNet-201 Base | BF16 (BS=32) | 99.49 | 0.993 | 97.6 | 25.0 | 3.45 |
-| Meta-Classifier Ensemble (Linear) | BF16 (BS=32) | 99.67 | 0.995 | 98.2 | 164.8 (8-pass MC) | 1.21 |
-| **Ophthalmo-CRC (AC-HDL + US-CRC)** | **FP16 (BS=32)** | **99.72** | **0.997** | **99.8** | **19.3 (1-pass Evidential)** | **0.96** |
-
-#### Table 2: Conformal Coverage and Prediction Set Efficiency
-| Urgency Stratum | Target Coverage ($1 - \alpha$) | Empirical Coverage (%) | Average Set Size $|\mathcal{C}(X)|$ | Emergency Miss Rate |
-| :--- | :--- | :--- | :--- | :--- |
-| **Emergency Stratum** | **99.0%** | **99.4%** | **1.21** | **< 0.2%** |
-| Routine Stratum | 95.0% | 96.1% | 1.05 | N/A |
-| Combined Overall | 96.0% | 96.9% | 1.09 | < 0.2% |
-
-### 3.3 Visual & Telemetric Validations
-- **Architectural Progression (Fig. 1):** Screening classification accuracy evolved monotonically from 81.61% (CPU ResNet-50) to 99.95% (Meta-Classifier Ensemble), while training latency dropped from 460.8s to 20.6s per epoch (*see `docs/images/architecture_evolution_summary.png`*).
-- **Multi-Backbone Complementarity (Fig. 2):** ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M maintain distinct receptive field profiles while operating within a compact 3.45–4.62 GB VRAM footprint (*see `docs/images/base_monolith_models_comparison.png`*).
-- **Meta-Classifier Scaling (Fig. 3):** Moving from batch size 4 (102.1s/epoch) to batch size 32 (20.6s/epoch) achieved a $4.95\times$ speedup while reaching 99.95% convergence (*see `docs/images/meta_classifier_comparison.png`*).
-- **Hardware Telemetry Profile (Fig. 4):** Full-epoch profiling confirms zero memory leaks (flat system RAM at ~4.25 GB) and sustained GPU thermal profiles between 58 °C and 78 °C with no thermal throttling (*see `docs/images/memory_usage_comparison.png` and `docs/images/thermal_comparison.png`*).
+### Table 2: Ensemble Sensitivity and Specificity by Category
+| Diagnostic Category | Sensitivity (%) | Specificity (%) | Target Anatomical Region |
+| :--- | :--- | :--- | :--- |
+| **Normal** | 89.2 | 94.5 | Posterior Pole / Fovea |
+| **Diabetic Retinopathy** | 88.5 | 95.8 | Retinal Microvasculature |
+| **Glaucoma** | 82.1 | 96.2 | Optic Nerve Head & Cup |
+| **Cataract (Media Opacity)** | 86.4 | 97.1 | Optical Media Transmission |
+| **Age-related Macular Degeneration** | 83.7 | 96.5 | Macula & RPE Layer |
+| **Hypertensive Retinopathy / Myopia** | 81.1 | 95.9 | Arterioles & Scleral Contour |
 
 ---
 
-## 4. Discussion & Clinical Translation
-- **Zero Missed Emergencies:** The asymmetric loss function combined with conformal prediction eliminates sight-threatening false negatives.
-- **Edge Feasibility:** The single-pass Dirichlet Evidential formulation eliminates the 8-fold latency penalty of MC-Dropout, enabling sub-25ms inference on mobile GPUs.
-- **Explainability Grounding:** Providing quantitative physical metrics to the LLM prevents hallucination, satisfying FDA and EU AI Act explainability standards.
-
----
-
-## 5. Conclusion
-Ophthalmo-CRC bridges the gap between deep learning accuracy and clinical triage safety. By combining asymmetric clinical loss optimization, distribution-free conformal risk control, and saliency-grounded multimodal reasoning, the system provides an auditable, statistically guaranteed foundation for real-world ophthalmic screening.
-
----
-
-## References
-1. Zhou, Y., et al. (2023). A foundation model for generalizable disease detection from retinal images. *Nature*, 622, 156–163.
-2. Angelopoulos, A. N., & Bates, S. (2023). Conformal prediction: A gentle introduction. *Foundations and Trends in Machine Learning*.
-3. Sensoy, M., Kaplan, L., & Kandemir, M. (2018). Evidential deep learning to quantify classification uncertainty. *NeurIPS*.
-4. Huang, Y., et al. (2026). EyeCLIP: Multi-modal ophthalmology foundation model. *IEEE TMI*.
-5. Selvaraju, R. R., et al. (2017). Grad-CAM: Visual explanations from deep networks. *ICCV*.
-6. Moor, M., et al. (2023). Foundation models for generalist medical artificial intelligence. *Nature Medicine*, 29, 214–224.
+## 3. Conclusion
+The proposed Calibrated Tri-Backbone Soft-Voting Ensemble establishes an effective, statistically calibrated framework for point-of-care retinal disease screening. By combining multi-architecture diversity, post-hoc temperature scaling, and pixel-aligned Grad-CAM interpretability, the system delivers high accuracy and clinical transparency on standard compute hardware.

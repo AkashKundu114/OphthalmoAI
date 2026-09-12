@@ -1,24 +1,27 @@
-# Changelog
+# Changelog: OphthalmoAI
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+---
 
-## [Unreleased]
+## [v2.3.0] - 2026-09-12
 
 ### Added
-- **Evidential Multi-Backbone Meta-Classifier Ensemble:** Integrates ConvNeXt-Small, DenseNet-201, and EfficientNet-V2-M, achieving 99.95% screening classification accuracy across 12 clinical conditions with single-pass Dirichlet epistemic uncertainty.
-- **Urgency-Stratified Conformal Risk Control (US-CRC):** Implemented distribution-free conformal prediction sets guaranteeing ≥99.0% coverage on sight-threatening emergencies and ≥95.0% on routine conditions, coupled with automated 3-tier clinical action triage.
-- **Saliency-Grounded Biomarkers (SGB-LLM):** Extracted quantitative physical descriptors (corneal involvement ratio $\rho_{\text{anterior}}$, vascular erythema index $\Delta\text{EI}$, and scleral icterus index $b^*$) from Grad-CAM heatmaps to ground conversational assistant responses in physical visual evidence.
-- **Publication-Grade Benchmark Telemetry Suite:** Generated 7 high-resolution empirical charts covering architectural evolution, base monolith comparisons, meta-classifier scaling, memory footprints, convergence rates, and GPU thermals.
-- **Academic Research Paper Draft:** Completed paper draft for IEEE J-BHI / Elsevier CMPB with verified dataset statistics ($N=5,663$), exact telemetry tables, and conformal efficiency metrics.
+- **Calibrated Tri-Backbone Soft-Voting Ensemble**: Concurrently loads DenseNet-201, ConvNeXt-Small, and EfficientNet-V2-M on startup with soft-voting probability averaging.
+- **Platt Temperature Scaling**: Integrated calibration temperatures ($T \in [1.06, 1.34]$) from `models/calibration.json`, reducing Expected Calibration Error to 0.0644.
+- **Dedicated Grad-CAM Saliency Engine**: Preserved EfficientNet-B4 exclusively for high-resolution visual interpretability and viridis heatmap overlays.
+- **Audience Mode Switcher**: Added persistent `[ Public View | Academic / Clinical ]` toggle in the frontend header.
+- **Modern Clinical PDF Generation**: Completely redesigned vector PDF report generator embedding side-by-side color fundus photography and Grad-CAM saliency, clinical ICD-10/SNOMED-CT codes, and clinician attestation signature block.
+- **Comprehensive Benchmark Visuals**: Generated high-resolution publication figures in `docs/images/` for accuracy comparison, calibration temperatures, multiclass ROC curves, sensitivity/specificity, confusion matrix, and GPU telemetry.
+- **Documentation Consolidation**: Streamlined and simplified markdown files, eliminating redundant planning files and consolidating clinical safety protocols.
 
-### Changed
-- Refactored `README.md`, `PERFORMANCE_METRICS.md`, and technical white papers to ensure 100% numerical consistency with all 15 empirical benchmark runs in `dataset/logs/`.
-- Updated `CLINICAL_VALIDATION.md` and `CLINICAL_SAFETY.md` with verified sensitivity, specificity, AUC, and calibration error figures from `models/validation_report.json`.
-- Updated benchmark plotter scripts (`scripts/generate_presentation_charts.py`, `scripts/benchmark_plotter.py`) with run disambiguation, deterministic ordering, and UTF-8 console support.
+### Fixed
+- Resolved telemetry schema inconsistencies across nested and flat log structures.
+- Eliminated all frontend compilation warnings and verified production build (`npm run build`).
 
-### Security
-- Maintained HIPAA/GDPR audit trail logging, JTI blacklisting, and strict input validation across all endpoints.
-- Implemented robust global exception handling to prevent stack trace leaks.
+---
+
+## [v2.2.0] - 2026-09-10
+- GPU acceleration via NVIDIA RTX 5060 Laptop GPU with PyTorch Automatic Mixed Precision (AMP FP16).
+- Database migration to asynchronous SQLAlchemy sessions (`asyncpg` / `aiosqlite`) with Alembic versioning.
+- Clinician override recording and append-only audit trail.
