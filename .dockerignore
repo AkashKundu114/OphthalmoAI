@@ -1,4 +1,4 @@
-﻿# ========================
+# ========================
 # Git & Documentation
 # ========================
 .git/
@@ -59,6 +59,9 @@ frontend/.vite/
 # ========================
 dataset/
 sample/
+models/*.pth
+models/*.pt
+models/*.bin
 models/*.tmp
 models/*checkpoint*
 models/*.bak
