@@ -29,6 +29,8 @@
 | M7 | Medium | Chat endpoint used a manual DB session | Now uses `Depends(get_db)` like every other endpoint |
 | M8 | Medium | Image processing DoS (decompression bomb) | `validate_image_dimensions()` sets `Image.MAX_IMAGE_PIXELS` |
 | M9 | Medium | No SAST pipeline | Bandit + Semgrep in `security.yml` |
+| M10 | High | Out-of-distribution image hallucination | `validate_fundus_image()` deterministic optical aperture & chromophore check |
+| M11 | High | Prompt injection / jailbreak bypassing triage | Pre-prompt sanitization regex + strict conversational guardrail filters |
 | L1 | Low | License inconsistency (MIT vs Apache) | All references updated to Apache 2.0 |
 | L2 | Low | Unused Inter font loaded on every page | Removed |
 | L3 | Low | Full IP addresses in logs (PII/GDPR) | `anonymise_ip()` masks last IPv4 octet / last 80 IPv6 bits |

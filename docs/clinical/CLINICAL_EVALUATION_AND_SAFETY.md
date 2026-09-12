@@ -25,46 +25,58 @@ OphthalmoAI is an artificial intelligence-assisted clinical decision-support sof
 
 ## 2. Empirical Clinical Validation & Benchmark Results
 
-### 2.1 Held-Out Test Set Evaluation ( = 938$)
-All models were benchmarked on a strictly segregated, held-out empirical test split of 938 verified color fundus scans.
+### 2.1 Held-Out Test Set Evaluation ($n = 938$)
+All models were benchmarked on a strictly segregated, held-out empirical test split of 938 verified color fundus scans across the 6 target classes.
 
-| Architecture / Model | Test Accuracy | Macro AUROC | Macro F1 | Calibration $ | Calibrated ECE |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
-| DenseNet-201 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
-| ConvNeXt-Small | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
-| EfficientNet-V2-M | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
-| EfficientNet-B4 (Grad-CAM Saliency Engine) | 81.88% | 0.9685 | 0.7934 | 1.3275 | 0.0582 |
-| ResNet-50 (Baseline) | 75.69% | 0.9320 | 0.7240 | 1.0947 | 0.0412 |
+| Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
+| ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
+| EfficientNet-V2-M | FP16 | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
+| EfficientNet-B4 (Grad-CAM Saliency Engine) | FP16 | 81.88% | 0.9685 | 0.7934 | 1.3275 | 0.0582 |
+| ResNet-50 (Baseline) | FP16 | 75.69% | 0.9320 | 0.7240 | 1.0947 | 0.0412 |
+| Tri-Backbone Soft Ensemble (Research) | BF16 | 81.02% | 0.9752 | 0.7814 | Ensemble | 0.0626 |
 
 ### 2.2 Per-Class Sensitivity & Specificity (Ensemble)
 - **Normal**: Sensitivity 89.2% | Specificity 94.5%
 - **Diabetic Retinopathy**: Sensitivity 88.5% | Specificity 95.8%
 - **Glaucoma**: Sensitivity 82.1% | Specificity 96.2%
 - **Cataract**: Sensitivity 86.4% | Specificity 97.1%
-- **AMD**: Sensitivity 83.7% | Specificity 96.5%
-- **Hypertensive Retinopathy / Myopia**: Sensitivity 81.1% | Specificity 95.9%
+- **Age-related Macular Degeneration (AMD)**: Sensitivity 83.7% | Specificity 96.5%
+- **Hypertensive Retinopathy / Pathological Myopia**: Sensitivity 81.1% | Specificity 95.9%
 
 ---
 
 ## 3. Calibrated Uncertainty & Risk Control
 
 ### 3.1 Platt Temperature Scaling
-Modern neural networks often exhibit overconfidence. OphthalmoAI applies post-hoc temperature scaling ( > 0$) to align output probabilities with empirical accuracy:
-\hat{p}_k = \frac{\exp(z_k / T)}{\sum_j \exp(z_j / T)}
-Temperatures were tuned via negative log-likelihood minimization on the validation set, successfully decreasing Expected Calibration Error across all models down to .0268 - 0.0644$.
+Modern neural networks often exhibit overconfidence. OphthalmoAI applies post-hoc temperature scaling ($T > 0$) to align output probabilities with empirical accuracy:
+$$\hat{p}_k = \frac{\exp(z_k / T)}{\sum_j \exp(z_j / T)}$$
 
-### 3.2 Conformal Prediction & Human-in-the-Loop Review
-The system automatically assigns a 
-equires_human_review: true flag when:
+Temperatures were tuned via negative log-likelihood minimization on the validation set, successfully decreasing Expected Calibration Error across all models down to $0.0268 - 0.0644$.
+
+### 3.2 Urgency-Stratified Conformal Risk Control & Human Review
+The system automatically assigns a `requires_human_review: true` flag when:
 1. Top calibrated confidence is $< 75\%$.
 2. The conformal prediction set contains multiple candidate classes ($|\mathcal{C}(X)| > 1$).
-3. The image fails pre-inference Image Quality Assessment (IQA blur score $< 100$ or extreme brightness anomalies).
-4. Clinician override is submitted via POST /scans/{id}/override.
+3. Epistemic uncertainty exceeds clinical triage threshold ($\mathcal{U}_{\text{epistemic}} \ge 0.15$).
+4. The image fails pre-inference Image Quality Assessment (IQA blur score $< 100$ or extreme brightness anomalies).
+5. Clinician override is submitted via `POST /scans/{id}/override`.
 
 ---
 
-## 4. Explainability & Clinician Verification (Grad-CAM)
+## 4. Optical Aperture & Chromophore Domain Guardrails (OAC-DG)
+To eliminate catastrophic false positives on out-of-distribution imagery (everyday snapshots, pets, documents, noise), OphthalmoAI executes physical domain checks prior to neural inference:
+- **Aperture Circularity**: Asserts optical vignette mask with dark corner margins.
+- **Chorioretinal Chromophore Ratio**: Validates red-to-blue backscatter ($\bar{R}/\bar{B} \ge 1.05$) reflecting hemoglobin and melanin pigments.
+- **Spatial Autocorrelation**: Evaluates lag-1 correlation ($r_{\text{spatial}} \ge 0.35$) to reject synthetic noise and text screenshots.
+- **Rejection Outcome**: Non-fundus uploads are rejected deterministically with HTTP 422, blocking non-medical images from clinical inference.
+
+---
+
+## 5. Explainability & Clinician Verification (Grad-CAM)
 OphthalmoAI pairs every prediction with an interpretable Class Activation Map generated via **EfficientNet-B4**:
 - High-intensity saliency areas correspond directly to pathological features: microaneurysms in DR, optic disc cupping in Glaucoma, and drusen in AMD.
+- Spatial biomarker energy ratios ($\eta_{\text{macula}}, \eta_{\text{disc}}$) quantify anatomical grounding.
 - Both original fundus imagery and Grad-CAM overlays are embedded side-by-side in modern, exportable PDF clinical reports.

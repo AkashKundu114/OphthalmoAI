@@ -71,11 +71,49 @@ CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
         "referral": "Routine annual dilated retinal screening",
         "escalation_message": None
     },
+    # Secondary and historical ocular conditions for comprehensive clinical triage
+    "Uveitis": {
+        "icd10": "H20.9",
+        "snomed_ct": "128473001",
+        "urgency": "urgent",
+        "urgency_rank": 3,
+        "referral": "Uveitis specialist or ophthalmologist - same-week, sooner if pain/photophobia present",
+        "escalation_message": (
+            "Uveitis is a sight-threatening emergency. Untreated, it can progress to "
+            "glaucoma, cataracts, or permanent vision loss. Seek an ophthalmologist "
+            "or uveitis specialist as soon as possible - same-day if pain, photophobia, "
+            "or vision changes are present."
+        )
+    },
+    "Jaundice": {
+        "icd10": "R17",
+        "snomed_ct": "65142007",
+        "urgency": "emergency",
+        "urgency_rank": 4,
+        "referral": "Internal medicine / Gastroenterology - same-day evaluation",
+        "escalation_message": (
+            "Scleral icterus (yellowing of the eye) is a systemic warning sign, not "
+            "an eye disease - it indicates elevated bilirubin and possible liver, "
+            "gallbladder, or blood disorder. This requires same-day evaluation by a "
+            "physician with liver function tests (LFTs), not routine eye care."
+        )
+    },
+    "Conjunctivitis": {
+        "icd10": "H10.9",
+        "snomed_ct": "9826008",
+        "urgency": "elective",
+        "urgency_rank": 1,
+        "referral": "Primary Eye Care / General Practitioner",
+        "escalation_message": None
+    },
 }
 
 def get_clinical_code(diagnosis: str) -> ClinicalCodeEntry:
     # Normalize diagnosis strings
     diag_clean = diagnosis.strip()
+    for key in CLINICAL_CODES:
+        if key.lower() == diag_clean.lower():
+            return CLINICAL_CODES[key]
     for key in CLINICAL_CODES:
         if key.lower() in diag_clean.lower() or diag_clean.lower() in key.lower():
             return CLINICAL_CODES[key]
@@ -84,9 +122,12 @@ def get_clinical_code(diagnosis: str) -> ClinicalCodeEntry:
         "snomed_ct": "371087003",
         "urgency": "urgent",
         "urgency_rank": 2,
-        "referral": "Retina Specialist / Comprehensive Ophthalmologist",
-        "escalation_message": "Unspecified retinal disorder. Comprehensive in-person ophthalmoscopic evaluation recommended.",
+        "referral": "Ophthalmologist (diagnosis not recognised by clinical code table)",
+        "escalation_message": "This diagnosis label isn't recognised by the clinical coding table. Treat this result with caution and consult an ophthalmologist.",
     }
 
 def is_critical(diagnosis: str) -> bool:
     return get_clinical_code(diagnosis)["urgency_rank"] >= 3
+
+def sort_by_urgency(diagnoses: List[str], reverse: bool = True) -> List[str]:
+    return sorted(diagnoses, key=lambda d: get_clinical_code(d)["urgency_rank"], reverse=reverse)

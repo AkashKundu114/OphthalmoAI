@@ -36,18 +36,24 @@ Runs multi-backbone inference, temperature-calibrated soft voting, and Grad-CAM 
   - `file`: Image file (JPEG/PNG, validated via magic bytes)
   - `symptoms`: Optional JSON-encoded clinical symptoms dictionary
 - **Inference Pipeline**:
-  1. Image validation & resizing to 384x384 with Ben Graham circular illumination subtraction.
+  1. Image validation (magic bytes, dimension bounds $\le 10,000 \times 10,000$) & resizing to $384 \times 384$ with Ben Graham circular illumination subtraction.
   2. Image Quality Assessment (IQA) checking sharpness and exposure.
-  3. Parallel forward pass across DenseNet-201, ConvNeXt-Small, and EfficientNet-V2-M.
-  4. Temperature scaling per model: $z_m / T_m$.
-  5. Soft-voting probability averaging across all active backbones.
-  6. EfficientNet-B4 Grad-CAM activation map extraction and viridis colormap generation.
-  7. Clinical metadata mapping (ICD-10, SNOMED-CT, urgency level).
+  3. **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)**: Validates optical aperture circularity, chorioretinal red-to-blue backscatter ($\bar{R}/\bar{B} \ge 1.05$), and spatial autocorrelation. Non-fundus photographs (everyday scenes, pets, noise, documents) are rejected immediately with HTTP 422.
+  4. Parallel forward pass across DenseNet-201, ConvNeXt-Small, and EfficientNet-V2-M.
+  5. Platt temperature scaling per model: $z_m / T_m^*$.
+  6. Soft-voting probability averaging across all active backbones.
+  7. Dedicated EfficientNet-B4 Grad-CAM activation map extraction and viridis colormap generation.
+  8. Clinical metadata mapping (ICD-10, SNOMED-CT, urgency level).
 - **Response (`200 OK`)**: Returns prediction with condition, calibrated confidence, probabilities for all 6 retinal classes, urgency, and base64-encoded Grad-CAM heatmap.
+- **Error Response (`422 Unprocessable Content`)**: Rejection for non-fundus photographs, blurry images, or invalid formats.
 
 ### 2.2 AI Clinical Assistant: `POST /chat`
 - **Request**: `{"message": "...", "scan_context": {...}}`
 - **Engine**: Google Gemini 2.0 Flash (free tier) with fallback to local Ollama.
+- **Guardrails**:
+  - Medical emergency interceptor (e.g. chemical splash, sudden blindness) routing to emergency instructions immediately.
+  - Sanitization against prompt injections ("ignore previous instructions"), jailbreaks ("DAN"), and developer persona overrides.
+  - Rejection of prescription requests and off-topic queries (code generation, essays).
 
 ### 2.3 System & Diagnostic Metadata
 - `GET /health`: Liveness probe.

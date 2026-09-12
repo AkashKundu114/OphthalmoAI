@@ -174,6 +174,10 @@ When $\eta_{\text{macula}} \ge 0.40$, the model grounds its diagnosis in macular
   - **FP16 (Half Precision)**: 1 sign bit, 5 exponent bits, 10 mantissa bits.
   - **BF16 (Bfloat16)**: 1 sign bit, 8 exponent bits, 7 mantissa bits.
 
+<p align="center">
+  <img src="../images/benchmark_accuracy_comparison.png" alt="Fig 1. Benchmark Accuracy Comparison" width="85%" />
+</p>
+
 ### Table 1: Complete Empirical Evaluation on Test Cohort ($n = 938$)
 
 | Architecture / Model | Precision | Test Acc (%) | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE | Epoch Time |
@@ -192,10 +196,25 @@ When $\eta_{\text{macula}} \ge 0.40$, the model grounds its diagnosis in macular
 | ResNet-50 Baseline (GPU) | BF16 | 80.28 | 0.9687 | 0.7746 | 1.0824 | 0.0485 | 50.4s |
 | ResNet-50 Baseline (CPU) | FP32 | 75.69 | 0.9320 | 0.7240 | 1.0947 | 0.0412 | 1949.2s |
 
+<p align="center">
+  <img src="../images/multiclass_roc_curves.png" alt="Fig 4. ROC Curves" width="48%" />
+  <img src="../images/calibration_temperatures_chart.png" alt="Fig 2. Calibration Temperatures" width="48%" />
+</p>
+
+<p align="center">
+  <img src="../images/ensemble_sensitivity_specificity.png" alt="Fig 3. Sensitivity and Specificity" width="48%" />
+  <img src="../images/confusion_matrix_ensemble.png" alt="Fig 5. Confusion Matrix" width="48%" />
+</p>
+
 ### 3.2 Key Findings: Mantissa Precision vs. Dynamic Range
 1. **Classification Accuracy**: FP16 achieves a **+4.16% accuracy advantage** on the primary ensemble (85.18% vs 81.02%) and higher Macro F1 (0.8292 vs 0.7814). Retinal micro-lesions require subtle gradient updates during backpropagation; the 10-bit mantissa of FP16 preserves these gradients without quantization truncation.
 2. **Calibration Stability**: BF16 demonstrates tighter uncalibrated temperature ranges ($T \in [1.08, 1.15]$ vs $T \in [1.06, 1.34]$) due to its larger 8-bit dynamic range, achieving marginal ECE improvements (0.0626 vs 0.0644).
 3. **Deployment Strategy**: Because diagnostic false negatives carry irreversible blindness risk, FP16 was selected for active clinical deployment.
+
+<p align="center">
+  <img src="../images/bf16_vs_fp16_accuracy_comparison.png" alt="Fig 8. Precision Accuracy Study" width="48%" />
+  <img src="../images/bf16_vs_fp16_calibration_comparison.png" alt="Fig 9. Calibration Impact" width="48%" />
+</p>
 
 ---
 
@@ -210,6 +229,15 @@ When $\eta_{\text{macula}} \ge 0.40$, the model grounds its diagnosis in macular
 | ResNet-50 (GPU) | FP16 | 2.38 GB | 2.28 GB | 5.77 GB Free | 68.0 °C |
 | Meta-Ensemble Fusion | FP16 | 0.86 GB | 2.21 GB | 7.29 GB Free | 64.0 °C |
 | ResNet-50 (CPU Baseline) | FP32 | 0.00 GB | 5.33 GB | N/A | Ambient |
+
+<p align="center">
+  <img src="../images/memory_usage_comparison.png" alt="Fig 6. Dual-Memory Allocation" width="48%" />
+  <img src="../images/training_time_comparison.png" alt="Fig 7. Training Time Acceleration" width="48%" />
+</p>
+
+<p align="center">
+  <img src="../images/bf16_vs_fp16_training_time.png" alt="Fig 10. Precision Throughput" width="70%" />
+</p>
 
 ---
 

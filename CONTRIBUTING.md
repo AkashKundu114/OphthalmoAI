@@ -14,8 +14,11 @@ If you've noticed a bug or have a feature request, make sure to check our [Issue
    - For the backend: `cd backend && pip install -r requirements.txt`
    - For the frontend: `cd frontend && npm install`
 4. **Run** the development servers:
-   - Backend: `python main.py`
-   - Frontend: `npm run dev`
+   - Backend: `uvicorn backend.main:app --reload --port 8000`
+   - Frontend: `cd frontend && npm run dev`
+5. **Run tests** before opening a PR:
+   - Backend: `pytest tests -q`
+   - Frontend: `cd frontend && npm run build`
 
 ## Pull Request Process
 

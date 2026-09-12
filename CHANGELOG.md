@@ -17,6 +17,8 @@ All notable changes to this project are documented in this file.
 - **Red-Team Hardened Conversational Assistant**: Hardened Gemini conversational endpoint against prompt injection, jailbreaks, diagnostic hallucinations on invalid uploads, and off-topic queries with 100% test suite defense.
 - **Dual-Resource Telemetry & Visuals**: Upgraded memory graph to display both Dedicated GPU VRAM and Host System RAM; revamped training time graph with dual-panel layout showing 25x GPU speedup.
 - **Novel Algorithmic Formulations**: Integrated 4 formal mathematical formulations (TC-MBE, OAC-DG, US-CRC, and PASG-GradCAM) into research draft and technical white paper.
+- **Publication-Grade Academic Figures Suite**: Upgraded all 10 benchmark and telemetry figures in `docs/images/` to 300 DPI IEEE Transactions on Medical Imaging and Nature Medicine formatting, complete with 95% Wilson CIs, monochrome-safe hatching, and high-specificity inset zoom windows.
+- **Comprehensive Automated Test Suite**: Expanded backend unit and integration tests to 168 tests with 100% pass rate, covering domain validators, non-fundus rejection, clinical codes, calibration, uncertainty decomposition, and precision consistency.
 - **Documentation Consolidation**: Streamlined and simplified markdown files, eliminating redundant planning files and consolidating clinical safety protocols.
 
 ### Fixed

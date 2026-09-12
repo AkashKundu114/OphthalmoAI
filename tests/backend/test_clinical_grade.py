@@ -279,12 +279,9 @@ class TestClinicalCodes(unittest.TestCase):
 
     def test_all_diagnoses_have_entries(self):
         from backend.clinical_codes import CLINICAL_CODES
-        expected = {
-            "Cataract", "Conjunctivitis", "Eyelid", "Jaundice",
-            "Uveitis", "Normal", "Pterygium", "Ptosis", "Blepharitis",
-            "Chalazion", "Stye", "Keratitis", "Subconjunctival Hemorrhage"
-        }
-        self.assertEqual(set(CLINICAL_CODES.keys()), expected)
+        from backend.main import MONOLITHIC_CLASSES
+        for cls in MONOLITHIC_CLASSES:
+            self.assertIn(cls, CLINICAL_CODES, f"Target retinal class {cls} missing from CLINICAL_CODES")
 
     def test_icd10_codes_non_empty(self):
         from backend.clinical_codes import CLINICAL_CODES
@@ -448,7 +445,19 @@ class TestPredictResponseShape(unittest.TestCase):
     by running the FastAPI test client with all models mocked away."""
 
     def _make_fake_image_bytes(self):
-        img = Image.new("RGB", (100, 100), color=(128, 100, 90))
+        size = 256
+        y, x = np.mgrid[:size, :size]
+        center = size // 2
+        radius = size // 2 - 12
+        mask = (x - center)**2 + (y - center)**2 <= radius**2
+        
+        arr = np.zeros((size, size, 3), dtype=np.uint8)
+        # Red-orange fundus choroid color with gradual variation
+        arr[mask, 0] = np.clip(180 + 20 * np.sin(x[mask] / 25.0), 120, 240).astype(np.uint8)
+        arr[mask, 1] = np.clip(80 + 15 * np.cos(y[mask] / 25.0), 40, 140).astype(np.uint8)
+        arr[mask, 2] = np.clip(30 + 10 * np.sin((x[mask]+y[mask]) / 35.0), 10, 60).astype(np.uint8)
+        
+        img = Image.fromarray(arr)
         buf = BytesIO()
         img.save(buf, format="JPEG")
         return buf.getvalue()

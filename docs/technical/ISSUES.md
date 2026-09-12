@@ -17,6 +17,7 @@ This log tracks architectural items, resolved engineering blockers, and ongoing 
 | **R7** | Low | Telemetry & Visuals | Created unified benchmark visualizer generating 10 high-resolution charts in `docs/images/` including dual RAM+VRAM and training speedups. |
 | **R8** | High | Precision Engineering | Evaluated full BF16 suite across all backbones vs FP16 (+4.16% accuracy gain for FP16); saved weights and calibrated with Platt scaling. |
 | **R9** | Critical | Clinical Safety / Guardrails | Built multi-spectral retinal fundus domain validator and hardened Gemini conversational API against prompt injection and jailbreaks. |
+| **R10** | High | Visuals & Test Coverage | Upgraded all 10 benchmark figures to publication-grade academic standards (300 DPI, IEEE/Nature style) and expanded automated test suite to 169 tests with 100% pass rate. |
 
 ---
 

@@ -31,6 +31,9 @@ OphthalmoAI is a single-page application (SPA) with five top-level views managed
 [3. Pre-Inference IQA Check] (sharpness, exposure, illumination)
        │
        ▼
+[3b. Retinal Domain Guardrail (OAC-DG)] (aperture, chromophore R/B ratio, noise)
+       │ ──[Non-Fundus Object / Noise / Document]──► [Friendly Rejection Modal (HTTP 422)]
+       ▼ (Verified Retinal Fundus)
 [4. Tri-Backbone Soft-Voting]
    ├── DenseNet-201 (z_1 / T_1)
    ├── ConvNeXt-Small (z_2 / T_2)

@@ -32,7 +32,7 @@ Consumption mode already scale to zero.
 
 - GitHub Student Developer Pack (claim Azure credit at education.github.com/pack)
 - Docker Desktop, Azure CLI (`az`), `az extension add --name containerapp --upgrade`
-- Trained model weights in `models/` (`router.pth`, `specialist_anterior.pth`, `specialist_surface.pth`)
+- Trained model weights in `models/` (`densenet201_best.pth`, `convnext_best.pth`, `efficientnet_v2_best.pth`, `efficientnet_b4_best.pth`)
 - A Google Gemini API key (free tier — `ai.google.dev`), or an Ollama endpoint
 
 ---
