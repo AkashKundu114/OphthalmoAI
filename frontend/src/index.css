@@ -31,6 +31,74 @@
   --radius-lg: 20px;
 }
 
+/* ==========================================================================
+   CLINICAL USAGE THEME: Precision Medical Terminal / Workstation
+   ========================================================================== */
+.theme-clinical {
+  background-color: #050811 !important;
+  background-image: 
+    radial-gradient(at 50% 0%, #0c142b 0%, #050811 100%),
+    linear-gradient(to right, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.03) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 32px 32px, 32px 32px !important;
+  color: #F1F5F9;
+}
+
+.theme-clinical .glass-panel {
+  background: rgba(8, 14, 28, 0.85);
+  border: 1px solid rgba(99, 102, 241, 0.16);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.theme-clinical .glass-card {
+  background: linear-gradient(135deg, rgba(13, 22, 45, 0.7) 0%, rgba(8, 14, 28, 0.9) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.theme-clinical .glass-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+}
+
+.theme-clinical .clinical-glow-indigo {
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);
+}
+
+.theme-clinical .clinical-grid-pill {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   PUBLIC USAGE THEME: Clean, Reassuring, Accessible Health Portal
+   ========================================================================== */
+.theme-public {
+  background-color: #090D16 !important;
+  background-image: 
+    radial-gradient(circle at 50% -10%, #0c2738 0%, #090D16 100%),
+    radial-gradient(circle at 100% 100%, #061923 0%, transparent 60%) !important;
+  color: #F8FAFC;
+}
+
+.theme-public .glass-panel {
+  background: rgba(13, 24, 38, 0.78);
+  border: 1px solid rgba(0, 173, 181, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+}
+
+.theme-public .glass-card {
+  background: linear-gradient(135deg, rgba(18, 34, 52, 0.65) 0%, rgba(11, 20, 32, 0.85) 100%);
+  border: 1px solid rgba(0, 173, 181, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.theme-public .glass-card:hover {
+  border-color: rgba(0, 173, 181, 0.35);
+  box-shadow: 0 8px 30px rgba(0, 173, 181, 0.18);
+}
+
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
