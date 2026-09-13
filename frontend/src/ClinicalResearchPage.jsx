@@ -6,7 +6,7 @@ import {
   CheckCircle2, Info, Layers, Filter
 } from 'lucide-react'
 
-export const PAPERS_DATABASE = [
+const PAPERS_DATABASE = [
   // --- arXiv & AI Preprints ---
   {
     id: 'arxiv-2409-08312',

@@ -26,31 +26,7 @@ const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
 
-export const FALLBACK_TUNNEL_URL = ''
-
-export const getActiveApiUrl = () => {
-  if (typeof window !== 'undefined') {
-    const custom = window.localStorage?.getItem('ophthalmo_api_url')
-    if (custom && custom.trim() && !custom.includes('trycloudflare.com')) {
-      return custom.trim().replace(/\/+$/, '')
-    }
-    const hostname = window.location.hostname
-    if (
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname === '0.0.0.0' ||
-      hostname.endsWith('.local') ||
-      hostname.includes('vercel.app')
-    ) {
-      return '/api'
-    }
-  }
-  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.API_URL
-  if (envUrl && envUrl.trim() && !envUrl.includes('trycloudflare.com')) {
-    return envUrl.trim().replace(/\/+$/, '')
-  }
-  return '/api'
-}
+import { getActiveApiUrl, FALLBACK_TUNNEL_URL } from './apiConfig'
 
 const FALLBACK_CONDITIONS = [
   {
@@ -647,77 +623,6 @@ export default function App() {
   const [conditionGroup, setConditionGroup] = useState('All')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const viewMode = 'public'
-  const [copiedBibtex, setCopiedBibtex] = useState(false)
-
-  const handleCopyBibtex = () => {
-    const bibtex = `@article{kundu2025ophthalmoai,
-  title={Calibrated Heterogeneous Vision Ensemble with Conformal Prediction for Ocular Disease Screening},
-  author={Kundu, Akash and Contributors},
-  journal={OphthalmoAI Clinical Systems},
-  year={2025},
-  note={Test Accuracy: 85.18%, Macro AUROC: 0.9805, Macro F1: 0.8292, Platt Temperature Scaled}
-}`
-    navigator.clipboard?.writeText(bibtex).then(() => {
-      setCopiedBibtex(true)
-      setTimeout(() => setCopiedBibtex(false), 2500)
-    }).catch(() => {})
-  }
-
-  const handleExportRawJSON = () => {
-    if (!result) return
-    const payload = {
-      scan_id: result.scan_id || 'DEMO-SCAN',
-      timestamp: new Date().toISOString(),
-      model: {
-        architecture: "Tri-Backbone Soft-Voting Ensemble (Calibrated)",
-        backbones: result.models_ensembled || ["DenseNet-201", "ConvNeXt-Small", "EfficientNet-V2-M"],
-        xai_head: "EfficientNet-B4 Grad-CAM (features[-1])",
-        benchmark_test_accuracy: "85.18%",
-        benchmark_macro_auroc: 0.9805,
-        benchmark_macro_f1: 0.8292,
-        ece: 0.0644,
-        calibration_temperatures: {
-          densenet201: 1.2616,
-          convnext_small: 1.3407,
-          efficientnet_v2_m: 1.0654,
-          efficientnet_b4: 1.3275
-        }
-      },
-      inference: {
-        diagnosis: result.diagnosis,
-        calibrated_confidence_pct: result.confidence,
-        probabilities: result.probabilities,
-        mc_uncertainty_score: result.uncertainty,
-        conformal_coverage_guarantee: "95.0%",
-        icd10_code: result.icd10_code,
-        snomed_code: result.snomed_code,
-        urgency: result.urgency
-      },
-      patient_intake: {
-        age: patientAge || null,
-        bp: (systolicBP && diastolicBP) ? `${systolicBP}/${diastolicBP}` : null,
-        hba1c: hba1c || null,
-        smoker: isSmoker,
-        laterality: affectedEye,
-        symptoms: {
-          pain: painLevel,
-          vision_deficit: visionLoss,
-          floaters: floaters,
-          halos: halos,
-          itchiness: itchiness,
-          discharge: discharge,
-          duration: duration
-        }
-      }
-    }
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `OphthalmoAI_Tensor_Inference_${(result.scan_id || 'SCAN').slice(0, 8)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
 
   // Clinical Quick Presets
   const applyPreset = (type) => {
@@ -1470,7 +1375,7 @@ export default function App() {
       doc.setFontSize(5.4)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(148, 163, 184)
-      doc.text(`OphthalmoAI Clinical Diagnostic Summary  ·  Report ID: ${scanId}  ·  Strictly Confidential Medical Record  ·  Page 1 of 1`, pageWidth / 2, 292, { align: 'center' })
+      doc.text(`OphthalmoAI Clinical Diagnostic Summary  ·  Report ID: ${scanId}  ·  Strictly Confidential Medical Record  ·  Page 1 of 1`, pageWidth / 2, pageHeight - 5, { align: 'center' })
 
       const fileName = `OphthalmoAI_Clinical_Report_${(result.diagnosis || 'Diagnosis').replace(/[^a-zA-Z0-9_-]/g, '_')}_${scanId.slice(0, 8)}.pdf`
 

@@ -5,7 +5,7 @@ import {
   Bot, User, AlertCircle, Sparkles, ChevronDown, RefreshCw,
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
-import { getActiveApiUrl, FALLBACK_TUNNEL_URL } from './App'
+import { getActiveApiUrl, FALLBACK_TUNNEL_URL } from './apiConfig'
 
 const MAX_INPUT_LENGTH  = 2000
 const MAX_HISTORY_TURNS = 20
