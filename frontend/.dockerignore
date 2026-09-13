@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+.git/
+.vscode/
+.idea/
+*.log
+.env
+.env.*
+!.env.example

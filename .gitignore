@@ -10,9 +10,10 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 *.dmp
+$RECYCLE.BIN/
 
 # ========================
-# IDE & Editors & AI Agents
+# IDE, Editors & AI Agents
 # ========================
 .vscode/
 .idea/
@@ -22,6 +23,10 @@ desktop.ini
 .settings/
 .agents/
 .claude/
+.gemini/
+.antigravity/
+.system_generated/
+.tempmediaStorage/
 .codex-run-logs/
 
 # ========================
@@ -32,6 +37,8 @@ __pycache__/
 *$py.class
 *.so
 *.pyd
+*.egg-info/
+.eggs/
 
 # Environments
 venv/
@@ -49,10 +56,13 @@ venv.bak/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage/
 htmlcov/
 .tox/
 nosetests.xml
 coverage.xml
+.nyc_output/
 
 # Databases & Local Scan Storage
 *.db
@@ -77,6 +87,11 @@ build/
 frontend/dist/
 frontend/build/
 frontend/.vite/
+.vite/
+frontend/coverage/
+.turbo/
+.cache/
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -110,12 +125,20 @@ models/*
 .env.*
 !.env.example
 !.env.sample
+*.pem
+*.key
+*.cert
+*.crt
+service-account*.json
+credentials.json
 .last_tunnel_url
 .cloudflared/
 
 # ========================
 # Logs & Temp Scripts
 # ========================
+logs/
+*/logs/
 *.log
 backend-live*.out.log
 backend-live*.err.log
@@ -135,10 +158,20 @@ run_diagnostics.bat
 start_tunnel.bat
 run_frontend.bat
 run_backend.bat
+run_native_backend.bat
+run_native_frontend.bat
+run_native_*.bat
+temp/
+tmp/
+uploads/
+static/uploads/
 
 # Production automation scripts to keep
 !start_public_gpu.bat
 !run_docker_train.ps1
 
 # Synthetic test images generated at runtime
-static/synthetic-*.jpg
+static/synthetic-*.*
+synthetic-*.*
+*_cam.jpg
+*_cam.png

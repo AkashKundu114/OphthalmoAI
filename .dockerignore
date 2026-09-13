@@ -11,6 +11,10 @@ ROADMAP.md
 PRODUCTION.md
 LICENSE
 docs/
+paper/
+research/
+assets/
+images/
 
 # ========================
 # IDEs, Editors & Agents
@@ -19,8 +23,14 @@ docs/
 .idea/
 *.swp
 *.swo
+.project
+.settings/
 .agents/
 .claude/
+.gemini/
+.antigravity/
+.system_generated/
+.tempmediaStorage/
 .codex-run-logs/
 
 # ========================
@@ -31,10 +41,14 @@ __pycache__/
 *$py.class
 *.so
 *.pyd
+*.egg-info/
+.eggs/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage/
 htmlcov/
 tests/
 venv/
@@ -50,18 +64,30 @@ env*/
 # ========================
 node_modules/
 frontend/node_modules/
+dist/
+build/
 frontend/dist/
 frontend/build/
 frontend/.vite/
+.vite/
+frontend/coverage/
 
 # ========================
-# Raw Datasets & Temporary Files
+# Raw Datasets, Scripts & Model Weights
 # ========================
 dataset/
 sample/
+scripts/
+k8s/
 models/*.pth
 models/*.pt
 models/*.bin
+models/*.onnx
+models/*.safetensors
+models/*.keras
+models/*.h5
+models/*.tflite
+models/*.weights
 models/*.tmp
 models/*checkpoint*
 models/*.bak
@@ -77,16 +103,26 @@ models/*.bak
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
+ophthalmoai.db*
 mongodb_mock/*.json
 !mongodb_mock/.gitkeep
 
 # ========================
-# Environments, Secrets & Runtime Logs
+# Environments, Secrets, Logs & Scripts
 # ========================
 .env
 .env.*
+logs/
+*/logs/
 *.log
 .last_tunnel_url
 .cloudflared/
 *.bat
 *.ps1
+temp/
+tmp/
+uploads/
+static/uploads/
+static/synthetic-*.*
+synthetic-*.*
+*_cam.*
