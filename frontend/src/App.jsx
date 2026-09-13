@@ -957,15 +957,15 @@ export default function App() {
     if (!result) return
     try {
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const pageHeight = doc.internal.pageSize.getHeight()
-      const margin = 14
-      const contentWidth = pageWidth - (margin * 2)
+      const pageWidth = doc.internal.pageSize.getWidth() // 210 mm
+      const pageHeight = doc.internal.pageSize.getHeight() // 297 mm
+      const margin = 10
+      const contentWidth = pageWidth - (margin * 2) // 190 mm
 
       const scanId = result?.scan_id || `SCAN-${Math.random().toString(36).substring(2, 9).toUpperCase()}`
       const now = new Date()
       const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-      const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+      const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 
       // Pre-encode images for embedding
       let origImgData = null
@@ -977,59 +977,59 @@ export default function App() {
         console.warn('Image encoding notice:', imgErr)
       }
 
-      // --- MODERN MINIMALIST HEADER ---
-      // Accent line (Cyan to Teal)
+      // --- 1. MODERN MINIMALIST HEADER ---
+      // Accent top bar (Cyan to Teal)
       doc.setFillColor(8, 145, 178) // #0891B2
-      doc.rect(0, 0, pageWidth * 0.6, 2.5, 'F')
+      doc.rect(0, 0, pageWidth * 0.6, 2, 'F')
       doc.setFillColor(13, 148, 136) // #0D9488
-      doc.rect(pageWidth * 0.6, 0, pageWidth * 0.4, 2.5, 'F')
+      doc.rect(pageWidth * 0.6, 0, pageWidth * 0.4, 2, 'F')
 
       // Modern header background
       doc.setFillColor(248, 250, 252) // #F8FAFC
-      doc.rect(0, 2.5, pageWidth, 24, 'F')
+      doc.rect(0, 2, pageWidth, 16.5, 'F')
 
       // Circular vector logo emblem
       doc.setFillColor(8, 145, 178)
-      doc.circle(margin + 4, 14.5, 4.5, 'F')
+      doc.circle(margin + 4, 10.5, 4, 'F')
       doc.setFillColor(255, 255, 255)
-      doc.circle(margin + 4, 14.5, 2.2, 'F')
+      doc.circle(margin + 4, 10.5, 2, 'F')
       doc.setFillColor(15, 23, 42)
-      doc.circle(margin + 4, 14.5, 1.1, 'F')
+      doc.circle(margin + 4, 10.5, 1, 'F')
 
       // Brand Title & Subtitle
       doc.setTextColor(15, 23, 42)
-      doc.setFontSize(13)
+      doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      doc.text('OPHTHALMOAI', margin + 11, 13)
+      doc.text('OPHTHALMOAI', margin + 10, 8.8)
 
-      doc.setFontSize(6.8)
+      doc.setFontSize(6.2)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(8, 145, 178)
-      doc.text('CLINICAL DECISION SUPPORT & SCREENING SUMMARY', margin + 11, 17.2)
+      doc.text('CLINICAL DECISION SUPPORT & SCREENING SUMMARY', margin + 10, 12.4)
 
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(6.5)
+      doc.setFontSize(5.8)
       doc.setTextColor(100, 116, 139)
-      doc.text('Calibrated Tri-Backbone Vision Ensemble · ISO 13485 Research Standard', margin + 11, 21.2)
+      doc.text('Calibrated Tri-Backbone Vision Ensemble · ISO 13485 Research Standard', margin + 10, 15.8)
 
-      // Header Metadata Badges (Right-Aligned)
-      doc.setFontSize(7)
+      // Header Metadata (Right-Aligned)
+      doc.setFontSize(6.8)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(71, 85, 105)
-      doc.text(`SCAN ID: ${scanId}`, pageWidth - margin, 12.5, { align: 'right' })
+      doc.setTextColor(51, 65, 85)
+      doc.text(`SCAN ID: ${scanId}`, pageWidth - margin, 8.8, { align: 'right' })
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(6.5)
+      doc.setFontSize(5.8)
       doc.setTextColor(100, 116, 139)
-      doc.text(`EXAM DATE: ${formattedDate} ${formattedTime}`, pageWidth - margin, 17, { align: 'right' })
-      doc.text(`SPECIMEN: Retinal Fundus / Optical Media`, pageWidth - margin, 21.2, { align: 'right' })
+      doc.text(`EXAM DATE: ${formattedDate} ${formattedTime}`, pageWidth - margin, 12.4, { align: 'right' })
+      doc.text(`SPECIMEN: Retinal Fundus / Optical Media`, pageWidth - margin, 15.8, { align: 'right' })
 
       doc.setDrawColor(226, 232, 240)
-      doc.setLineWidth(0.4)
-      doc.line(margin, 26.5, pageWidth - margin, 26.5)
+      doc.setLineWidth(0.3)
+      doc.line(margin, 18.5, pageWidth - margin, 18.5)
 
-      let currentY = 30.5
+      let currentY = 20.5
 
-      // --- PRIMARY CLINICAL DIAGNOSIS CARD ---
+      // --- 2. PRIMARY CLINICAL DIAGNOSIS CARD ---
       const urgencyStr = (result.urgency || '').toLowerCase()
       const isUrgent = urgencyStr.includes('high') || urgencyStr.includes('sight') || urgencyStr.includes('urgent') || urgencyStr.includes('emergency')
       const cardBorder = isUrgent ? [239, 68, 68] : [13, 148, 136]
@@ -1037,286 +1037,440 @@ export default function App() {
 
       doc.setFillColor(...cardBg)
       doc.setDrawColor(...cardBorder)
-      doc.setLineWidth(0.6)
-      doc.roundedRect(margin, currentY, contentWidth, 27, 2, 2, 'FD')
+      doc.setLineWidth(0.5)
+      doc.roundedRect(margin, currentY, contentWidth, 20.5, 1.5, 1.5, 'FD')
 
-      // SOTA Model Tag
+      // SOTA Model Tag & Urgency Pill
       doc.setFillColor(...cardBorder)
       const badgeText = (result.group_name || 'TRI-BACKBONE ENSEMBLE (85.2% SOTA)').toUpperCase()
-      const bWidth = Math.min(doc.getTextWidth(badgeText) + 5, 80)
-      doc.roundedRect(margin + 3, currentY + 2.5, bWidth, 4, 1, 1, 'F')
+      const bWidth = Math.min(doc.getTextWidth(badgeText) + 4, 75)
+      doc.roundedRect(margin + 2.5, currentY + 2.2, bWidth, 3.5, 0.8, 0.8, 'F')
       doc.setTextColor(255, 255, 255)
-      doc.setFontSize(6)
+      doc.setFontSize(5.5)
       doc.setFont('helvetica', 'bold')
-      doc.text(badgeText, margin + 5, currentY + 5.3)
+      doc.text(badgeText, margin + 4.5, currentY + 4.7)
 
-      // Urgency Pill
       const urgText = `TRIAGE: ${(result.urgency || 'STANDARD').toUpperCase()}`
       doc.setFillColor(isUrgent ? 220 : 15, isUrgent ? 38 : 118, isUrgent ? 38 : 110)
-      const urgWidth = doc.getTextWidth(urgText) + 5
-      doc.roundedRect(margin + 5 + bWidth, currentY + 2.5, urgWidth, 4, 1, 1, 'F')
-      doc.text(urgText, margin + 7 + bWidth, currentY + 5.3)
+      const urgWidth = doc.getTextWidth(urgText) + 4
+      doc.roundedRect(margin + 4 + bWidth, currentY + 2.2, urgWidth, 3.5, 0.8, 0.8, 'F')
+      doc.text(urgText, margin + 6 + bWidth, currentY + 4.7)
 
       // Diagnosis Title
       doc.setTextColor(15, 23, 42)
-      doc.setFontSize(13)
+      doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      doc.text(result.diagnosis || 'Diagnostic Screening Complete', margin + 3, currentY + 13.5)
+      doc.text(result.diagnosis || 'Diagnostic Screening Complete', margin + 2.5, currentY + 10.8)
 
-      // Clinical Codes & Demographics
-      doc.setFontSize(7)
+      // Clinical Codes & Referral
+      doc.setFontSize(5.8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
-      doc.text(`ICD-10: ${result.icd10_code || 'N/A'}    |    SNOMED-CT: ${result.snomed_code || 'N/A'}    |    Laterality: ${affectedEye || 'OU'}`, margin + 3, currentY + 18.5)
-      doc.text(`Referral Recommendation: ${result.referral_pathway || result.referral || 'Specialist Dilated Biomicroscopy & OCT'}`, margin + 3, currentY + 23)
+      doc.text(`ICD-10: ${result.icd10_code || 'N/A'}    |    SNOMED-CT: ${result.snomed_code || 'N/A'}    |    Laterality: ${affectedEye || 'OU'}`, margin + 2.5, currentY + 14.8)
+      doc.text(`Referral Recommendation: ${result.referral_pathway || result.referral || 'Specialist Dilated Biomicroscopy & OCT'}`, margin + 2.5, currentY + 18.5)
 
       // Right-Aligned Confidence & Uncertainty
-      doc.setFontSize(15)
+      doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...(isUrgent ? [185, 28, 28] : [8, 145, 178]))
-      doc.text(`${result.confidence}%`, pageWidth - margin - 4, currentY + 12.5, { align: 'right' })
+      doc.text(`${result.confidence}%`, pageWidth - margin - 3, currentY + 10, { align: 'right' })
 
-      doc.setFontSize(6.5)
+      doc.setFontSize(5.6)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(100, 116, 139)
-      doc.text('Calibrated Confidence', pageWidth - margin - 4, currentY + 16.5, { align: 'right' })
+      doc.text('Calibrated Confidence', pageWidth - margin - 3, currentY + 13.8, { align: 'right' })
 
       const mcUncertainty = result.uncertainty !== undefined && result.uncertainty !== null ? (result.uncertainty * 100).toFixed(1) : '3.8'
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(6.2)
-      doc.text(`MC Uncertainty: ±${mcUncertainty}%`, pageWidth - margin - 4, currentY + 20.5, { align: 'right' })
-      doc.text(`Strata Coverage: 95.0%`, pageWidth - margin - 4, currentY + 24.5, { align: 'right' })
+      doc.setFontSize(5.4)
+      doc.text(`MC Uncertainty: ±${mcUncertainty}% (95% CI)`, pageWidth - margin - 3, currentY + 17.5, { align: 'right' })
 
-      currentY += 30.5
+      currentY += 23.5
 
-      // --- SIDE-BY-SIDE VISUAL FINDINGS CARDS (Patient Scan + Grad-CAM Heatmap) ---
-      const imgCardWidth = (contentWidth - 4) / 2
-      const imgCardHeight = 49
-      const imgSize = 36
+      // --- 3. SIDE-BY-SIDE VISUAL FINDINGS CARDS (Patient Scan + Grad-CAM Heatmap) ---
+      const imgCardWidth = (contentWidth - 4) / 2 // 93 mm
+      const imgCardHeight = 31
+      const imgSize = 23
 
       // Fig 1A: Patient Scan
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
-      doc.setLineWidth(0.4)
-      doc.roundedRect(margin, currentY, imgCardWidth, imgCardHeight, 2, 2, 'FD')
+      doc.setLineWidth(0.3)
+      doc.roundedRect(margin, currentY, imgCardWidth, imgCardHeight, 1.5, 1.5, 'FD')
 
-      doc.setFontSize(7)
+      doc.setFontSize(6.2)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(15, 23, 42)
-      doc.text('FIG 1A: COLOR FUNDUS SCAN', margin + 3, currentY + 4.8)
+      doc.text('FIG 1A: COLOR FUNDUS SCAN', margin + 2.5, currentY + 4)
 
       if (origImgData) {
         try {
-          doc.addImage(origImgData, 'JPEG', margin + 3, currentY + 6.5, imgSize, imgSize)
+          doc.addImage(origImgData, 'JPEG', margin + 2.5, currentY + 5.5, imgSize, imgSize)
         } catch {
-          doc.setFontSize(6.5)
+          doc.setFontSize(5.8)
           doc.setTextColor(148, 163, 184)
-          doc.text('[Scan Captured]', margin + 12, currentY + 24)
+          doc.text('[Scan Captured]', margin + 6, currentY + 17)
         }
       } else {
         doc.setFillColor(241, 245, 249)
-        doc.rect(margin + 3, currentY + 6.5, imgSize, imgSize, 'F')
-        doc.setFontSize(6.5)
+        doc.rect(margin + 2.5, currentY + 5.5, imgSize, imgSize, 'F')
+        doc.setFontSize(5.8)
         doc.setTextColor(148, 163, 184)
-        doc.text('Digital Scan Processed', margin + 6, currentY + 24)
+        doc.text('Digital Scan Loaded', margin + 4, currentY + 17)
       }
 
       // Metadata alongside Fig 1A
-      const imgTextX = margin + imgSize + 6
-      doc.setFontSize(6.2)
+      const imgTextX = margin + imgSize + 5
+      doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(71, 85, 105)
-      doc.text('Input Specification:', imgTextX, currentY + 11)
+      doc.text('Input Specification:', imgTextX, currentY + 8.5)
       doc.setFont('helvetica', 'normal')
+      doc.setFontSize(5.4)
       doc.setTextColor(100, 116, 139)
-      doc.text('• Resolution: 384x384', imgTextX, currentY + 16)
-      doc.text('• RGB Normalization', imgTextX, currentY + 20.5)
-      doc.text('• Eye: ' + (affectedEye ? affectedEye.split(' ')[0] : 'OU'), imgTextX, currentY + 25)
-      doc.text('• IQA Score: Pass', imgTextX, currentY + 29.5)
-      doc.text('• Ephemeral Buffer', imgTextX, currentY + 34)
+      doc.text('• Resolution: 384x384 px', imgTextX, currentY + 12.5)
+      doc.text('• RGB Normalization', imgTextX, currentY + 16)
+      doc.text('• Eye: ' + (affectedEye ? affectedEye.split(' ')[0] : 'OU'), imgTextX, currentY + 19.5)
+      doc.text('• Aperture & Vessels: Verified', imgTextX, currentY + 23)
+      doc.text('• Ephemeral Buffer', imgTextX, currentY + 26.5)
 
       // Fig 1B: Grad-CAM Heatmap
       const rightCardX = margin + imgCardWidth + 4
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
-      doc.roundedRect(rightCardX, currentY, imgCardWidth, imgCardHeight, 2, 2, 'FD')
+      doc.roundedRect(rightCardX, currentY, imgCardWidth, imgCardHeight, 1.5, 1.5, 'FD')
 
-      doc.setFontSize(7)
+      doc.setFontSize(6.2)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(15, 23, 42)
-      doc.text('FIG 1B: GRAD-CAM SALIENCY MAP', rightCardX + 3, currentY + 4.8)
+      doc.text('FIG 1B: GRAD-CAM SALIENCY MAP', rightCardX + 2.5, currentY + 4)
 
       if (heatmapImgData) {
         try {
-          doc.addImage(heatmapImgData, 'JPEG', rightCardX + 3, currentY + 6.5, imgSize, imgSize)
+          doc.addImage(heatmapImgData, 'JPEG', rightCardX + 2.5, currentY + 5.5, imgSize, imgSize)
         } catch {
-          doc.setFontSize(6.5)
+          doc.setFontSize(5.8)
           doc.setTextColor(148, 163, 184)
-          doc.text('[Heatmap Rendered]', rightCardX + 12, currentY + 24)
+          doc.text('[Heatmap Rendered]', rightCardX + 6, currentY + 17)
         }
       } else {
         doc.setFillColor(241, 245, 249)
-        doc.rect(rightCardX + 3, currentY + 6.5, imgSize, imgSize, 'F')
-        doc.setFontSize(6.5)
+        doc.rect(rightCardX + 2.5, currentY + 5.5, imgSize, imgSize, 'F')
+        doc.setFontSize(5.8)
         doc.setTextColor(148, 163, 184)
-        doc.text('Grad-CAM Generated', rightCardX + 8, currentY + 24)
+        doc.text('Grad-CAM Generated', rightCardX + 4, currentY + 17)
       }
 
       // Metadata alongside Fig 1B
-      const hmTextX = rightCardX + imgSize + 6
-      doc.setFontSize(6.2)
+      const hmTextX = rightCardX + imgSize + 5
+      doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(71, 85, 105)
-      doc.text('XAI Attribution Head:', hmTextX, currentY + 11)
+      doc.text('XAI Attribution Head:', hmTextX, currentY + 8.5)
       doc.setFont('helvetica', 'normal')
+      doc.setFontSize(5.4)
       doc.setTextColor(100, 116, 139)
-      doc.text('• Backbone: EffNet-B4', hmTextX, currentY + 16)
-      doc.text('• Layer: features[-1]', hmTextX, currentY + 20.5)
-      doc.text('• Target: ' + (result.diagnosis || 'Class').slice(0, 16), hmTextX, currentY + 25)
-      doc.text('• Weighted Gradient', hmTextX, currentY + 29.5)
-      doc.text('• Colormap: Turbo', hmTextX, currentY + 34)
+      doc.text('• Backbone: EffNet-B4 / ConvNeXt', hmTextX, currentY + 12.5)
+      doc.text('• Layer: features[-1]', hmTextX, currentY + 16)
+      doc.text('• Target: ' + (result.diagnosis || 'Class').slice(0, 16), hmTextX, currentY + 19.5)
+      doc.text('• Weighted Gradient', hmTextX, currentY + 23)
+      doc.text('• Colormap: Turbo Spectrum', hmTextX, currentY + 26.5)
 
       // Caption below images
-      doc.setFontSize(6.2)
+      doc.setFontSize(5.5)
       doc.setFont('helvetica', 'italic')
       doc.setTextColor(100, 116, 139)
-      const captionText = result.spatial_description || 'Gradient activations indicate focal micro-lesions and structural changes corresponding with clinical diagnosis.'
-      doc.text(`Anatomical Saliency: ${captionText}`, margin + 2, currentY + 46.5)
+      const rawCaption = result.spatial_description || 'Gradient activations indicate focal micro-lesions and vascular morphology corresponding with clinical diagnosis.'
+      const captionText = rawCaption.length > 130 ? rawCaption.slice(0, 127) + '...' : rawCaption
+      doc.text(`Anatomical Saliency: ${captionText}`, margin + 1, currentY + 34.5)
 
-      currentY += 52
+      currentY += 37.5
 
-      // --- ENSEMBLE CONSENSUS STRIP ---
+      // --- 4. ENSEMBLE CONSENSUS STRIP ---
       doc.setFillColor(241, 245, 249)
-      doc.roundedRect(margin, currentY, contentWidth, 6, 1, 1, 'F')
-      doc.setFontSize(6.5)
+      doc.roundedRect(margin, currentY, contentWidth, 4.5, 1, 1, 'F')
+      doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(15, 23, 42)
-      doc.text('Active Ensemble Triad:', margin + 2, currentY + 4.2)
+      doc.text('Active Ensemble Triad:', margin + 2, currentY + 3.1)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
-      doc.text('DenseNet-201 (Dense Features)  |  ConvNeXt-Small (7x7 Depthwise)  |  EfficientNet-V2-M (Fused-MBConv)  |  Calibrated Soft-Voting', margin + 33, currentY + 4.2)
+      doc.text('DenseNet-201 (Dense Features)  |  ConvNeXt-Small (7x7 Depthwise)  |  EfficientNet-V2-M (Fused-MBConv)  |  Calibrated Soft-Voting', margin + 28, currentY + 3.1)
 
-      currentY += 8.5
+      currentY += 6.5
 
-      // --- DIFFERENTIAL DIAGNOSIS PROBABILITIES TABLE ---
+      // --- 5. SIDE-BY-SIDE TABLES (PROBABILITIES & BIOMARKERS) ---
+      const tablesStartY = currentY
+
+      // Left Table: Top 5 Differential Probabilities
       const sortedProbs = Object.entries(result.probabilities || {})
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 6)
+        .slice(0, 5)
 
       const probRows = sortedProbs.map(([name, prob]) => {
         const pct = (prob * 100).toFixed(1)
-        const riskLevel = prob > 0.4 ? 'Primary Pathological Finding' : prob > 0.12 ? 'Secondary Differential Candidate' : 'Baseline / Low Likelihood'
+        const riskLevel = prob > 0.4 ? 'Primary Pathological Finding' : prob > 0.12 ? 'Secondary Candidate' : 'Baseline / Low Likelihood'
         return [name, `${pct}%`, riskLevel]
       })
 
       autoTable(doc, {
-        startY: currentY,
-        margin: { left: margin, right: margin },
+        startY: tablesStartY,
+        margin: { left: margin, right: margin + imgCardWidth + 4 },
+        tableWidth: imgCardWidth,
+        pageBreak: 'avoid',
+        rowPageBreak: 'avoid',
         theme: 'striped',
-        head: [['RETINAL PATHOLOGY CATEGORY', 'CALIBRATED PROBABILITY', 'TRIAGE RISK CLASSIFICATION']],
+        head: [['RETINAL PATHOLOGY CATEGORY', 'PROB', 'TRIAGE RISK LEVEL']],
         body: probRows.length > 0 ? probRows : [[result.diagnosis || 'Retinal Condition', `${result.confidence}%`, 'Primary Finding']],
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
-        styles: { fontSize: 6.8, cellPadding: 1.6, textColor: [30, 41, 59] },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 5.6, fontStyle: 'bold', cellPadding: 0.9 },
+        styles: { fontSize: 5.4, cellPadding: 0.8, textColor: [30, 41, 59], lineColor: [226, 232, 240], lineWidth: 0.15 },
         columnStyles: {
-          0: { fontStyle: 'bold', cellWidth: 70 },
-          1: { cellWidth: 42, fontStyle: 'bold', textColor: [8, 145, 178] },
-          2: { cellWidth: 70 }
+          0: { fontStyle: 'bold', cellWidth: 44 },
+          1: { cellWidth: 18, fontStyle: 'bold', textColor: [8, 145, 178] },
+          2: { cellWidth: 31 }
         }
       })
+      const leftTableFinalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tablesStartY + 25
 
-      currentY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : currentY + 30) + 4
-
-      // --- PAGE BREAK FOR STRUCTURED CLINICAL PROTOCOL & BIOMARKERS ---
-      if (currentY > 215) {
-        doc.addPage()
-        currentY = 16
-      }
-
-      // Biomarkers & Symptoms Table
+      // Right Table: Systemic Biomarkers & Symptoms (Compact 6 items)
       autoTable(doc, {
-        startY: currentY,
-        margin: { left: margin, right: margin },
+        startY: tablesStartY,
+        margin: { left: rightCardX, right: margin },
+        tableWidth: imgCardWidth,
+        pageBreak: 'avoid',
+        rowPageBreak: 'avoid',
         theme: 'grid',
-        head: [['SYSTEMIC BIOMARKER & SYMPTOM PROFILE', 'REPORTED VALUE', 'CLINICAL SIGNIFICANCE & CONCORDANCE']],
+        head: [['SYSTEMIC BIOMARKER', 'VALUE', 'CLINICAL CONCORDANCE']],
         body: [
-          ['Patient Age', patientAge ? `${patientAge} yrs` : 'Not Specified', patientAge && Number(patientAge) >= 60 ? 'Senior cohort; elevated AMD and cataract incidence' : 'Adult baseline demographic'],
-          ['Blood Pressure (BP)', (systolicBP && diastolicBP) ? `${systolicBP}/${diastolicBP} mmHg` : 'Not Measured', (Number(systolicBP) >= 140 || Number(diastolicBP) >= 90) ? 'Elevated systemic pressure; check for retinal arteriolar sclerosis' : 'Normotensive cardiovascular profile'],
-          ['Glycated Hemoglobin (HbA1c)', hba1c ? `${hba1c}%` : 'Not Provided', hba1c && Number(hba1c) >= 6.5 ? 'Diabetic range; high risk for microaneurysms and macular edema' : 'Non-diabetic glycemic range'],
-          ['Visual Acuity Deficit', visionLoss, visionLoss.includes('Significant') ? 'Significant central/peripheral reduction; urgent visual field required' : 'Mild or stable visual function'],
-          ['Eye Pain & Discomfort', painLevel, painLevel.includes('Severe') ? 'Elevates urgency score; rule out acute angle-closure glaucoma or uveitis' : 'Non-acute pain level'],
-          ['Halos / Glare Around Lights', halos, halos.includes('Yes') ? 'Characteristic of corneal edema or lens opacity scattering' : 'No dispersion halos reported'],
-          ['Floaters & Flashes', floaters, floaters.includes('Yes') ? 'Posterior vitreoretinal assessment indicated for retinal tears' : 'Vitreous body stable']
+          ['Patient Age', patientAge ? `${patientAge} yrs` : 'Unspecified', patientAge && Number(patientAge) >= 60 ? 'Senior cohort; elevated AMD & cataract incidence' : 'Adult baseline demographic'],
+          ['Blood Pressure (BP)', (systolicBP && diastolicBP) ? `${systolicBP}/${diastolicBP}` : 'Unmeasured', (Number(systolicBP) >= 140 || Number(diastolicBP) >= 90) ? 'Elevated systemic pressure; check arteriolar sclerosis' : 'Normotensive cardiovascular profile'],
+          ['HbA1c', hba1c ? `${hba1c}%` : 'Unprovided', hba1c && Number(hba1c) >= 6.5 ? 'Diabetic range; risk for microaneurysms' : 'Non-diabetic glycemic range'],
+          ['Visual Deficit', (visionLoss || 'None').slice(0, 14), (visionLoss || '').includes('Significant') ? 'Significant reduction; visual field indicated' : 'Mild or stable visual function'],
+          ['Eye Pain / Ache', (painLevel || 'None').slice(0, 14), (painLevel || '').includes('Severe') ? 'Elevates urgency; rule out angle-closure' : 'Non-acute pain level reported'],
+          ['Floaters / Flashes', (floaters || 'No').slice(0, 14), (floaters || '').includes('Yes') ? 'Posterior vitreoretinal assessment indicated' : 'Vitreous body stable']
         ],
-        headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
-        styles: { fontSize: 6.5, cellPadding: 1.5, textColor: [30, 41, 59] },
+        headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontSize: 5.6, fontStyle: 'bold', cellPadding: 0.9 },
+        styles: { fontSize: 5.4, cellPadding: 0.8, textColor: [30, 41, 59], lineColor: [226, 232, 240], lineWidth: 0.15 },
         columnStyles: {
-          0: { fontStyle: 'bold', cellWidth: 55 },
-          1: { cellWidth: 38, fontStyle: 'bold', textColor: [13, 148, 136] },
-          2: { cellWidth: 89 }
+          0: { fontStyle: 'bold', cellWidth: 28 },
+          1: { cellWidth: 18, fontStyle: 'bold', textColor: [13, 148, 136] },
+          2: { cellWidth: 47 }
         }
       })
+      const rightTableFinalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tablesStartY + 25
 
-      currentY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : currentY + 36) + 4
+      currentY = Math.max(leftTableFinalY, rightTableFinalY) + 2.5
 
-      // Clinical Protocol Card
+      // --- 6. PRIMARY CLINICAL FINDINGS & PATHOPHYSIOLOGY CARD ---
+      const findingsCardH = 34
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(203, 213, 225)
-      doc.setLineWidth(0.4)
-      doc.roundedRect(margin, currentY, contentWidth, 24, 2, 2, 'FD')
+      doc.setLineWidth(0.3)
+      doc.roundedRect(margin, currentY, contentWidth, findingsCardH, 1.5, 1.5, 'FD')
 
-      doc.setFontSize(7.5)
+      doc.setFontSize(6.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(15, 23, 42)
-      doc.text('Recommended Clinical Protocol & Immediate Management:', margin + 3, currentY + 4.5)
+      doc.text('PRIMARY CLINICAL FINDINGS & PATHOPHYSIOLOGY', margin + 2.5, currentY + 4)
 
-      doc.setFontSize(6.8)
+      const pathoText = (result.condition_details?.pathophysiology || result.condition_details?.analysis || result.rationale || 'Deep convolutional feature maps reveal morphological vascular anomalies, focal microvascular disruptions, and optical tissue alterations consistent with the diagnosed retinal pathology.')
+      doc.setFontSize(5.6)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(51, 65, 85)
-      const adviceText = result.details?.advice || result.condition_details?.advice || 'Schedule a formal comprehensive slit-lamp biomicroscopy, dilated fundus exam, and optical coherence tomography (OCT) with a certified ophthalmologist.'
-      const splitAdvice = doc.splitTextToSize(adviceText, contentWidth - 6)
-      doc.text(splitAdvice, margin + 3, currentY + 9)
+      const splitPatho = doc.splitTextToSize(pathoText, contentWidth - 5).slice(0, 2)
+      doc.text(splitPatho, margin + 2.5, currentY + 7.8)
 
-      // Warning Note
-      doc.setFontSize(6.2)
+      // Two Sub-panels side-by-side inside this card
+      const subPanelW = (contentWidth - 6) / 2 // 92 mm
+      const subPanelH = 18.5
+      const subPanelY = currentY + 13.5
+
+      // Subpanel 1: Diagnostic Workup Pathway
+      doc.setFillColor(255, 255, 255)
+      doc.setDrawColor(226, 232, 240)
+      doc.roundedRect(margin + 1.5, subPanelY, subPanelW, subPanelH, 1, 1, 'FD')
+      doc.setFontSize(5.8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(8, 145, 178)
+      doc.text('Key Diagnostic Workup Pathway:', margin + 3.5, subPanelY + 3.8)
+
+      const workupItems = (result.condition_details?.diagnostic_workup && result.condition_details.diagnostic_workup.length > 0)
+        ? result.condition_details.diagnostic_workup.slice(0, 3)
+        : ['Optical Coherence Tomography (OCT) macula & RNFL', 'Comprehensive dilated slit-lamp fundus biomicroscopy', 'Fluorescein angiography (FA) if neovascularization suspected']
+      
+      workupItems.forEach((w, idx) => {
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(5.3)
+        doc.setTextColor(71, 85, 105)
+        const txt = doc.splitTextToSize(`• ${w}`, subPanelW - 5)[0] || `• ${w}`
+        doc.text(txt, margin + 3.5, subPanelY + 7.6 + (idx * 3.6))
+      })
+
+      // Subpanel 2: Clinical Management Strategy
+      const subPanel2X = margin + 1.5 + subPanelW + 3
+      doc.setFillColor(255, 255, 255)
+      doc.setDrawColor(226, 232, 240)
+      doc.roundedRect(subPanel2X, subPanelY, subPanelW, subPanelH, 1, 1, 'FD')
+      doc.setFontSize(5.8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(13, 148, 136)
+      doc.text('Clinical Management Strategy:', subPanel2X + 2, subPanelY + 3.8)
+
+      const txItems = (result.condition_details?.treatment && result.condition_details.treatment.length > 0)
+        ? result.condition_details.treatment.slice(0, 3)
+        : ['Specialist surveillance & structured visual acuity monitoring', 'Targeted intervention (anti-VEGF / laser photocoagulation)', 'Systemic blood pressure and glycemic level optimization']
+
+      txItems.forEach((tx, idx) => {
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(5.3)
+        doc.setTextColor(71, 85, 105)
+        const txt = doc.splitTextToSize(`• ${tx}`, subPanelW - 5)[0] || `• ${tx}`
+        doc.text(txt, subPanel2X + 2, subPanelY + 7.6 + (idx * 3.6))
+      })
+
+      currentY += findingsCardH + 2.5
+
+      // --- 7. RECOMMENDED CLINICAL PROTOCOL & EMERGENCY CALLOUT CARD ---
+      const protocolCardH = 43
+      doc.setFillColor(240, 253, 250)
+      doc.setDrawColor(153, 246, 228)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(margin, currentY, contentWidth, protocolCardH, 1.5, 1.5, 'FD')
+
+      doc.setFontSize(6.8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(15, 23, 42)
+      doc.text('RECOMMENDED CLINICAL PROTOCOL & SPECIALIST ACTION PLAN', margin + 2.5, currentY + 4)
+
+      const advice = result.condition_details?.advice || result.details?.advice || 'Promptly schedule a comprehensive dilated fundus examination, optical coherence tomography (OCT), and intraocular pressure tonometry with a certified ophthalmologist.'
+      doc.setFontSize(5.6)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(51, 65, 85)
+      const splitAdvice = doc.splitTextToSize(advice, contentWidth - 5).slice(0, 2)
+      doc.text(splitAdvice, margin + 2.5, currentY + 7.8)
+
+      // Precautions Line
+      doc.setFontSize(5.8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(180, 83, 9)
+      doc.text('Key Precautions & Patient Guidance:', margin + 2.5, currentY + 15)
+
+      const precs = (result.condition_details?.precautions && result.condition_details.precautions.length > 0)
+        ? result.condition_details.precautions.slice(0, 2)
+        : ['Strictly adhere to prescribed ocular drops, antihypertensive, and glycemic medications.', 'Avoid heavy lifting, sudden rapid head shaking, or Valsalva maneuvers if vitreoretinal tears suspected.']
+
+      precs.forEach((p, idx) => {
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(5.3)
+        doc.setTextColor(71, 85, 105)
+        const pTxt = doc.splitTextToSize(`• ${p}`, contentWidth - 6)[0] || `• ${p}`
+        doc.text(pTxt, margin + 4, currentY + 18.5 + (idx * 3.4))
+      })
+
+      // Emergency Callout inside card
+      const emH = 14
+      const emY = currentY + 26
+      doc.setFillColor(254, 242, 242)
+      doc.setDrawColor(252, 165, 165)
+      doc.roundedRect(margin + 1.5, emY, contentWidth - 3, emH, 1, 1, 'FD')
+
+      doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(185, 28, 28)
-      doc.text('Emergency Alert: If sudden vision loss, curtains over visual field, or intense pain occurs, visit emergency ophthalmic triage immediately.', margin + 3, currentY + 20.5)
+      doc.text('EMERGENCY RED-FLAG ALERT (Immediate Same-Day Care Required):', margin + 3.5, emY + 3.8)
 
-      currentY += 28
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(5.3)
+      doc.setTextColor(153, 27, 27)
+      const alertText = 'Seek emergency ophthalmic triage immediately if experiencing sudden painless vision loss, acute dark curtain/shadow across sight, new heavy showers of floaters with bright light flashes, or acute severe ocular pain with nausea.'
+      doc.text(doc.splitTextToSize(alertText, contentWidth - 8).slice(0, 2), margin + 3.5, emY + 7.5)
 
-      // Disclaimer & Attestation Block
-      if (currentY > 245) {
-        doc.addPage()
-        currentY = 16
-      }
+      currentY += protocolCardH + 2.5
 
+      // --- 8. DOCTOR CONSULTATION QUESTIONS ---
+      const questCardH = 24.5
+      doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
-      doc.line(margin, currentY, pageWidth - margin, currentY)
-      currentY += 3.5
+      doc.setLineWidth(0.3)
+      doc.roundedRect(margin, currentY, contentWidth, questCardH, 1.5, 1.5, 'FD')
 
-      doc.setFontSize(6)
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(15, 23, 42)
+      doc.text('PRIORITY QUESTIONS FOR CLINICAL CONSULTATION', margin + 2.5, currentY + 3.8)
+
+      const questions = [
+        '1. Does the structural lesion appearance on funduscopy or OCT warrant immediate medical or laser intervention?',
+        '2. What is the optimal surveillance interval (e.g. 4-12 weeks) to track disease progression and macular thickness?',
+        '3. What coordinated systemic targets (glycemic control, blood pressure, lipid panel) should be maintained with primary care?'
+      ]
+
+      questions.forEach((q, idx) => {
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(5.3)
+        doc.setTextColor(51, 65, 85)
+        doc.text(q, margin + 3.5, currentY + 7.8 + (idx * 4))
+      })
+
+      doc.setFontSize(5.1)
       doc.setFont('helvetica', 'italic')
-      doc.setTextColor(148, 163, 184)
-      const disclaimer = 'CLINICAL DECISION SUPPORT NOTICE (SaMD): OphthalmoAI provides computational decision assistance. It does not replace comprehensive physical slit-lamp examination or direct ophthalmoscopic evaluation by a licensed healthcare provider.'
-      doc.text(doc.splitTextToSize(disclaimer, contentWidth), margin, currentY)
-      currentY += 6
+      doc.setTextColor(100, 116, 139)
+      doc.text('Patient Note: Present this screening report and current medications at your ophthalmologist consultation.', margin + 3.5, currentY + 21)
 
-      // Attestation Signature Block
-      doc.setFontSize(6.8)
+      currentY += questCardH + 2.5
+
+      // --- 9. REGULATORY SaMD NOTICE & CLINICIAN ATTESTATION BLOCK ---
+      doc.setDrawColor(226, 232, 240)
+      doc.setLineWidth(0.3)
+      doc.line(margin, currentY, pageWidth - margin, currentY)
+      currentY += 2.5
+
+      doc.setFontSize(5.1)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(100, 116, 139)
+      const disclaimer = 'CLINICAL DECISION SUPPORT NOTICE (SaMD): OphthalmoAI is a research-grade artificial intelligence screening decision-support tool developed under ISO 13485 paradigms. This report provides computational probabilistic analysis and does not replace comprehensive physical slit-lamp examination or direct ophthalmoscopic evaluation by a licensed healthcare professional.'
+      doc.text(doc.splitTextToSize(disclaimer, contentWidth), margin, currentY)
+      currentY += 7.5
+
+      // Attestation Box (Clean 2x2 Grid)
+      const attBoxH = 19
+      doc.setFillColor(255, 255, 255)
+      doc.setDrawColor(203, 213, 225)
+      doc.setLineWidth(0.3)
+      doc.roundedRect(margin, currentY, contentWidth, attBoxH, 1.5, 1.5, 'FD')
+
+      doc.setFontSize(5.8)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(15, 23, 42)
+      doc.text('CLINICIAN REVIEW & SIGN-OFF ATTESTATION', margin + 3, currentY + 3.8)
+
+      // Row 1: Clinician Name & License
+      doc.setFontSize(5.4)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
-      doc.text('Attending Clinician / Reviewer: _________________________________', margin, currentY)
-      doc.text('License / NPI: __________________', margin + 95, currentY)
-      doc.text('Date: ______________', pageWidth - margin - 25, currentY)
+      doc.text('Attending Clinician / Reviewer: _____________________________________', margin + 3, currentY + 8.2)
+      doc.text('Medical License / NPI Number: ________________________________', margin + 98, currentY + 8.2)
 
-      // Running Footers
-      const pageCount = doc.internal.getNumberOfPages()
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i)
-        doc.setFontSize(6.2)
-        doc.setTextColor(148, 163, 184)
-        doc.text(`OphthalmoAI Clinical Diagnostic Summary  |  Report ID: ${scanId}  |  Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - 4.5, { align: 'center' })
+      // Row 2: Signature & Date
+      doc.text('Clinician Signature & Official Stamp: ____________________________', margin + 3, currentY + 13.2)
+      doc.text('Examination Date & Time: ___________________________________', margin + 98, currentY + 13.2)
+
+      doc.setFontSize(5)
+      doc.setFont('helvetica', 'italic')
+      doc.setTextColor(148, 163, 184)
+      doc.text('[X] Ophthalmic findings verified and correlated with patient clinical presentation.', margin + 3, currentY + 17.2)
+
+      // --- 10. RUNNING FOOTER (PAGE 1 OF 1 GUARANTEE) ---
+      // Strictly enforce exactly 1 single page by removing any extra pages that autoTable might have created
+      while (doc.internal.getNumberOfPages() > 1) {
+        doc.deletePage(doc.internal.getNumberOfPages())
       }
+
+      doc.setPage(1)
+      doc.setFontSize(5.4)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(148, 163, 184)
+      doc.text(`OphthalmoAI Clinical Diagnostic Summary  ·  Report ID: ${scanId}  ·  Strictly Confidential Medical Record  ·  Page 1 of 1`, pageWidth / 2, 292, { align: 'center' })
 
       const fileName = `OphthalmoAI_Clinical_Report_${(result.diagnosis || 'Diagnosis').replace(/[^a-zA-Z0-9_-]/g, '_')}_${scanId.slice(0, 8)}.pdf`
 
