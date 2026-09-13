@@ -1,4 +1,4 @@
-﻿"""
+"""
 OphthalmoAI Retinal Fundus Domain Guardrail.
 =============================================================================
 Validates whether an input image is an authentic color fundus photograph.
@@ -98,7 +98,15 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
             "active_ratio": round(active_ratio, 3), "failure_stage": "dark_field"
         }
         
-    # Check 6: Retinal Chromophore Profile
+    # Check 6: Green-Channel Vascular Gradient & Tissue Coherence
+    # Retinal vessels absorb green light (~540nm) creating localized tubular contrast
+    g_norm = (g / 255.0).astype(np.float32)
+    gx = np.diff(g_norm, axis=1)
+    gy = np.diff(g_norm, axis=0)
+    grad_mag = np.sqrt(gx[:-1, :]**2 + gy[:, :-1]**2)
+    vessel_gradient = float(np.mean(grad_mag[active_mask[:-1, :-1]]))
+
+    # Check 7: Retinal Chromophore Profile
     # Human retinal fundus photography is dominated by chorioretinal vasculature and RPE melanin
     r_act = r[active_mask]
     g_act = g[active_mask]
@@ -111,33 +119,37 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
     rb_ratio = r_mean / (b_mean + 1e-5)
     rg_ratio = r_mean / (g_mean + 1e-5)
     
-    # Reject unnatural dominant blue (e.g. blue sky, blue car, water)
-    if b_mean > r_mean * 1.25 and b_mean > g_mean * 1.15:
+    # Check for BGR color channel swap (common in OpenCV exports and camera capture buffers)
+    is_bgr_inverted = False
+    if b_mean > r_mean * 1.15:
+        candidate_rb = b_mean / (r_mean + 1e-5)
+        candidate_rg = b_mean / (g_mean + 1e-5)
+        if (has_circular_mask or (0.15 <= active_ratio <= 0.98 and vessel_gradient >= 0.003)) and candidate_rb >= 1.10:
+            is_bgr_inverted = True
+            r_mean, b_mean = b_mean, r_mean
+            r_act, b_act = b_act, r_act
+            rb_ratio = candidate_rb
+            rg_ratio = candidate_rg
+
+    # Reject unnatural dominant blue (e.g. blue sky, blue car, water) if NOT an inverted fundus and has no circular mask
+    if not is_bgr_inverted and not has_circular_mask and b_mean > r_mean * 1.25 and b_mean > g_mean * 1.15:
         return False, 0.05, "Dominant blue chromaticity detected. Incompatible with retinal tissue spectroscopy.", {
             "rb_ratio": round(rb_ratio, 2), "failure_stage": "blue_dominance"
         }
         
     # Reject unnatural dominant green (e.g. foliage, green neon objects)
-    if g_mean > r_mean * 1.35:
+    if not has_circular_mask and g_mean > r_mean * 1.35:
         return False, 0.05, "Dominant green chromaticity detected without red vascular reflection. Incompatible with fundus tissue.", {
             "rg_ratio": round(rg_ratio, 2), "failure_stage": "green_dominance"
         }
         
-    # Check 7: Grayscale / Monochromatic rejection if no circular fundus mask exists
+    # Check 8: Grayscale / Monochromatic rejection if no circular fundus mask exists
     channel_variance = float(np.mean(np.abs(r_act - g_act)) + np.mean(np.abs(r_act - b_act)))
     if channel_variance < 3.5 and not has_circular_mask:
         return False, 0.10, "Image is monochromatic or black-and-white without fundus optical aperture. Color fundus photograph expected.", {
             "channel_variance": round(channel_variance, 2), "failure_stage": "monochrome"
         }
         
-    # Check 8: Green-Channel Vascular Gradient & Tissue Coherence
-    # Retinal vessels absorb green light (~540nm) creating localized tubular contrast
-    g_norm = (g / 255.0).astype(np.float32)
-    gx = np.diff(g_norm, axis=1)
-    gy = np.diff(g_norm, axis=0)
-    grad_mag = np.sqrt(gx[:-1, :]**2 + gy[:, :-1]**2)
-    vessel_gradient = float(np.mean(grad_mag[active_mask[:-1, :-1]]))
-    
     # Calculate composite verification score
     score = 0.0
     
@@ -170,6 +182,7 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
     metrics = {
         "score": round(score, 3),
         "has_circular_mask": has_circular_mask,
+        "is_bgr_inverted": is_bgr_inverted,
         "spatial_correlation": round(spatial_corr, 3),
         "rb_ratio": round(rb_ratio, 2),
         "rg_ratio": round(rg_ratio, 2),

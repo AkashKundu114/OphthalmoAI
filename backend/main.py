@@ -617,6 +617,12 @@ async def predict(
                 status_code=422,
                 detail=f"Unsupported image type: The uploaded image does not appear to be a retinal fundus photograph. {fundus_reason} Please upload an authentic color fundus scan of the posterior pole."
             )
+
+        # Auto-correct BGR channel swap if detected so models receive the canonical RGB retinal spectrum
+        if fundus_metrics.get("is_bgr_inverted"):
+            logger.info("predict.auto_corrected_bgr_channels")
+            r_chan, g_chan, b_chan = image.convert("RGB").split()
+            image = Image.merge("RGB", (b_chan, g_chan, r_chan))
     except HTTPException:
         raise
     except Exception as val_err:
