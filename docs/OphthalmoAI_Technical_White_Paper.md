@@ -51,7 +51,7 @@ $$\Phi(X) = \mathbb{I}\left( \mathcal{S}_{\text{aperture}}(X) + \mathcal{S}_{\te
 
 ### 3.3 Urgency-Stratified Conformal Risk Control (US-CRC)
 Prediction sets $\mathcal{C}(X)$ provide provable finite-sample coverage guarantees:
-$$\mathcal{C}(X) = \left\{ c \in \mathcal{Y} : P_{\text{ensemble}}(y = c \mid X) \ge 1 - \hat{q}_{\text{strata}(c)} \right\}$$
+$$\mathcal{C}(X) = \left\lbrace c \in \mathcal{Y} : P_{\text{ensemble}}(y = c \mid X) \ge 1 - \hat{q}_{\text{strata}(c)} \right\rbrace$$
 - $\alpha_{\text{emerg}} = 0.01$ (99.0% coverage guarantee) for sight-threatening emergencies (DR, Glaucoma, AMD, Hypertensive Retinopathy).
 - $\alpha_{\text{routine}} = 0.05$ (95.0% coverage guarantee) for routine conditions (Cataract, Normal).
 

@@ -111,12 +111,12 @@ $$s(X, y) = 1 - P_{\text{ensemble}}(y \mid X)$$
 
 #### 2.3.2 Stratified Quantile Formulation
 We specify two user-defined risk budgets: $\alpha_{\text{emerg}} = 0.01$ (guaranteeing $\ge 99.0\%$ coverage for sight-threatening conditions) and $\alpha_{\text{routine}} = 0.05$ (guaranteeing $\ge 95.0\%$ coverage for routine cases). The conformal quantile $\hat{q}_k$ for stratum $k \in \{\text{emerg}, \text{routine}\}$ with $N_k$ calibration samples is:
-$$\hat{q}_k = \inf \left\{ q \in \mathbb{R} : \frac{1}{N_k + 1} \sum_{i \in \mathcal{D}_{\text{cal}}^{(k)}} \mathbb{I}(s(X_i, y_i) \le q) \ge 1 - \alpha_k \right\}$$
+$$\hat{q}_k = \inf \left\lbrace q \in \mathbb{R} : \frac{1}{N_k + 1} \sum_{i \in \mathcal{D}_{\text{cal}}^{(k)}} \mathbb{I}(s(X_i, y_i) \le q) \ge 1 - \alpha_k \right\rbrace$$
 $$\hat{q}_k = \mathrm{Quantile}\left( \frac{\lceil (N_k + 1)(1 - \alpha_k) \rceil}{N_k}, \; \{s(X_i, y_i)\}_{i \in \mathcal{D}_{\text{cal}}^{(k)}} \right)$$
 
 #### 2.3.3 Conformal Prediction Set
 At test time, for query image $X_{N+1}$, the prediction set $\mathcal{C}(X_{N+1})$ is constructed as:
-$$\mathcal{C}(X_{N+1}) = \left\{ c \in \mathcal{Y} : P_{\text{ensemble}}(y = c \mid X_{N+1}) \ge 1 - \hat{q}_{\text{strata}(c)} \right\}$$
+$$\mathcal{C}(X_{N+1}) = \left\lbrace c \in \mathcal{Y} : P_{\text{ensemble}}(y = c \mid X_{N+1}) \ge 1 - \hat{q}_{\text{strata}(c)} \right\rbrace$$
 
 **Theorem 1 (Exact Finite-Sample Coverage):** Suppose the calibration and test samples $(X_1, Y_1), \dots, (X_{N+1}, Y_{N+1})$ are independent and identically distributed (or exchangeable). Then the marginal coverage guarantee holds:
 $$\mathbb{P}\left(Y_{N+1} \in \mathcal{C}(X_{N+1}) \mid Y_{N+1} \in \mathcal{Y}_k\right) \ge 1 - \alpha_k, \quad \forall k \in \{\text{emerg}, \text{routine}\}$$
