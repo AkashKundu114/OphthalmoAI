@@ -104,6 +104,7 @@ dataset/
 sample/
 models/*
 !models/.gitkeep
+!models/*.json
 
 # Model weights (safety fallback if models/ is unignored)
 *.pth

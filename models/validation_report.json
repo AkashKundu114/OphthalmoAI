@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-06-20T14:37:29.759296+00:00",
+  "models_dir": "D:\\AI-based Retinal Disease Predictor\\models",
+  "results": {
+    "anterior": {
+      "group_key": "anterior",
+      "model_file": "specialist_anterior.pth",
+      "num_classes": 2,
+      "class_names": [
+        "Cataract",
+        "Uveitis"
+      ],
+      "n_total": 854,
+      "accuracy": 1.0,
+      "ece": 0.0001,
+      "calibration_temperature": 1.0,
+      "per_class": {
+        "Cataract": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 494
+        },
+        "Uveitis": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 360
+        }
+      },
+      "evaluated_at": "2026-06-20T14:37:54.076142+00:00"
+    },
+    "surface": {
+      "group_key": "surface",
+      "model_file": "specialist_surface.pth",
+      "num_classes": 4,
+      "class_names": [
+        "Conjunctivitis",
+        "Jaundice",
+        "Normal",
+        "Pterygium"
+      ],
+      "n_total": 2329,
+      "accuracy": 1.0,
+      "ece": 0.0006,
+      "calibration_temperature": 1.0,
+      "per_class": {
+        "Conjunctivitis": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 530
+        },
+        "Jaundice": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 335
+        },
+        "Normal": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 1245
+        },
+        "Pterygium": {
+          "sensitivity": 1.0,
+          "specificity": 1.0,
+          "auc": 1.0,
+          "n_samples": 219
+        }
+      },
+      "evaluated_at": "2026-06-20T14:38:59.416298+00:00"
+    }
+  }
+}

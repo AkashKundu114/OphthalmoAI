@@ -1,0 +1,27 @@
+{
+  "model": "densenet201",
+  "precision": "bf16",
+  "checkpoint": "densenet201_bf16_bs16.pth",
+  "test_accuracy": 0.8028,
+  "macro_f1": 0.7743,
+  "macro_auroc": 0.9719,
+  "temperature": 1.1129,
+  "raw_ece": 0.0193,
+  "calibrated_ece": 0.0433,
+  "per_class_sensitivity": {
+    "Normal": 0.8178,
+    "Diabetic Retinopathy": 0.7067,
+    "Glaucoma": 0.7938,
+    "Cataract": 0.945,
+    "Age-related Macular Degeneration": 0.9,
+    "Hypertensive Retinopathy / Pathological Myopia": 0.5741
+  },
+  "per_class_specificity": {
+    "Normal": 0.892,
+    "Diabetic Retinopathy": 0.9734,
+    "Glaucoma": 0.9651,
+    "Cataract": 0.9621,
+    "Age-related Macular Degeneration": 0.9655,
+    "Hypertensive Retinopathy / Pathological Myopia": 0.9955
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "architecture": "efficientnet_b4",
+  "checkpoint": "D:\\AI-based Retinal Disease Predictor\\models\\efficientnet_b4.pth",
+  "test_samples": 938,
+  "metrics": {
+    "accuracy": 0.8188,
+    "macro_f1": 0.7986,
+    "weighted_f1": 0.8185,
+    "ece": 0.0698,
+    "macro_auroc": 0.957
+  },
+  "per_class": {
+    "Normal": {
+      "sensitivity": 0.7733,
+      "specificity": 0.899,
+      "tp": 174,
+      "fn": 51,
+      "fp": 72,
+      "tn": 641
+    },
+    "Diabetic Retinopathy": {
+      "sensitivity": 0.7644,
+      "specificity": 0.9509,
+      "tp": 172,
+      "fn": 53,
+      "fp": 35,
+      "tn": 678
+    },
+    "Glaucoma": {
+      "sensitivity": 0.8608,
+      "specificity": 0.9624,
+      "tp": 167,
+      "fn": 27,
+      "fp": 28,
+      "tn": 716
+    },
+    "Cataract": {
+      "sensitivity": 0.955,
+      "specificity": 0.9783,
+      "tp": 191,
+      "fn": 9,
+      "fp": 16,
+      "tn": 722
+    },
+    "Age-related Macular Degeneration": {
+      "sensitivity": 0.7,
+      "specificity": 0.9944,
+      "tp": 28,
+      "fn": 12,
+      "fp": 5,
+      "tn": 893
+    },
+    "Hypertensive Retinopathy / Pathological Myopia": {
+      "sensitivity": 0.6667,
+      "specificity": 0.9842,
+      "tp": 36,
+      "fn": 18,
+      "fp": 14,
+      "tn": 870
+    }
+  }
+}

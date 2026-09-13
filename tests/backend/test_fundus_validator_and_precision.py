@@ -81,10 +81,13 @@ class TestFundusDomainValidator(unittest.TestCase):
         self.assertFalse(is_valid)
 
 
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 class TestPrecisionAndCalibrationMetadata(unittest.TestCase):
 
     def test_fp16_calibration_file(self):
-        path = os.path.join("models", "calibration.json")
+        path = os.path.join(REPO_ROOT, "models", "calibration.json")
         self.assertTrue(os.path.exists(path), f"Missing {path}")
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -97,7 +100,7 @@ class TestPrecisionAndCalibrationMetadata(unittest.TestCase):
             self.assertLess(t, 3.0)
 
     def test_bf16_calibration_file(self):
-        path = os.path.join("models", "calibration_bf16.json")
+        path = os.path.join(REPO_ROOT, "models", "calibration_bf16.json")
         self.assertTrue(os.path.exists(path), f"Missing {path}")
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -110,8 +113,8 @@ class TestPrecisionAndCalibrationMetadata(unittest.TestCase):
             self.assertLess(t, 3.0)
 
     def test_evaluation_meta_ensemble_fp16_and_bf16_exist(self):
-        fp16_path = os.path.join("models", "evaluation_meta_ensemble.json")
-        bf16_path = os.path.join("models", "evaluation_meta_ensemble_bf16.json")
+        fp16_path = os.path.join(REPO_ROOT, "models", "evaluation_meta_ensemble.json")
+        bf16_path = os.path.join(REPO_ROOT, "models", "evaluation_meta_ensemble_bf16.json")
         self.assertTrue(os.path.exists(fp16_path))
         self.assertTrue(os.path.exists(bf16_path))
 

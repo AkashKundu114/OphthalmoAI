@@ -1,0 +1,17 @@
+{
+  "model": "tri_backbone_ensemble",
+  "mode": "soft_voting",
+  "test_samples": 938,
+  "accuracy": 0.8518,
+  "macro_auroc": 0.9805,
+  "macro_f1": 0.8292,
+  "weighted_f1": 0.8511,
+  "ece": 0.0644,
+  "temperatures_applied": {
+    "efficientnet_b4": 1.3275,
+    "convnext_small": 1.3407,
+    "densenet201": 1.2616,
+    "resnet50": 1.0947,
+    "efficientnet_v2_m": 1.0654
+  }
+}

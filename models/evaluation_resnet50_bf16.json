@@ -1,0 +1,27 @@
+{
+  "model": "resnet50",
+  "precision": "bf16",
+  "checkpoint": "resnet50_bf16_bs16.pth",
+  "test_accuracy": 0.8028,
+  "macro_f1": 0.7746,
+  "macro_auroc": 0.9687,
+  "temperature": 1.1498,
+  "raw_ece": 0.0177,
+  "calibrated_ece": 0.0485,
+  "per_class_sensitivity": {
+    "Normal": 0.8133,
+    "Diabetic Retinopathy": 0.72,
+    "Glaucoma": 0.8763,
+    "Cataract": 0.875,
+    "Age-related Macular Degeneration": 0.85,
+    "Hypertensive Retinopathy / Pathological Myopia": 0.537
+  },
+  "per_class_specificity": {
+    "Normal": 0.899,
+    "Diabetic Retinopathy": 0.9719,
+    "Glaucoma": 0.9368,
+    "Cataract": 0.9729,
+    "Age-related Macular Degeneration": 0.9744,
+    "Hypertensive Retinopathy / Pathological Myopia": 0.9966
+  }
+}
