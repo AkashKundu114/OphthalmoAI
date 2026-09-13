@@ -1,6 +1,8 @@
 # OphthalmoAI: Point-of-Care Retinal Disease Screening Platform
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-black?logo=vercel)](https://ophthalmo-ai-mu.vercel.app/)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)
 ![React 19](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
@@ -8,7 +10,15 @@
 ![Accuracy 85.18%](https://img.shields.io/badge/Test%20Accuracy-85.18%25-brightgreen)
 ![AUROC 0.9805](https://img.shields.io/badge/Macro%20AUROC-0.9805-blue)
 
-**OphthalmoAI** is an AI-powered retinal disease screening and clinical decision-support platform. It utilizes a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, paired with a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine and an interactive **dual-mode interface (Public vs Academic/Clinical)**.
+**OphthalmoAI** is an AI-powered retinal disease screening and clinical decision-support platform. It utilizes a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, paired with a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine and a modern responsive **Light Clinical interface**.
+
+---
+
+## 🌐 Live Deployments & Mirrors
+
+- **Primary Web Application (Vercel)**: [https://ophthalmo-ai-mu.vercel.app/](https://ophthalmo-ai-mu.vercel.app/)
+- **Hugging Face Community Space**: [https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo](https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo)
+- **Hugging Face Static Mirror**: [https://akashkundu114-ophthalmoai-demo.static.hf.space](https://akashkundu114-ophthalmoai-demo.static.hf.space)
 
 ---
 
@@ -24,9 +34,9 @@
    - Achieves **85.18% empirical test accuracy** and **0.9805 Macro AUROC** on 938 held-out clinical fundus images.
 2. **Pixel-Level Interpretability (Grad-CAM)**:
    - Dedicated **EfficientNet-B4** backbone generates high-resolution saliency maps overlaid directly on fundus imagery.
-3. **Dual Audience Persona Modes**:
-   - **Public View**: Patient-friendly explanations, triage urgency indicators, personalized action plans, and "Questions for Your Doctor".
-   - **Academic / Clinical View**: In-depth statistical metrics (AUROC, Macro F1, calibration temperature $T$, ECE), multi-class probability distribution, 1-click BibTeX citation copy, and raw tensor JSON export.
+3. **Intuitive Public Screening Interface**:
+   - Patient-friendly explanations, triage urgency indicators, personalized action plans, and "Questions for Your Doctor".
+   - Architecture telemetry, research literature search, and downloadable reports.
 4. **Modern Clinical PDF Generation**:
    - Clean, professional vector PDF export containing side-by-side color fundus scans, Grad-CAM overlays, ICD-10/SNOMED-CT codes, confidence bars, and clinician attestation blocks.
 5. **AI Clinical Assistant**:

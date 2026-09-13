@@ -14,7 +14,7 @@ import {
   ArrowRight, Sparkles, X, Send, Loader2, Bot, User,
   MessageCircle, Heart, Zap, Target, BarChart2, Cpu,
   ChevronLeft, Star, Clock, Tag, Scale, Lock, Mail,
-  GraduationCap, Copy, Check, FileCode
+  GraduationCap, Copy, Check, FileCode, Menu
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -26,21 +26,30 @@ const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
 
-export const FALLBACK_TUNNEL_URL = 'https://started-balance-vegetation-clocks.trycloudflare.com'
+export const FALLBACK_TUNNEL_URL = ''
 
 export const getActiveApiUrl = () => {
   if (typeof window !== 'undefined') {
     const custom = window.localStorage?.getItem('ophthalmo_api_url')
-    if (custom && custom.trim()) return custom.trim().replace(/\/+$/, '')
-    if (window.location.hostname.includes('vercel.app')) {
+    if (custom && custom.trim() && !custom.includes('trycloudflare.com')) {
+      return custom.trim().replace(/\/+$/, '')
+    }
+    const hostname = window.location.hostname
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.endsWith('.local') ||
+      hostname.includes('vercel.app')
+    ) {
       return '/api'
     }
   }
   const envUrl = import.meta.env.VITE_API_URL || import.meta.env.API_URL
-  if (envUrl && envUrl.trim()) {
+  if (envUrl && envUrl.trim() && !envUrl.includes('trycloudflare.com')) {
     return envUrl.trim().replace(/\/+$/, '')
   }
-  return FALLBACK_TUNNEL_URL
+  return '/api'
 }
 
 const FALLBACK_CONDITIONS = [
@@ -122,57 +131,48 @@ const TabButton = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
     aria-label={label}
-    className={`px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs font-semibold transition-all duration-200 ${
+    className={`px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold transition-all duration-200 ${
       active
-        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-500/10'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+        ? 'bg-white text-cyan-700 border border-slate-200 shadow-xs'
+        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent'
     }`}
   >
-    <span>{icon}</span>
-    <span className="hidden md:inline whitespace-nowrap">{label}</span>
+    <span className={active ? 'text-cyan-600' : 'text-slate-500'}>{icon}</span>
+    <span className="hidden lg:inline whitespace-nowrap">{label}</span>
   </button>
 )
 
 const SymptomSelect = ({ label, value, setValue, options }) => (
   <div>
-    <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+    <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
       {label}
     </label>
     <div className="relative">
       <select
         value={value}
         onChange={e => setValue(e.target.value)}
-        className="w-full px-3 py-2 text-xs rounded-xl glass-input appearance-none text-slate-200 pr-8"
+        className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-800 pr-8 shadow-2xs focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 outline-none appearance-none"
       >
-        {options.map(opt => <option key={opt} value={opt} className="bg-slate-900 text-slate-200">{opt}</option>)}
+        {options.map(opt => <option key={opt} value={opt} className="bg-white text-slate-800">{opt}</option>)}
       </select>
-      <ChevronDown className="absolute w-3.5 h-3.5 -translate-y-1/2 pointer-events-none right-2.5 top-1/2 text-slate-400" />
+      <ChevronDown className="absolute w-3.5 h-3.5 -translate-y-1/2 pointer-events-none right-2.5 top-1/2 text-slate-500" />
     </div>
   </div>
 )
 
-const ProbabilityBar = ({ label, value, viewMode = 'public' }) => {
+const ProbabilityBar = ({ label, value }) => {
   const pct = Math.min(100, Math.max(0, value * 100))
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-300 font-medium">{label}</span>
-        <div className="flex items-center gap-2">
-          {viewMode === 'academic' && (
-            <span className="text-[10px] text-slate-500 font-mono">p={value.toFixed(4)}</span>
-          )}
-          <span className={`font-bold tabular-nums font-mono ${viewMode === 'academic' ? 'text-indigo-300' : 'text-cyan-400'}`}>
-            {pct.toFixed(1)}%
-          </span>
-        </div>
+        <span className="text-slate-700 font-medium">{label}</span>
+        <span className="font-bold tabular-nums font-mono text-cyan-700">
+          {pct.toFixed(1)}%
+        </span>
       </div>
-      <div className="w-full h-2 rounded-full bg-slate-900/90 overflow-hidden p-0.5 border border-slate-800">
+      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
         <div
-          className={`h-full rounded-full prob-bar-fill shadow-sm ${
-            viewMode === 'academic'
-              ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400'
-              : 'bg-gradient-to-r from-cyan-500 to-teal-400'
-          }`}
+          className="h-full rounded-full prob-bar-fill shadow-sm bg-gradient-to-r from-cyan-600 to-teal-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -209,276 +209,75 @@ const BENCHMARK_DATA = [
   { model: 'ResNet-50 (Ryzen 9 HX 32 Threads)', precision: 'FP32', bs: 16, time: '380.55 s', vram: '0.00 GB', acc: '75.69%', temp: 'N/A', status: 'CPU Fallback' },
 ]
 
-const HomePage = ({ onNavigate, viewMode = 'public' }) => {
-  if (viewMode === 'academic') {
-    return (
-      <div className="space-y-12 animate-fade-in">
-        {/* Clinical Header / Workstation Hero */}
-        <section className="relative overflow-hidden pt-2 pb-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-950/90 text-indigo-300 border border-indigo-500/40 shadow-lg shadow-indigo-950/50">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                Clinical Decision Support System (CDSS) // Class-IIa Diagnostic Readiness
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] font-mono bg-slate-900/90 text-cyan-300 border border-slate-800">
-                <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-                <span>NVIDIA NGC • PyTorch 2.5 • RTX 5060 GDDR7</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-8 space-y-4">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.18]">
-                  Calibrated Heterogeneous Vision Ensemble &{' '}
-                  <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-teal-300 bg-clip-text text-transparent">
-                    Conformal Retinal AI
-                  </span>
-                </h1>
-                <p className="max-w-3xl text-sm sm:text-base text-slate-300 leading-relaxed">
-                  High-throughput automated ophthalmic screening pipeline integrating three heterogeneous deep convolutional architectures (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-Medium) with post-hoc Platt temperature scaling, split-conformal finite-sample risk guarantees (1-α = 0.95), and pixel-level Grad-CAM explainability for multi-condition retinal pathologies.
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <button
-                    onClick={() => onNavigate('diagnostic')}
-                    className="inline-flex items-center gap-2 px-5 py-3 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 transition-all shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <ScanEye className="w-4 h-4" /> Open Diagnostic Station
-                  </button>
-                  <button
-                    onClick={() => onNavigate('workflow')}
-                    className="inline-flex items-center gap-2 px-4 py-3 text-xs font-medium text-slate-200 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 transition-all"
-                  >
-                    <FlaskConical className="w-4 h-4 text-cyan-400" /> Profiling & Benchmarks Matrix
-                  </button>
-                  <button
-                    onClick={() => onNavigate('conditions')}
-                    className="inline-flex items-center gap-2 px-4 py-3 text-xs font-medium text-slate-300 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition-all"
-                  >
-                    <BookOpen className="w-4 h-4 text-indigo-400" /> ICD-10 & SNOMED CT Ontology
-                  </button>
-                </div>
-              </div>
-
-              {/* Statistical Rigor Telemetry Card */}
-              <div className="lg:col-span-4 glass-card p-5 rounded-2xl border border-indigo-500/30 shadow-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-indigo-950 pb-2.5">
-                  <span className="text-[11px] font-mono font-bold text-indigo-300 flex items-center gap-1.5 uppercase tracking-wider">
-                    <Activity className="w-3.5 h-3.5 text-cyan-400" /> Validated Performance (n=938)
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
-                    ODIR-5K Holdout
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5 font-mono text-xs">
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-indigo-950/80">
-                    <span className="text-slate-500 text-[10px] block uppercase">Macro AUROC</span>
-                    <span className="text-lg font-bold text-cyan-400">0.9805</span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-indigo-950/80">
-                    <span className="text-slate-500 text-[10px] block uppercase">Test Accuracy</span>
-                    <span className="text-lg font-bold text-emerald-400">85.18%</span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-indigo-950/80">
-                    <span className="text-slate-500 text-[10px] block uppercase">Calibrated ECE</span>
-                    <span className="text-lg font-bold text-indigo-300">0.0644</span>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-indigo-950/80">
-                    <span className="text-slate-500 text-[10px] block uppercase">Conformal Bound</span>
-                    <span className="text-lg font-bold text-teal-300">95.0%</span>
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-[11px] text-slate-300 flex items-center justify-between">
-                  <span className="text-slate-400">Inference Latency:</span>
-                  <span className="font-mono font-bold text-emerald-400">~14.2 ms / exam</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 4-Stage Clinical Neural Pipeline */}
-            <div className="glass-panel p-6 rounded-2xl border border-indigo-500/20 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-cyan-400" /> End-to-End Clinical Inference Pipeline
-                </h3>
-                <span className="text-[10px] font-mono text-slate-400">Deterministic & Reproducible</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                {[
-                  {
-                    stage: 'Stage 01',
-                    title: 'OAC-DG Domain Guardrails',
-                    desc: 'Aperture morphology & blur rejection preventing out-of-domain non-fundus evaluations.',
-                    tech: 'Sobel Variance + HSV Aperture Masking'
-                  },
-                  {
-                    stage: 'Stage 02',
-                    title: 'Heterogeneous Ensembling',
-                    desc: 'Tri-backbone feature representations capturing fine microvascular & structural lesions.',
-                    tech: 'DenseNet-201 + ConvNeXt-S + EffNet-V2-M'
-                  },
-                  {
-                    stage: 'Stage 03',
-                    title: 'Platt Temperature Scaling',
-                    desc: 'Empirically derived temperature vectors (T*) rectify overconfident logits into true posterior probabilities.',
-                    tech: 'Post-Hoc Softmax Calibration (ECE: 0.0644)'
-                  },
-                  {
-                    stage: 'Stage 04',
-                    title: 'Conformal Risk & Grad-CAM',
-                    desc: 'Finite-sample conformal confidence sets C_α(x) alongside target layer spatial saliency activation.',
-                    tech: '95% Coverage Bound + Bilinear XAI'
-                  }
-                ].map((st, i) => (
-                  <div key={i} className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-indigo-500/40 transition-colors space-y-2">
-                    <span className="text-[10px] font-mono font-bold text-cyan-400 block">{st.stage}</span>
-                    <h4 className="text-xs font-bold text-slate-200">{st.title}</h4>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">{st.desc}</p>
-                    <span className="text-[9px] font-mono text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded block border border-indigo-900/60 truncate">
-                      {st.tech}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Retinal Disease Pathology Coverage Matrix */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-cyan-400" /> Multi-Class Retinal Diagnostic Scope
-                </h3>
-                <button
-                  onClick={() => onNavigate('conditions')}
-                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1"
-                >
-                  Full Clinical Ontologies <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {FALLBACK_CONDITIONS.map((c) => (
-                  <div
-                    key={c.key}
-                    onClick={() => onNavigate('conditions')}
-                    className="glass-card p-3.5 rounded-xl border border-slate-800 hover:border-indigo-500/40 cursor-pointer space-y-2 transition-all"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                      <span className="text-[10px] font-mono text-slate-500">{c.icd10?.split('/')[0]?.trim()}</span>
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-200 line-clamp-1">{c.name}</h4>
-                    <p className="text-[10px] text-slate-400 line-clamp-2 leading-tight">{c.description}</p>
-                    <span className="text-[9px] font-mono text-slate-400 block pt-1 border-t border-slate-800/80 truncate">
-                      SNOMED: {c.snomed}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Clinical Governance, Interoperability & Compliance Strip */}
-            <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-slate-400">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-950/80 border border-indigo-800/80 text-indigo-400 shrink-0">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-200 text-xs">HL7 FHIR R4 Interoperability & Diagnostic Decision Support</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Compatible with hospital PACS/EMR pipelines. Generates signed, tamper-evident FHIR DiagnosticReport bundles.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => onNavigate('terms')}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition"
-                >
-                  Clinical Governance
-                </button>
-                <button
-                  onClick={() => onNavigate('privacy')}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition"
-                >
-                  Zero-Retention Policy
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    )
-  }
-
-  // Public Usage Portal
+const HomePage = ({ onNavigate }) => {
   return (
-    <div className="space-y-16 animate-fade-in">
+    <div className="space-y-12 sm:space-y-16 animate-fade-in">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-10 lg:py-16">
+      <section className="relative overflow-hidden py-6 sm:py-10 lg:py-16">
         <div className="max-w-7xl px-4 mx-auto sm:px-6 lg:px-8">
-          <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-12">
+          <div className="grid items-center grid-cols-1 gap-8 lg:gap-12 lg:grid-cols-12">
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 glow-teal">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
                 Free, Instant & Confidential Eye Screening
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.15] tracking-tight text-slate-900">
                 Check Your Eye Health <br />
                 <span className="gradient-text">In Seconds, From Home</span>
               </h1>
 
-              <p className="max-w-xl text-base sm:text-lg text-slate-300 leading-relaxed">
+              <p className="max-w-xl text-base sm:text-lg text-slate-600 leading-relaxed">
                 Have an irritated eye, redness, or blurry vision? Upload a clear photo of your eye to get instant screening, understand possible causes, and receive an easy-to-read summary to take to your eye doctor.
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <button
                   onClick={() => onNavigate('diagnostic')}
-                  className="inline-flex items-center gap-2.5 px-6 py-3.5 text-base font-bold text-white rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 transition-all duration-300 shadow-xl shadow-cyan-500/25 hover:scale-105 active:scale-95"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 text-sm sm:text-base font-bold text-white rounded-xl bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 transition-all duration-200 shadow-md shadow-cyan-600/20 active:scale-95"
                 >
                   <ScanEye className="w-5 h-5" /> Start Free Eye Scan
                 </button>
 
                 <button
                   onClick={() => onNavigate('conditions')}
-                  className="inline-flex items-center gap-2 px-5 py-3.5 text-sm font-medium text-slate-300 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 hover:text-white border border-slate-700 transition-all duration-200"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 text-xs sm:text-sm font-semibold text-slate-700 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 shadow-2xs transition-all"
                 >
-                  <BookOpen className="w-4 h-4 text-cyan-400" /> Browse 6 Retinal Pathologies <ChevronRight className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4 text-cyan-600" /> Browse 6 Pathologies <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
 
                 <button
                   onClick={() => onNavigate('workflow')}
-                  className="inline-flex items-center gap-2 px-4 py-3.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
                   title="View model specifications and GPU telemetry"
                 >
-                  <BarChart2 className="w-4 h-4 text-teal-400" /> Tech & Telemetry
+                  <BarChart2 className="w-4 h-4 text-teal-600" /> Tech & Telemetry
                 </button>
               </div>
 
               {/* Public Trust & Usability Highlights */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-800/80">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-200">
                 {[
-                  { value: '100% Free', label: 'No Sign-Up or Fees', color: 'text-cyan-300' },
-                  { value: '10 Seconds', label: 'Average Scan Time', color: 'text-emerald-400' },
-                  { value: 'Private', label: 'Photos Never Stored', color: 'text-teal-300' },
-                  { value: 'Doctor-Ready', label: 'Downloadable PDF', color: 'text-indigo-400' },
+                  { value: '100% Free', label: 'No Sign-Up or Fees', color: 'text-cyan-700' },
+                  { value: '10 Seconds', label: 'Average Scan Time', color: 'text-emerald-700' },
+                  { value: 'Private', label: 'Photos Never Stored', color: 'text-teal-700' },
+                  { value: 'Doctor-Ready', label: 'Downloadable PDF', color: 'text-blue-700' },
                 ].map((s, i) => (
-                  <div key={i} className="glass-panel p-3.5 rounded-xl border border-slate-800">
+                  <div key={i} className="glass-panel p-3.5 rounded-xl border border-slate-200 shadow-2xs">
                     <p className={`text-base sm:text-lg font-extrabold ${s.color}`}>{s.value}</p>
-                    <p className="text-xs text-slate-400 mt-0.5 font-medium">{s.label}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">{s.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Simple Guided Walkthrough Card */}
-            <div className="lg:col-span-5 glass-card p-6 rounded-3xl border border-slate-700/60 shadow-2xl relative">
+            <div className="lg:col-span-5 glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm relative">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> How It Works
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-700 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-cyan-600" /> How It Works
                 </p>
-                <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
                   Simple 3-Step Check
                 </span>
               </div>
@@ -489,41 +288,41 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
                     step: '1',
                     label: 'Snap or Upload a Photo',
                     desc: 'Take a clear, close-up photo of your eye with your phone, webcam, or upload an existing picture.',
-                    icon: <Upload className="w-4 h-4 text-cyan-400" />
+                    icon: <Upload className="w-4 h-4 text-cyan-600" />
                   },
                   {
                     step: '2',
                     label: 'Tell Us What You Feel',
                     desc: 'Optionally select symptoms like itching, redness, dryness, or blurry vision to add clinical context.',
-                    icon: <ClipboardList className="w-4 h-4 text-indigo-400" />
+                    icon: <ClipboardList className="w-4 h-4 text-blue-600" />
                   },
                   {
                     step: '3',
                     label: 'Get Immediate Guidance',
                     desc: 'Receive instant visual analysis, highlighted areas of concern, and a summary report you can share with your doctor.',
-                    icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3.5 p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
-                    <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 shrink-0 mt-0.5">
+                  <div key={i} className="flex items-start gap-3.5 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
+                    <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs shrink-0 mt-0.5">
                       {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-slate-200">{item.label}</span>
-                        <span className="text-xs font-bold text-cyan-400">Step {item.step}</span>
+                        <span className="text-sm font-bold text-slate-900">{item.label}</span>
+                        <span className="text-xs font-bold text-cyan-700">Step {item.step}</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.desc}</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Takes less than 1 minute</span>
+              <div className="mt-5 pt-4 border-t border-slate-200 flex items-center justify-between">
+                <span className="text-xs text-slate-500 font-medium">Takes less than 1 minute</span>
                 <button
                   onClick={() => onNavigate('diagnostic')}
-                  className="text-xs font-bold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1.5 transition-colors"
+                  className="text-xs font-bold text-cyan-700 hover:text-cyan-800 inline-flex items-center gap-1.5 transition-colors"
                 >
                   Try it now <ArrowRight className="w-3.5 h-3.5" />
                 </button>
@@ -535,18 +334,18 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
 
       {/* Common Eye Conditions Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-cyan-400" /> Common Eye Conditions Screened
+            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Target className="w-5 h-5 text-cyan-600" /> Common Eye Conditions Screened
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Click on any condition to learn about typical symptoms, causes, and when to seek medical care.
             </p>
           </div>
           <button
             onClick={() => onNavigate('conditions')}
-            className="text-xs sm:text-sm font-semibold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1"
+            className="text-xs sm:text-sm font-semibold text-cyan-700 hover:text-cyan-800 inline-flex items-center gap-1"
           >
             View Full Guide <ArrowRight className="w-4 h-4" />
           </button>
@@ -557,16 +356,16 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
             <div
               key={c.key}
               onClick={() => onNavigate('conditions')}
-              className="glass-card p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/40 hover:bg-slate-800/40 cursor-pointer space-y-2 group transition-all"
+              className="glass-card p-4 rounded-xl border border-slate-200 hover:border-cyan-500 shadow-2xs hover:shadow-md cursor-pointer space-y-2 group transition-all"
             >
               <div className="flex items-center justify-between">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                <span className="text-[10px] text-slate-400 font-medium">{c.group.split(' ')[0]}</span>
+                <span className="text-[10px] text-slate-500 font-medium">{c.group.split(' ')[0]}</span>
               </div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-cyan-300 transition-colors line-clamp-1">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-cyan-700 transition-colors line-clamp-1">
                 {c.name}
               </h4>
-              <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+              <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
                 {c.description}
               </p>
             </div>
@@ -579,27 +378,27 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              icon: <Heart className="w-6 h-6 text-rose-400" />,
+              icon: <Heart className="w-6 h-6 text-rose-600" />,
               title: 'Friendly Guidance',
               desc: 'Get plain-language explanations of possible eye issues so you feel informed and confident before speaking with your specialist.'
             },
             {
-              icon: <ShieldCheck className="w-6 h-6 text-cyan-400" />,
+              icon: <ShieldCheck className="w-6 h-6 text-cyan-600" />,
               title: 'Private & Confidential',
               desc: 'Your images are processed securely in memory and never shared, sold, or stored. Your personal health privacy always comes first.'
             },
             {
-              icon: <FileText className="w-6 h-6 text-emerald-400" />,
+              icon: <FileText className="w-6 h-6 text-emerald-600" />,
               title: 'Easy Doctor Summary',
               desc: 'Download a clean, structured summary with clinical findings to bring directly to your optometrist or ophthalmologist.'
             },
           ].map((f, i) => (
-            <div key={i} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
-              <div className="p-3 w-fit rounded-xl bg-slate-900 border border-slate-800">
+            <div key={i} className="glass-card p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+              <div className="p-3 w-fit rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
                 {f.icon}
               </div>
-              <h3 className="text-base font-bold text-slate-100">{f.title}</h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+              <h3 className="text-base font-bold text-slate-900">{f.title}</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -607,15 +406,15 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
 
       {/* Medical Notice & Privacy Strip */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200">
               <ShieldCheck className="w-3.5 h-3.5" /> Medical Disclaimer & Patient Privacy
             </div>
-            <h3 className="text-lg font-bold text-white tracking-tight">
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">
               Designed to Assist, Not Replace Your Doctor
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               OphthalmoAI provides screening and educational insights. It does not provide an official medical diagnosis. If you experience sudden vision loss, severe pain, or an eye injury, please visit an eye care specialist or emergency room right away.
             </p>
           </div>
@@ -623,16 +422,16 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={() => onNavigate('terms')}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 shadow-2xs transition flex items-center gap-1.5"
             >
-              <Scale className="w-3.5 h-3.5 text-cyan-400" />
+              <Scale className="w-3.5 h-3.5 text-cyan-600" />
               <span>Terms & Conditions</span>
             </button>
             <button
               onClick={() => onNavigate('privacy')}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 shadow-2xs transition flex items-center gap-1.5"
             >
-              <Lock className="w-3.5 h-3.5 text-teal-400" />
+              <Lock className="w-3.5 h-3.5 text-teal-600" />
               <span>Privacy Policy</span>
             </button>
           </div>
@@ -645,21 +444,39 @@ const HomePage = ({ onNavigate, viewMode = 'public' }) => {
 const ArchitectureTelemetryPage = () => (
   <div className="space-y-12 animate-fade-in">
     {/* Header */}
-    <div className="border-b border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 mb-2">
           <FlaskConical className="w-3.5 h-3.5" /> Hardware Profiling & Runtime Telemetry
         </div>
-        <h2 className="text-3xl font-bold text-white tracking-tight">Architecture & Benchmarks Matrix</h2>
-        <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Architecture & Benchmarks Matrix</h2>
+        <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
           Comprehensive empirical telemetry captured across 15 distinct training and inference runs on an <strong>NVIDIA GeForce RTX 5060 Laptop GPU (8GB GDDR7)</strong> and <strong>AMD Ryzen 9 8940HX</strong> inside NVIDIA NGC containerized environments.
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="glass-panel px-4 py-2 rounded-xl border border-slate-800 text-right">
-          <span className="text-[10px] text-slate-400 uppercase font-mono block">Compute Node</span>
-          <span className="text-xs font-bold text-emerald-400">RTX 5060 8GB GDDR7</span>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <a
+          href="https://ophthalmo-ai-mu.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 shadow-2xs transition-all"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-cyan-600" />
+          <span>Vercel Host</span>
+        </a>
+        <a
+          href="https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 shadow-2xs transition-all"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-amber-600" />
+          <span>Hugging Face Space</span>
+        </a>
+        <div className="glass-panel px-3.5 py-1.5 rounded-xl border border-slate-200 text-right shadow-2xs">
+          <span className="text-[9px] text-slate-500 uppercase font-mono block font-semibold">Compute Node</span>
+          <span className="text-xs font-bold text-emerald-700">RTX 5060 8GB</span>
         </div>
       </div>
     </div>
@@ -667,66 +484,66 @@ const ArchitectureTelemetryPage = () => (
     {/* Key Telemetry Highlights */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {[
-        { title: '85.18% SOTA Ensemble', subtitle: 'Tri-Backbone Soft Voting', desc: '0.9805 Macro AUROC across all 6 retinal disease classes', color: 'text-emerald-400' },
-        { title: '23x Speedup vs CPU', subtitle: '380.5s -> 18.2s / Batch', desc: 'Accelerated tensor processing via CUDA 12.4 & FP16 on RTX 5060', color: 'text-amber-400' },
-        { title: '8GB VRAM Budget', subtitle: '< 3.85 GB Peak Allocation', desc: 'Zero Out-Of-Memory events with safe BS=16 budget', color: 'text-cyan-400' },
-        { title: 'Temperature Calibrated', subtitle: 'ECE: 0.0268 - 0.0644', desc: 'Platt-scaled softmax outputs guarantee clinical trustworthiness', color: 'text-indigo-400' },
+        { title: '85.18% SOTA Ensemble', subtitle: 'Tri-Backbone Soft Voting', desc: '0.9805 Macro AUROC across all 6 retinal disease classes', color: 'text-emerald-700' },
+        { title: '23x Speedup vs CPU', subtitle: '380.5s -> 18.2s / Batch', desc: 'Accelerated tensor processing via CUDA 12.4 & FP16 on RTX 5060', color: 'text-amber-700' },
+        { title: '8GB VRAM Budget', subtitle: '< 3.85 GB Peak Allocation', desc: 'Zero Out-Of-Memory events with safe BS=16 budget', color: 'text-cyan-700' },
+        { title: 'Temperature Calibrated', subtitle: 'ECE: 0.0268 - 0.0644', desc: 'Platt-scaled softmax outputs guarantee clinical trustworthiness', color: 'text-indigo-700' },
       ].map((item, i) => (
-        <div key={i} className="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
+        <div key={i} className="glass-card p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
           <span className={`text-base font-extrabold ${item.color} block`}>{item.title}</span>
-          <p className="text-xs font-bold text-slate-200">{item.subtitle}</p>
-          <p className="text-[11px] text-slate-400 leading-relaxed">{item.desc}</p>
+          <p className="text-xs font-bold text-slate-900">{item.subtitle}</p>
+          <p className="text-[11px] text-slate-600 leading-relaxed">{item.desc}</p>
         </div>
       ))}
     </div>
 
     {/* Verified Engineering Benchmarks Table */}
-    <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+    <div className="glass-panel p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-cyan-400" /> Complete Engineering Telemetry Table
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-cyan-600" /> Complete Engineering Telemetry Table
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Runtime execution metrics recorded during full 40-epoch cross-validation runs.</p>
+          <p className="text-xs text-slate-500 mt-0.5">Runtime execution metrics recorded during full 40-epoch cross-validation runs.</p>
         </div>
-        <span className="text-[11px] font-mono text-slate-400">dataset/logs/ telemetry verified</span>
+        <span className="text-[11px] font-mono text-slate-500 font-medium">dataset/logs/ telemetry verified</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase">
-              <th className="py-3 px-3">Architecture / Model</th>
+            <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-700 font-mono text-[11px] uppercase">
+              <th className="py-3 px-3 rounded-l-lg">Architecture / Model</th>
               <th className="py-3 px-3">Precision</th>
               <th className="py-3 px-3">Batch Size</th>
               <th className="py-3 px-3">Avg Epoch Time</th>
               <th className="py-3 px-3">Peak VRAM</th>
               <th className="py-3 px-3">Final Accuracy</th>
               <th className="py-3 px-3">Max Temp</th>
-              <th className="py-3 px-3">Optimization Status</th>
+              <th className="py-3 px-3 rounded-r-lg">Optimization Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-medium text-slate-200">
+          <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
             {BENCHMARK_DATA.map((row, idx) => {
               const isSota = row.model.includes('SOTA')
               return (
-                <tr key={idx} className={`hover:bg-slate-800/40 transition-colors ${isSota ? 'bg-cyan-950/20' : ''}`}>
-                  <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
-                    {isSota && <Star className="w-3.5 h-3.5 text-cyan-400 fill-current" />}
+                <tr key={idx} className={`hover:bg-slate-50/80 transition-colors ${isSota ? 'bg-cyan-50/60' : ''}`}>
+                  <td className="py-3 px-3 font-bold text-slate-900 flex items-center gap-2">
+                    {isSota && <Star className="w-3.5 h-3.5 text-cyan-600 fill-current" />}
                     <span>{row.model}</span>
                   </td>
                   <td className="py-3 px-3 font-mono">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${row.precision === 'FP16' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800' : row.precision === 'BF16' ? 'bg-teal-950 text-teal-300 border border-teal-800' : 'bg-slate-800 text-slate-300'}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${row.precision === 'FP16' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : row.precision === 'BF16' ? 'bg-teal-50 text-teal-700 border border-teal-200' : 'bg-slate-100 text-slate-700'}`}>
                       {row.precision}
                     </span>
                   </td>
-                  <td className="py-3 px-3 font-mono">{row.bs}</td>
-                  <td className="py-3 px-3 font-mono text-cyan-300">{row.time}</td>
-                  <td className="py-3 px-3 font-mono text-teal-300">{row.vram}</td>
-                  <td className="py-3 px-3 font-mono font-bold text-emerald-400">{row.acc}</td>
-                  <td className="py-3 px-3 font-mono text-slate-400">{row.temp}</td>
+                  <td className="py-3 px-3 font-mono text-slate-700">{row.bs}</td>
+                  <td className="py-3 px-3 font-mono text-cyan-700 font-bold">{row.time}</td>
+                  <td className="py-3 px-3 font-mono text-teal-700 font-semibold">{row.vram}</td>
+                  <td className="py-3 px-3 font-mono font-bold text-emerald-700">{row.acc}</td>
+                  <td className="py-3 px-3 font-mono text-slate-600">{row.temp}</td>
                   <td className="py-3 px-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${isSota ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${isSota ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
                       {row.status}
                     </span>
                   </td>
@@ -740,48 +557,48 @@ const ArchitectureTelemetryPage = () => (
 
     {/* Three Base Vision Backbones Deep Dive */}
     <div className="space-y-4">
-      <h3 className="text-xl font-bold text-white flex items-center gap-2">
-        <Microscope className="w-5 h-5 text-indigo-400" /> Vision Ensemble Backbones Triad
+      <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+        <Microscope className="w-5 h-5 text-indigo-600" /> Vision Ensemble Backbones Triad
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+        <div className="glass-card p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-cyan-400">Backbone 01</span>
-            <span className="text-[10px] font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300">19.32s / Epoch</span>
+            <span className="text-xs font-mono font-bold text-cyan-700">Backbone 01</span>
+            <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">19.32s / Epoch</span>
           </div>
-          <h4 className="text-base font-bold text-white">ConvNeXt-Small</h4>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <h4 className="text-base font-bold text-slate-900">ConvNeXt-Small</h4>
+          <p className="text-xs text-slate-600 leading-relaxed">
             Standard 7x7 depthwise convolutions and inverted bottleneck design capture large-scale macro eyelid contours, ptosis symmetry, and periorbital lesions.
           </p>
-          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-cyan-300 font-mono">
+          <div className="pt-2 border-t border-slate-100 text-[11px] text-cyan-700 font-mono font-semibold">
             Spatial Focus: Eyelids & Gross Anatomy
           </div>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+        <div className="glass-card p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-teal-400">Backbone 02</span>
-            <span className="text-[10px] font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300">24.74s / Epoch</span>
+            <span className="text-xs font-mono font-bold text-teal-700">Backbone 02</span>
+            <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">24.74s / Epoch</span>
           </div>
-          <h4 className="text-base font-bold text-white">DenseNet-201</h4>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <h4 className="text-base font-bold text-slate-900">DenseNet-201</h4>
+          <p className="text-xs text-slate-600 leading-relaxed">
             Iterative dense feature reuse concatenates shallow and deep layer embeddings, excelling at detecting fine micro-vascular branching, ciliary injection, and hemorrhages.
           </p>
-          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-teal-300 font-mono">
+          <div className="pt-2 border-t border-slate-100 text-[11px] text-teal-700 font-mono font-semibold">
             Spatial Focus: Micro-Vascular & Hemorrhages
           </div>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+        <div className="glass-card p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-indigo-400">Backbone 03</span>
-            <span className="text-[10px] font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300">24.91s / Epoch</span>
+            <span className="text-xs font-mono font-bold text-indigo-700">Backbone 03</span>
+            <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">24.91s / Epoch</span>
           </div>
-          <h4 className="text-base font-bold text-white">EfficientNet-V2-M</h4>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <h4 className="text-base font-bold text-slate-900">EfficientNet-V2-M</h4>
+          <p className="text-xs text-slate-600 leading-relaxed">
             Progressive training with Fused-MBConv layers evaluates compound anterior segment opacities, crystalline lens density, and corneal infiltrates with minimal parameter count.
           </p>
-          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-indigo-300 font-mono">
+          <div className="pt-2 border-t border-slate-100 text-[11px] text-indigo-700 font-mono font-semibold">
             Spatial Focus: Anterior Segment & Lens Opacity
           </div>
         </div>
@@ -828,21 +645,9 @@ export default function App() {
   const [conditions, setConditions] = useState(FALLBACK_CONDITIONS)
   const [searchQuery, setSearchQuery] = useState('')
   const [conditionGroup, setConditionGroup] = useState('All')
-  const [viewMode, setViewMode] = useState(() => {
-    try {
-      return localStorage.getItem('ophthalmo_view_mode') || 'public'
-    } catch {
-      return 'public'
-    }
-  })
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const viewMode = 'public'
   const [copiedBibtex, setCopiedBibtex] = useState(false)
-
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode)
-    try {
-      localStorage.setItem('ophthalmo_view_mode', mode)
-    } catch {}
-  }
 
   const handleCopyBibtex = () => {
     const bibtex = `@article{kundu2025ophthalmoai,
@@ -1114,7 +919,7 @@ export default function App() {
       }
       setResult(res.data)
     } catch (err) {
-      const detail = err?.response?.data?.detail || 'An unexpected error occurred during prediction analysis.'
+      const detail = err?.response?.data?.detail || err?.message || 'An unexpected error occurred during prediction analysis.'
       setError(typeof detail === 'string' ? detail : JSON.stringify(detail))
     } finally {
       setLoading(false)
@@ -1555,83 +1360,86 @@ export default function App() {
   })
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-all duration-300 ${
-      viewMode === 'academic' ? 'theme-clinical text-slate-100' : 'theme-public text-slate-100'
-    }`}>
-      {}
-      <header className="sticky top-0 z-40 glass-panel border-b border-slate-800">
+    <div className="min-h-screen flex flex-col font-sans bg-[#F8FAFC] text-slate-900 transition-all duration-300">
+      {/* Light Clinical Sticky Header */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-              <div className={`flex items-center justify-center w-10 h-10 rounded-xl text-white shadow-lg transition-all ${
-                viewMode === 'academic'
-                  ? 'bg-gradient-to-tr from-indigo-600 to-cyan-500 shadow-indigo-500/25'
-                  : 'bg-gradient-to-tr from-cyan-500 to-teal-400 shadow-cyan-500/20'
-              }`}>
+            {/* Logo */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}>
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl text-white shadow-md bg-gradient-to-tr from-cyan-600 via-teal-500 to-blue-600 shadow-cyan-500/20">
                 <Eye className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-base font-extrabold tracking-wide text-white font-display">
-                  Ophthalmo<span className={viewMode === 'academic' ? 'text-indigo-400' : 'text-cyan-400'}>AI</span>
+                <span className="text-base font-extrabold tracking-wide text-slate-900 font-display">
+                  Ophthalmo<span className="text-cyan-600">AI</span>
                 </span>
-                <span className="block text-[10px] text-slate-400 font-medium tracking-wide">
-                  {viewMode === 'academic' ? 'Clinical CDSS & Research' : 'Eye Health Screening'}
+                <span className="block text-[10px] text-slate-500 font-medium tracking-wide">
+                  Eye Health Screening & Diagnostics
                 </span>
               </div>
             </div>
 
-            <nav className="flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto scrollbar-hide">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80">
               <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
-              <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label={viewMode === 'academic' ? "Clinical Diagnostic" : "Eye Screening"} />
+              <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Eye Screening" />
               <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions Guide" />
               <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Specs" />
               <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
             </nav>
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800 text-xs shadow-inner">
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange('public')}
-                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${
-                    viewMode === 'public'
-                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-md shadow-cyan-500/25 ring-1 ring-cyan-300/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Public & Patient View: Plain-English explanations and next steps"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Public View</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange('academic')}
-                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-semibold ${
-                    viewMode === 'academic'
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/30 ring-1 ring-indigo-300/30'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                  title="Academic & Clinician View: Statistical calibration, backbones breakdown, and BibTeX citations"
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Academic / Clinical</span>
-                </button>
+            {/* Header Right Action & Mobile Hamburger */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Screening Active</span>
               </div>
 
-              <div className="hidden xl:flex items-center gap-3">
-                {viewMode === 'academic' ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-700/80 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" /> CDSS Calibrated Mode (T*)
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Patient Care Portal
-                  </span>
-                )}
-              </div>
+              {/* Mobile Hamburger Button */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Responsive Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200 bg-white/98 backdrop-blur-xl px-4 py-3 space-y-1 shadow-lg animate-fade-in">
+            {[
+              { id: 'home', label: 'Home & Overview', icon: <Home className="w-4 h-4" /> },
+              { id: 'diagnostic', label: 'Eye Health Screening', icon: <ScanEye className="w-4 h-4" /> },
+              { id: 'conditions', label: '6 Conditions Guide', icon: <BookOpen className="w-4 h-4" /> },
+              { id: 'workflow', label: 'Architecture & Specs', icon: <BarChart2 className="w-4 h-4" /> },
+              { id: 'news', label: 'Eye Health News & Literature', icon: <Newspaper className="w-4 h-4" /> },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setMobileMenuOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-cyan-50 text-cyan-800 border border-cyan-200 shadow-2xs'
+                    : 'text-slate-700 hover:bg-slate-100 border border-transparent'
+                }`}
+              >
+                <span className={activeTab === tab.id ? 'text-cyan-600' : 'text-slate-500'}>
+                  {tab.icon}
+                </span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {}
@@ -1640,37 +1448,35 @@ export default function App() {
 
         {activeTab === 'diagnostic' && (
           <div className="space-y-8 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">
-                  {viewMode === 'academic' ? 'Retinal Fundus Digital Ophthalmoscopy & AI Inference' : 'Eye Health Screening & Check'}
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Eye Health Screening & AI Diagnostic Check
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  {viewMode === 'academic'
-                    ? 'Upload high-resolution color fundus photographs (CFP). Evaluated through OAC-DG domain guardrails with post-hoc Platt temperature-calibrated posterior inference.'
-                    : 'Upload an eye photo or scan, note any symptoms, and get instant guidance with an easy summary for your doctor.'}
+                <p className="text-xs text-slate-600 mt-1">
+                  Upload an eye photograph or retinal fundus scan (CFP), indicate your symptoms, and get instant clinical guidance with a downloadable report for your doctor.
                 </p>
               </div>
               {result && (
                 <button
                   onClick={generatePDFReport}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-cyan-50 text-cyan-800 border border-cyan-300 hover:bg-cyan-100 shadow-2xs transition-all"
                 >
-                  <Download className="w-4 h-4" /> Download PDF Report
+                  <Download className="w-4 h-4 text-cyan-700" /> Download PDF Report
                 </button>
               )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {}
+              {/* Left Column: Image Upload & Symptoms Intake */}
               <div className="space-y-6">
-                {}
-                <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                    <Upload className="w-4 h-4" /> {viewMode === 'academic' ? '1. Color Fundus Photograph (CFP)' : '1. Eye Photo or Scan'}
+                {/* 1. Upload Card */}
+                <div className="glass-panel p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-cyan-600" /> 1. Eye Photo or Retinal Scan
                   </p>
 
-                  <div className="relative border-2 border-dashed border-slate-700/80 rounded-2xl p-6 text-center hover:border-cyan-500/60 transition-all duration-300 bg-slate-900/60 group">
+                  <div className="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-cyan-500 transition-all duration-300 bg-slate-50/70 group">
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/bmp,image/webp"
@@ -1680,26 +1486,22 @@ export default function App() {
 
                     {previewUrl ? (
                       <div className="relative space-y-3">
-                        <img src={previewUrl} alt="Scan preview" className="max-h-48 mx-auto rounded-xl shadow-lg border border-slate-700 object-cover" />
-                        <p className="text-[11px] text-cyan-400 font-medium">
-                          {viewMode === 'academic' ? 'Click or drag to replace fundus photograph' : 'Click or drag to replace photo'}
+                        <img src={previewUrl} alt="Scan preview" className="max-h-48 mx-auto rounded-xl shadow-md border border-slate-200 object-cover" />
+                        <p className="text-[11px] text-cyan-700 font-semibold">
+                          Click or drag to replace photo
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-3 py-4">
-                        <div className="w-12 h-12 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center mx-auto border border-cyan-200 group-hover:scale-105 transition-transform">
                           <Upload className="w-6 h-6" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-slate-200">
-                            {viewMode === 'academic'
-                              ? 'Drag & drop a macular or disc-centered fundus photograph'
-                              : 'Drag & drop an eye photo or click to browse'}
+                          <p className="text-xs font-bold text-slate-800">
+                            Drag & drop an eye photograph or click to browse
                           </p>
-                          <p className="text-[10px] text-slate-400 mt-1">
-                            {viewMode === 'academic'
-                              ? 'OAC-DG domain guardrails automatically inspect aperture, blur & exposure (Max 20MB)'
-                              : 'Supports JPEG, PNG, BMP, WEBP (Max 20MB)'}
+                          <p className="text-[10px] text-slate-500 mt-1">
+                            Supports JPEG, PNG, BMP, WEBP (Max 20MB) • Quality & Aperture Auto-Verified
                           </p>
                         </div>
                       </div>
@@ -1709,59 +1511,60 @@ export default function App() {
                   {previewUrl && (
                     <button
                       onClick={() => setCropping(true)}
-                      className="w-full py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors"
+                      className="w-full py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-colors shadow-2xs"
                     >
                       Crop & Adjust Photo
                     </button>
                   )}
                 </div>
 
-                {}
                 {/* 2. Structured Symptoms & Health Context */}
-                <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-5">
+                <div className="glass-panel p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                      <Stethoscope className="w-4 h-4" /> {viewMode === 'academic' ? '2. Clinical Context & History (Optional)' : '2. Symptoms & Health Context (Optional)'}
+                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
+                      <Stethoscope className="w-4 h-4 text-cyan-600" /> 2. Symptoms & Health Context (Optional)
                     </p>
-                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">6-Class Retinal Ensemble</span>
+                    <span className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">
+                      6-Class Retinal Ensemble
+                    </span>
                   </div>
 
                   {/* Common Quick Presets */}
                   <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block">Quick Clinical Scenarios:</span>
+                    <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase block">Quick Clinical Scenarios:</span>
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         type="button"
                         onClick={() => applyPreset('diabetic_retinopathy')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-rose-950/60 text-rose-300 border border-rose-800/60 hover:bg-rose-900/60 transition-colors"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors shadow-2xs"
                       >
                         🩸 Diabetic Retinopathy
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('glaucoma')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-purple-950/60 text-purple-300 border border-purple-800/60 hover:bg-purple-900/60 transition-colors"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors shadow-2xs"
                       >
                         👁️ Glaucoma
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('amd')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-950/60 text-amber-300 border border-amber-800/60 hover:bg-amber-900/60 transition-colors"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors shadow-2xs"
                       >
                         🟡 Macular Degeneration (AMD)
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('cataract')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-teal-950/60 text-teal-300 border border-teal-800/60 hover:bg-teal-900/60 transition-colors"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100 transition-colors shadow-2xs"
                       >
                         ⚪ Cataract
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('reset')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors ml-auto"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition-colors ml-auto shadow-2xs"
                       >
                         🔄 Reset
                       </button>
@@ -1769,14 +1572,14 @@ export default function App() {
                   </div>
 
                   {/* Intake Category Subtabs */}
-                  <div className="flex border-b border-slate-800 gap-2 pt-1">
+                  <div className="flex border-b border-slate-200 gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => setActiveQuestionTab('symptoms')}
-                      className={`pb-2 text-xs font-semibold border-b-2 transition-colors ${
+                      className={`pb-2 text-xs font-bold border-b-2 transition-colors ${
                         activeQuestionTab === 'symptoms'
-                          ? 'border-cyan-400 text-cyan-300'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
+                          ? 'border-cyan-600 text-cyan-800'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       Symptoms
@@ -1784,10 +1587,10 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setActiveQuestionTab('phenomena')}
-                      className={`pb-2 text-xs font-semibold border-b-2 transition-colors ${
+                      className={`pb-2 text-xs font-bold border-b-2 transition-colors ${
                         activeQuestionTab === 'phenomena'
-                          ? 'border-cyan-400 text-cyan-300'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
+                          ? 'border-cyan-600 text-cyan-800'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       Vision & Duration
@@ -1795,10 +1598,10 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setActiveQuestionTab('vitals')}
-                      className={`pb-2 text-xs font-semibold border-b-2 transition-colors ${
+                      className={`pb-2 text-xs font-bold border-b-2 transition-colors ${
                         activeQuestionTab === 'vitals'
-                          ? 'border-cyan-400 text-cyan-300'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
+                          ? 'border-cyan-600 text-cyan-800'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       General Health (Optional)
@@ -1878,7 +1681,7 @@ export default function App() {
                     <div className="space-y-3 animate-fade-in">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Age (Years)
                           </label>
                           <input
@@ -1886,11 +1689,11 @@ export default function App() {
                             placeholder="e.g. 58"
                             value={patientAge}
                             onChange={(e) => setPatientAge(e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl glass-input text-slate-200"
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Recent HbA1c or Blood Sugar (%)
                           </label>
                           <input
@@ -1899,14 +1702,14 @@ export default function App() {
                             placeholder="e.g. 6.2"
                             value={hba1c}
                             onChange={(e) => setHba1c(e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl glass-input text-slate-200"
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Blood Pressure Systolic (mmHg)
                           </label>
                           <input
@@ -1914,11 +1717,11 @@ export default function App() {
                             placeholder="e.g. 125"
                             value={systolicBP}
                             onChange={(e) => setSystolicBP(e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl glass-input text-slate-200"
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Blood Pressure Diastolic (mmHg)
                           </label>
                           <input
@@ -1926,7 +1729,7 @@ export default function App() {
                             placeholder="e.g. 82"
                             value={diastolicBP}
                             onChange={(e) => setDiastolicBP(e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl glass-input text-slate-200"
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
                       </div>
@@ -1945,28 +1748,24 @@ export default function App() {
                   <button
                     onClick={handleAnalyze}
                     disabled={!selectedFile || loading}
-                    className={`w-full py-3.5 text-xs font-bold text-white rounded-xl transition-all duration-300 shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                      viewMode === 'academic'
-                        ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 shadow-indigo-600/30 ring-1 ring-indigo-400/20'
-                        : 'bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 shadow-cyan-500/20'
-                    }`}
+                    className="w-full py-3.5 text-xs font-bold text-white rounded-xl transition-all duration-200 shadow-md shadow-cyan-600/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 active:scale-98"
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        {viewMode === 'academic' ? 'Executing Calibrated Ensemble Inference...' : 'Checking Eye Photo & Symptoms...'}
+                        Checking Eye Photo & Symptoms...
                       </>
                     ) : (
                       <>
                         <Activity className="w-4 h-4" />
-                        {viewMode === 'academic' ? 'Execute Deep Retinal Neural Inference' : 'Check Eye Health'}
+                        Check Eye Health
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {}
+              {/* Right Column: Diagnostic Results & Specialist Guidance */}
               <div className="space-y-6">
                 {error && (
                   (() => {
@@ -1978,35 +1777,35 @@ export default function App() {
                       error.toLowerCase().includes('backscatter')
                     )
                     return isFundusError ? (
-                      <div className="p-5 rounded-2xl bg-amber-950/80 border border-amber-500/40 text-amber-200 text-xs shadow-xl relative overflow-hidden animate-fade-in">
+                      <div className="p-5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs shadow-xs relative overflow-hidden animate-fade-in">
                         <div className="flex items-start gap-3.5">
-                          <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 border border-amber-500/30">
+                          <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0 border border-amber-200">
                             <ShieldAlert className="w-6 h-6" />
                           </div>
                           <div className="space-y-2.5 flex-1">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-amber-300 text-sm tracking-wide flex items-center gap-2">
+                              <span className="font-bold text-amber-900 text-sm tracking-wide flex items-center gap-2">
                                 Fundus Domain Guardrail Active
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">Rejected (HTTP 422)</span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono font-bold">Rejected (HTTP 422)</span>
                               </span>
                               <button 
                                 onClick={() => { setError(null); setSelectedFile(null); setPreviewUrl(null); }}
-                                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-amber-100/50 transition-colors"
                                 title="Dismiss and clear upload"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
-                            <p className="text-slate-200 leading-relaxed bg-amber-950/40 p-3 rounded-xl border border-amber-500/20">
+                            <p className="text-slate-800 leading-relaxed bg-white/80 p-3 rounded-xl border border-amber-200">
                               {error}
                             </p>
-                            <div className="pt-2 border-t border-amber-500/20 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                              <div className="flex items-center gap-2 text-emerald-300">
-                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                            <div className="pt-2 border-t border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                              <div className="flex items-center gap-2 text-emerald-800">
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
                                 <span><strong>Supported:</strong> Authentic color fundus photograph (CFP) of retina, macula, or optic disc</span>
                               </div>
-                              <div className="flex items-center gap-2 text-red-300">
-                                <X className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                              <div className="flex items-center gap-2 text-red-800">
+                                <X className="w-3.5 h-3.5 shrink-0 text-red-600" />
                                 <span><strong>Rejected:</strong> Everyday objects, animals, selfies, documents, or synthetic noise</span>
                               </div>
                             </div>
@@ -2014,19 +1813,19 @@ export default function App() {
                         </div>
                       </div>
                     ) : (
-                      <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                      <div className="p-4 rounded-2xl bg-red-50 border border-red-300 text-red-900 text-xs flex items-start gap-3 shadow-xs">
+                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <p className="font-bold">Screening Notice</p>
                             <button 
                               onClick={() => setError(null)}
-                              className="text-slate-400 hover:text-white p-0.5 rounded hover:bg-slate-800 transition-colors"
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-red-100 transition-colors"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                          <p className="mt-0.5 leading-relaxed">{error}</p>
+                          <p className="mt-0.5 leading-relaxed text-slate-800">{error}</p>
                         </div>
                       </div>
                     )
@@ -2036,121 +1835,85 @@ export default function App() {
                 {result ? (
                     <div className="space-y-6 animate-fade-up">
                       {/* Diagnostic Result Master Card */}
-                      <div className={`glass-card p-6 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-300 ${
-                        viewMode === 'academic'
-                          ? 'border border-indigo-500/40 shadow-indigo-950/40 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/30'
-                          : 'border border-emerald-500/25 shadow-cyan-950/20'
-                      }`}>
-                        <div className={`absolute top-0 left-0 w-full h-1 ${
-                          viewMode === 'academic'
-                            ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400'
-                            : 'bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500'
-                        }`}></div>
-                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-800">
+                      <div className="glass-card p-6 rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300 border border-slate-200 bg-white">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500"></div>
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-200">
                           <div>
                             <div className="flex flex-wrap items-center gap-2 mb-3">
-                              {viewMode === 'academic' ? (
-                                <>
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-950/80 text-indigo-300 border border-indigo-700/80 shadow-sm">
-                                    <Sparkles className="w-3 h-3 text-indigo-400" />
-                                    Clinical Decision Support // Level-2 Telemetry
-                                  </span>
-                                  {result.calibrated && (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-cyan-950/80 text-cyan-300 border border-cyan-800/80 font-mono">
-                                      <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                                      Platt-Calibrated Soft-Voting (T*)
-                                    </span>
-                                  )}
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-purple-950/80 text-purple-300 border border-purple-800/80 font-mono">
-                                    <Target className="w-3 h-3 text-purple-400" />
-                                    95% Conformal Set
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 shadow-sm">
-                                    <Sparkles className="w-3 h-3 text-emerald-400" />
-                                    {result.group_name || 'Tri-Backbone Ensemble (85.2% Test Accuracy)'}
-                                  </span>
-                                  {result.calibrated && (
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-cyan-950/60 text-cyan-300 border border-cyan-800/60 font-mono">
-                                      <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                                      AI Doctor-Assist Verified
-                                    </span>
-                                  )}
-                                </>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                                <Sparkles className="w-3 h-3 text-emerald-600" />
+                                {result.group_name || 'Tri-Backbone Ensemble (85.2% Test Accuracy)'}
+                              </span>
+                              {result.calibrated && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-cyan-50 text-cyan-800 border border-cyan-200 font-mono">
+                                  <CheckCircle2 className="w-3 h-3 text-cyan-600" />
+                                  AI Doctor-Assist Verified
+                                </span>
                               )}
                             </div>
-                            <h3 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2">{result.diagnosis}</h3>
+                            <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">{result.diagnosis}</h3>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-mono">ICD-10: <span className="text-emerald-300">{result.icd10_code || 'N/A'}</span></span>
-                              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-mono">SNOMED: <span className="text-emerald-300">{result.snomed_code || 'N/A'}</span></span>
+                              <span className="px-2 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] text-slate-700 font-mono">ICD-10: <span className="text-emerald-700 font-bold">{result.icd10_code || 'N/A'}</span></span>
+                              <span className="px-2 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] text-slate-700 font-mono">SNOMED: <span className="text-emerald-700 font-bold">{result.snomed_code || 'N/A'}</span></span>
                               <SeverityBadge severity={result.urgency || 'Normal'} />
                             </div>
 
                             {result.models_ensembled && result.models_ensembled.length > 0 && (
-                              <div className="mt-4 p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
-                                <span className="text-slate-400 font-semibold flex items-center gap-1.5 text-[11px]">
-                                  <Cpu className="w-3.5 h-3.5 text-cyan-400" /> Active Backbones:
+                              <div className="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-slate-600 font-bold flex items-center gap-1.5 text-[11px]">
+                                  <Cpu className="w-3.5 h-3.5 text-cyan-600" /> Active Backbones:
                                 </span>
                                 {result.models_ensembled.map((m, idx) => (
-                                  <span key={idx} className="px-2.5 py-0.5 rounded-lg bg-slate-900 border border-slate-700/70 text-slate-200 font-mono text-[10px] font-medium shadow-inner">
+                                  <span key={idx} className="px-2.5 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-800 font-mono text-[10px] font-semibold shadow-2xs">
                                     {m}
                                   </span>
                                 ))}
-                                <span className="sm:ml-auto text-[10px] text-emerald-400 font-mono flex items-center gap-1 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-0.5 rounded-lg">
-                                  <Eye className="w-3 h-3 text-emerald-400" /> Heatmap: EfficientNet-B4 Grad-CAM
+                                <span className="sm:ml-auto text-[10px] text-emerald-800 font-mono flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg font-semibold">
+                                  <Eye className="w-3 h-3 text-emerald-600" /> Heatmap: EfficientNet-B4 Grad-CAM
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="text-right shrink-0">
-                            <div className={`text-4xl font-black tabular-nums ${
-                              viewMode === 'academic'
-                                ? 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-cyan-400'
-                                : 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400'
-                            }`}>
+                            <div className="text-4xl font-black tabular-nums text-cyan-700">
                               {result.confidence}%
                             </div>
-                            <span className="text-xs text-slate-400 font-mono font-medium block mt-1">
-                              {viewMode === 'academic' ? 'Calibrated Posterior P(y|x)' : 'Screening Confidence'}
+                            <span className="text-xs text-slate-600 font-mono font-bold block mt-1">
+                              Screening Confidence
                             </span>
                             <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                              {viewMode === 'academic'
-                                ? `Wilson 95% CI: ±2.27% • Epistemic: ${((result.uncertainty || 0) * 100).toFixed(1)}%`
-                                : `Consistency: ${((1 - (result.uncertainty || 0)) * 100).toFixed(1)}%`}
+                              Consistency: {((1 - (result.uncertainty || 0)) * 100).toFixed(1)}%
                             </span>
                           </div>
                         </div>
 
-                        {}
                         {result.condition_details?.pathophysiology && (
                           <div className="pt-6">
-                            <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-3">
-                              <Brain className="w-4 h-4 text-emerald-400" /> Understanding This Condition
+                            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
+                              <Brain className="w-4 h-4 text-emerald-600" /> Understanding This Condition
                             </h4>
-                            <p className="text-sm text-slate-400 leading-relaxed">
+                            <p className="text-sm text-slate-600 leading-relaxed">
                               {result.condition_details.pathophysiology}
                             </p>
                           </div>
                         )}
                       </div>
 
-                      {}
-                      <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-                          <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                            <Layers className="w-4 h-4 text-cyan-400" /> Visual Findings & Highlighted Areas
+                      {/* Visual Findings & Heatmap */}
+                      <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-cyan-600" /> Visual Findings & Highlighted Areas
                           </h4>
-                          <button onClick={() => setShowHeatmap(!showHeatmap)} className="text-[11px] px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 transition-colors">
+                          <button onClick={() => setShowHeatmap(!showHeatmap)} className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-cyan-800 border border-slate-200 transition-colors shadow-2xs">
                             {showHeatmap ? 'Show Original Photo' : 'Show Highlighted Heatmap'}
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                           <div className="md:col-span-2 space-y-3">
-                            <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-900 group">
+                            <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group">
                               <img src={showHeatmap && result.heatmap ? result.heatmap : previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
-                              <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md">
+                              <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
                                 {showHeatmap && result.heatmap ? 'Highlighted Focus' : 'Original Photo'}
                               </div>
                             </div>
@@ -2159,20 +1922,20 @@ export default function App() {
                             {result.condition_details?.analysis && (
                               <div>
                                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Key Visual Signs</span>
-                                <p className="text-xs text-slate-300 leading-relaxed">{result.condition_details.analysis}</p>
+                                <p className="text-xs text-slate-700 leading-relaxed">{result.condition_details.analysis}</p>
                               </div>
                             )}
                             {result.spatial_description && (
-                              <div className="bg-slate-950/60 p-3.5 border border-slate-850 rounded-xl space-y-1">
+                              <div className="bg-slate-50 p-3.5 border border-slate-200 rounded-xl space-y-1">
                                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Highlighted Area Description</span>
-                                <p className="text-xs text-emerald-400 font-mono leading-relaxed">{result.spatial_description}</p>
+                                <p className="text-xs text-emerald-800 font-mono leading-relaxed font-semibold">{result.spatial_description}</p>
                               </div>
                             )}
                             <div>
                               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2 block">Condition Probability Breakdown</span>
                               <div className="space-y-2.5">
                                 {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
-                                  <ProbabilityBar key={cls} label={cls} value={prob} viewMode={viewMode} />
+                                  <ProbabilityBar key={cls} label={cls} value={prob} />
                                 ))}
                               </div>
                             </div>
@@ -2181,16 +1944,15 @@ export default function App() {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {}
                         {result.condition_details?.diagnostic_workup && (
-                          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-                            <h4 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
-                              <Microscope className="w-4 h-4" /> Recommended Next Steps with an Eye Doctor
+                          <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
+                            <h4 className="text-sm font-bold text-indigo-700 flex items-center gap-2">
+                              <Microscope className="w-4 h-4 text-indigo-600" /> Recommended Next Steps with an Eye Doctor
                             </h4>
                             <ul className="space-y-2.5">
                               {result.condition_details.diagnostic_workup.map((workup, i) => (
-                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/50 mt-1.5 shrink-0" />
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 leading-relaxed">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
                                   <span>{workup}</span>
                                 </li>
                               ))}
@@ -2198,16 +1960,15 @@ export default function App() {
                           </div>
                         )}
 
-                        {}
                         {result.condition_details?.treatment && (
-                          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-                            <h4 className="text-sm font-bold text-teal-400 flex items-center gap-2">
-                              <Pill className="w-4 h-4" /> Standard Clinical Care Options
+                          <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
+                            <h4 className="text-sm font-bold text-teal-700 flex items-center gap-2">
+                              <Pill className="w-4 h-4 text-teal-600" /> Standard Clinical Care Options
                             </h4>
                             <ul className="space-y-2.5">
                               {result.condition_details.treatment.map((tx, i) => (
-                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500/50 mt-1.5 shrink-0" />
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 leading-relaxed">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0" />
                                   <span>{tx}</span>
                                 </li>
                               ))}
@@ -2216,18 +1977,18 @@ export default function App() {
                         )}
                       </div>
 
-                      {}
-                      <div className="glass-panel p-6 rounded-2xl border border-amber-900/30 bg-gradient-to-br from-slate-900 to-slate-950 space-y-5">
+                      {/* Important Everyday Precautions & Doctor Notes */}
+                      <div className="glass-panel p-6 rounded-2xl border border-amber-200 bg-amber-50/20 space-y-5 shadow-2xs">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {result.condition_details?.precautions && (
                             <div className="space-y-3">
-                              <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-                                <ShieldAlert className="w-4 h-4" /> Important Everyday Precautions
+                              <h4 className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                                <ShieldAlert className="w-4 h-4 text-amber-600" /> Important Everyday Precautions
                               </h4>
                               <ul className="space-y-2">
                                 {result.condition_details.precautions.map((prec, i) => (
-                                  <li key={i} className="flex items-start gap-2.5 text-xs text-amber-200/80 leading-relaxed">
-                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500/70 shrink-0 mt-0.5" />
+                                  <li key={i} className="flex items-start gap-2.5 text-xs text-amber-900 leading-relaxed">
+                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                                     <span>{prec}</span>
                                   </li>
                                 ))}
@@ -2237,12 +1998,12 @@ export default function App() {
                           
                           {result.condition_details?.doctor_notes && (
                             <div className="space-y-3">
-                              <h4 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
-                                <Stethoscope className="w-4 h-4" /> Clinical Summary for Your Specialist
+                              <h4 className="text-sm font-bold text-cyan-900 flex items-center gap-2">
+                                <Stethoscope className="w-4 h-4 text-cyan-600" /> Clinical Summary for Your Specialist
                               </h4>
-                              <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-900/30">
-                                <p className="text-xs text-cyan-100/90 leading-relaxed italic">
-                                  "{result.condition_details.doctor_notes}"
+                              <div className="p-4 rounded-xl bg-white border border-cyan-200 shadow-2xs">
+                                <p className="text-xs text-slate-700 leading-relaxed italic">
+                                  &quot;{result.condition_details.doctor_notes}&quot;
                                 </p>
                               </div>
                             </div>
@@ -2250,11 +2011,10 @@ export default function App() {
                         </div>
                       </div>
 
-                      {}
                       {result.hybrid_warnings_structured && result.hybrid_warnings_structured.length > 0 && (
-                        <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
-                          <p className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                            <ShieldAlert className="w-4 h-4" /> Symptom Observations & Alerts
+                        <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                          <p className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-2">
+                            <ShieldAlert className="w-4 h-4 text-amber-600" /> Symptom Observations & Alerts
                           </p>
                           <div className="space-y-2">
                             {result.hybrid_warnings_structured.map((w, idx) => (
@@ -2262,140 +2022,66 @@ export default function App() {
                                 key={idx}
                                 className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
                                   w.severity === 'urgent'
-                                    ? 'bg-red-950/60 border-red-800/80 text-red-200'
+                                    ? 'bg-red-50 border-red-200 text-red-900'
                                     : w.severity === 'warning'
-                                    ? 'bg-amber-950/60 border-amber-800/80 text-amber-200'
-                                    : 'bg-cyan-950/60 border-cyan-800/80 text-cyan-200'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-900'
+                                    : 'bg-cyan-50 border-cyan-200 text-cyan-900'
                                 }`}
                               >
                                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                <span className="leading-relaxed">{w.message}</span>
+                                <span className="leading-relaxed font-medium">{w.message}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Public vs Academic Specific Dynamic Cards */}
-                      {viewMode === 'academic' ? (
-                        <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 bg-indigo-950/20 space-y-5 animate-fade-in">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-900/50 pb-3">
-                            <div className="flex items-center gap-2">
-                              <GraduationCap className="w-5 h-5 text-indigo-400" />
-                              <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-                                Academic & Statistical Inference Rigor
-                              </h4>
+                      {/* Patient Action Plan & Friendly Guidance */}
+                      <div className="glass-panel p-6 rounded-2xl border border-cyan-200 bg-cyan-50/25 space-y-4 shadow-2xs animate-fade-in">
+                        <div className="flex items-center justify-between border-b border-cyan-200 pb-3">
+                          <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <Heart className="w-4 h-4 text-rose-500" /> Patient Action Plan & Friendly Guidance
+                          </h4>
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-200">
+                            For Your Visit
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                          <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
+                            <div className="flex items-center gap-1.5 text-cyan-800 font-bold text-xs">
+                              <Calendar className="w-4 h-4 text-cyan-600" /> 1. Schedule an Exam
                             </div>
-                            <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-950 border border-indigo-800 text-indigo-300">
-                              NVIDIA NGC RTX 5060 Containerized Run
-                            </span>
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                              Book an appointment with an optometrist or ophthalmologist for a comprehensive dilated eye examination.
+                            </p>
                           </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                            <div className="p-3 rounded-xl bg-slate-950/80 border border-indigo-950">
-                              <span className="text-slate-500 text-[10px] block">Test Accuracy (n=938)</span>
-                              <span className="text-base font-bold text-emerald-400">85.18%</span>
+                          <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
+                            <div className="flex items-center gap-1.5 text-teal-800 font-bold text-xs">
+                              <FileText className="w-4 h-4 text-teal-600" /> 2. Bring Your Report
                             </div>
-                            <div className="p-3 rounded-xl bg-slate-950/80 border border-indigo-950">
-                              <span className="text-slate-500 text-[10px] block">Macro AUROC (6-Class)</span>
-                              <span className="text-base font-bold text-cyan-400">0.9805</span>
-                            </div>
-                            <div className="p-3 rounded-xl bg-slate-950/80 border border-indigo-950">
-                              <span className="text-slate-500 text-[10px] block">Expected Calib. Error</span>
-                              <span className="text-base font-bold text-indigo-300">0.0644 ECE</span>
-                            </div>
-                            <div className="p-3 rounded-xl bg-slate-950/80 border border-indigo-950">
-                              <span className="text-slate-500 text-[10px] block">Conformal Coverage</span>
-                              <span className="text-base font-bold text-teal-300">95.0% Bound</span>
-                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                              Download the PDF report below and share the Grad-CAM findings with your eye care specialist.
+                            </p>
                           </div>
 
-                          {/* Temperature Scaling Temperatures */}
-                          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
-                            <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                              <Cpu className="w-4 h-4 text-cyan-400" /> Backbone Platt Temperature Parameters (T)
-                            </span>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
-                              <span className="p-2 rounded bg-slate-900 border border-slate-800 text-slate-300">DenseNet-201: <strong className="text-cyan-300">1.2616</strong></span>
-                              <span className="p-2 rounded bg-slate-900 border border-slate-800 text-slate-300">ConvNeXt-S: <strong className="text-cyan-300">1.3407</strong></span>
-                              <span className="p-2 rounded bg-slate-900 border border-slate-800 text-slate-300">EffNet-V2-M: <strong className="text-cyan-300">1.0654</strong></span>
-                              <span className="p-2 rounded bg-slate-900 border border-slate-800 text-slate-300">EffNet-B4 XAI: <strong className="text-cyan-300">1.3275</strong></span>
+                          <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
+                            <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs">
+                              <AlertTriangle className="w-4 h-4 text-amber-600" /> 3. Watch for Red Flags
                             </div>
-                          </div>
-
-                          {/* BibTeX Citation Box */}
-                          <div className="p-4 rounded-xl bg-slate-950/90 border border-indigo-900/60 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
-                                <FileCode className="w-4 h-4 text-indigo-400" /> BibTeX Academic Citation
-                              </span>
-                              <button
-                                type="button"
-                                onClick={handleCopyBibtex}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 border border-indigo-700 transition"
-                              >
-                                {copiedBibtex ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-indigo-300" />}
-                                <span>{copiedBibtex ? 'Copied to Clipboard!' : 'Copy BibTeX'}</span>
-                              </button>
-                            </div>
-                            <pre className="p-3 rounded-lg bg-slate-900/90 text-[11px] font-mono text-slate-300 overflow-x-auto leading-relaxed border border-slate-800">
-{`@article{kundu2025ophthalmoai,
-  title={Calibrated Heterogeneous Vision Ensemble with Conformal Prediction for Ocular Disease Screening},
-  author={Kundu, Akash and Contributors},
-  journal={OphthalmoAI Clinical Systems},
-  year={2025},
-  note={Test Accuracy: 85.18%, Macro AUROC: 0.9805, Macro F1: 0.8292, Platt Temperature Scaled}
-}`}
-                            </pre>
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                              If you notice sudden vision loss, dark shadows like a curtain, or severe eye pain, seek emergency ophthalmic care right away.
+                            </p>
                           </div>
                         </div>
-                      ) : (
-                        <div className="glass-panel p-6 rounded-2xl border border-cyan-500/30 bg-cyan-950/15 space-y-4 animate-fade-in">
-                          <div className="flex items-center justify-between border-b border-cyan-900/40 pb-3">
-                            <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                              <Heart className="w-4 h-4 text-rose-400" /> Patient Action Plan & Friendly Guidance
-                            </h4>
-                            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800">
-                              For Your Visit
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-                              <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs">
-                                <Calendar className="w-4 h-4 text-cyan-400" /> 1. Schedule an Exam
-                              </div>
-                              <p className="text-xs text-slate-300 leading-relaxed">
-                                Book an appointment with an optometrist or ophthalmologist for a comprehensive dilated eye examination.
-                              </p>
-                            </div>
-
-                            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-                              <div className="flex items-center gap-1.5 text-teal-300 font-bold text-xs">
-                                <FileText className="w-4 h-4 text-teal-400" /> 2. Bring Your Report
-                              </div>
-                              <p className="text-xs text-slate-300 leading-relaxed">
-                                Download the PDF report below and share the Grad-CAM findings with your eye care specialist.
-                              </p>
-                            </div>
-
-                            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-                              <div className="flex items-center gap-1.5 text-amber-300 font-bold text-xs">
-                                <AlertTriangle className="w-4 h-4 text-amber-400" /> 3. Watch for Red Flags
-                              </div>
-                              <p className="text-xs text-slate-300 leading-relaxed">
-                                If you notice sudden vision loss, dark shadows like a curtain, or severe eye pain, seek emergency ophthalmic care right away.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      </div>
 
                       {/* Doctor Questions & Save/Export Panel */}
                       <div className="flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
-                          <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2 uppercase tracking-wider">
-                            <ClipboardList className="w-4 h-4 text-emerald-400" /> Questions to Ask Your Eye Doctor
+                        <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                          <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                            <ClipboardList className="w-4 h-4 text-emerald-600" /> Questions to Ask Your Eye Doctor
                           </h4>
                           <ul className="space-y-2 pl-1">
                             {(result.condition_details?.questions_for_doctor || [
@@ -2404,18 +2090,18 @@ export default function App() {
                               'What follow-up schedule is most appropriate for my condition?',
                               'Are there any lifestyle or preventive measures I should adopt immediately?'
                             ]).map((q, i) => (
-                              <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                                <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5 text-[10px] text-emerald-400 font-mono font-bold">{i+1}</span>
+                              <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
+                                <span className="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5 text-[10px] text-cyan-800 font-mono font-bold">{i+1}</span>
                                 <span className="leading-relaxed">{q}</span>
                               </li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="lg:w-1/3 flex flex-col justify-between gap-3 p-5 glass-panel rounded-2xl border border-slate-800">
+                        <div className="lg:w-1/3 flex flex-col justify-between gap-3 p-5 glass-panel rounded-2xl border border-slate-200 bg-white shadow-2xs">
                           <div>
                             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Save or Export Clinical Record</p>
-                            <p className="text-xs text-slate-400 leading-normal">
+                            <p className="text-xs text-slate-600 leading-normal">
                               Export your diagnostic screening data as a tamper-evident PDF or standardized clinical HL7 FHIR bundle.
                             </p>
                           </div>
@@ -2424,7 +2110,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={generatePDFReport}
-                              className="w-full px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2 active:scale-98"
+                              className="w-full px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-98"
                             >
                               <FileText className="w-4 h-4" />
                               <span>Download Modern Clinical PDF</span>
@@ -2433,33 +2119,22 @@ export default function App() {
                             <button
                               type="button"
                               onClick={handleExportFHIR}
-                              className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-800/60 transition flex items-center justify-center gap-2"
+                              className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition flex items-center justify-center gap-2 shadow-2xs"
                             >
-                              <Download className="w-4 h-4" />
+                              <Download className="w-4 h-4 text-slate-600" />
                               <span>Export FHIR R4 Bundle (JSON)</span>
                             </button>
-
-                            {viewMode === 'academic' && (
-                              <button
-                                type="button"
-                                onClick={handleExportRawJSON}
-                                className="w-full px-4 py-2.5 rounded-xl text-xs font-semibold bg-indigo-950/80 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-800/80 transition flex items-center justify-center gap-2"
-                              >
-                                <Cpu className="w-4 h-4 text-indigo-400" />
-                                <span>Export Raw Tensor & Calib JSON</span>
-                              </button>
-                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                 ) : (
-                  <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4 h-full flex flex-col justify-center min-h-[500px]">
-                    <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
-                      <ScanEye className="w-8 h-8" />
+                  <div className="glass-panel p-12 rounded-2xl border border-slate-200 bg-white text-center space-y-4 h-full flex flex-col justify-center min-h-[500px] shadow-2xs">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+                      <ScanEye className="w-8 h-8 text-slate-500" />
                     </div>
                     <div className="max-w-xs mx-auto">
-                      <p className="text-sm font-bold text-slate-300">No Active Screening Data</p>
+                      <p className="text-sm font-bold text-slate-800">No Active Screening Data</p>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                         Upload an eye photo on the left panel and click &quot;Check Eye Health&quot; to view your results, visual highlights, and doctor recommendations.
                       </p>
@@ -2473,10 +2148,10 @@ export default function App() {
 
         {activeTab === 'conditions' && (
           <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">Eye Conditions Guide (6 Detectable Retinal Pathologies)</h2>
-                <p className="text-xs text-slate-400 mt-1">Explore typical symptoms, causes, prevention advice, ICD-10/SNOMED codes, and next steps for validated retinal conditions.</p>
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Eye Conditions Guide (6 Detectable Retinal Pathologies)</h2>
+                <p className="text-xs text-slate-600 mt-1">Explore typical symptoms, causes, prevention advice, ICD-10/SNOMED codes, and next steps for validated retinal conditions.</p>
               </div>
 
               <div className="relative w-full md:w-72">
@@ -2485,7 +2160,7 @@ export default function App() {
                   placeholder="Search by condition name, symptom, or keyword..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl glass-input text-slate-200"
+                  className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                 />
                 <Search className="absolute w-4 h-4 left-3 top-2.5 text-slate-400" />
               </div>
@@ -2507,8 +2182,8 @@ export default function App() {
                   onClick={() => setConditionGroup(tab.id)}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                     conditionGroup === tab.id
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-lg shadow-cyan-500/10'
-                      : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                      ? 'bg-cyan-50 text-cyan-800 border-cyan-300 shadow-2xs font-bold'
+                      : 'bg-white text-slate-600 border-slate-200 hover:text-slate-900 hover:border-slate-300 shadow-2xs'
                   }`}
                 >
                   {tab.label}
@@ -2520,10 +2195,10 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredConditions.map(c => {
                 return (
-                  <div key={c.key} className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between hover:border-cyan-500/30 transition-all">
+                  <div key={c.key} className="glass-card p-6 rounded-2xl border border-slate-200 bg-white space-y-4 flex flex-col justify-between hover:border-cyan-400 shadow-2xs transition-all">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
                           {c.group}
                         </span>
                         <SeverityBadge severity={c.severity} />
@@ -2531,22 +2206,22 @@ export default function App() {
 
                       <div className="flex items-center gap-2.5">
                         <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
-                        <h3 className="text-lg font-bold text-white leading-tight">{c.name}</h3>
+                        <h3 className="text-lg font-bold text-slate-900 leading-tight">{c.name}</h3>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">ICD-10: <strong className="text-cyan-300">{c.icd10 || 'N/A'}</strong></span>
-                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">SNOMED: <strong className="text-cyan-300">{c.snomed || 'N/A'}</strong></span>
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-600">
+                        <span className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200">ICD-10: <strong className="text-cyan-700">{c.icd10 || 'N/A'}</strong></span>
+                        <span className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200">SNOMED: <strong className="text-cyan-700">{c.snomed || 'N/A'}</strong></span>
                       </div>
 
-                      <p className="text-xs text-slate-300 leading-relaxed">{c.description}</p>
+                      <p className="text-xs text-slate-600 leading-relaxed">{c.description}</p>
 
                       {c.symptoms && c.symptoms.length > 0 && (
                         <div className="space-y-1.5 pt-1">
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Common Symptoms:</span>
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Common Symptoms:</span>
                           <div className="flex flex-wrap gap-1">
                             {c.symptoms.map((sym, si) => (
-                              <span key={si} className="text-[10px] px-2 py-0.5 rounded bg-slate-900/90 text-slate-300 border border-slate-800">
+                              <span key={si} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                                 • {sym}
                               </span>
                             ))}
@@ -2555,10 +2230,10 @@ export default function App() {
                       )}
                     </div>
 
-                    <div className="space-y-3 pt-3 border-t border-slate-800/80">
+                    <div className="space-y-3 pt-3 border-t border-slate-200">
                       {c.advice && (
-                        <div className="p-3 bg-cyan-950/20 rounded-xl border border-cyan-900/40 text-xs text-cyan-200">
-                          <span className="font-bold block text-[10px] uppercase text-cyan-400 mb-0.5">Recommended Care</span>
+                        <div className="p-3 bg-cyan-50/70 rounded-xl border border-cyan-200 text-xs text-slate-800">
+                          <span className="font-bold block text-[10px] uppercase text-cyan-800 mb-0.5">Recommended Care</span>
                           {c.advice}
                         </div>
                       )}
@@ -2568,9 +2243,9 @@ export default function App() {
                           setSelectedFile(null)
                           setActiveTab('diagnostic')
                         }}
-                        className="w-full py-2 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 rounded-xl border border-slate-200 transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                       >
-                        <ScanEye className="w-3.5 h-3.5 text-cyan-400" /> Check for {c.name.split(' ')[0]}
+                        <ScanEye className="w-3.5 h-3.5 text-cyan-600" /> Check for {c.name.split(' ')[0]}
                       </button>
                     </div>
                   </div>
@@ -2589,12 +2264,12 @@ export default function App() {
         {activeTab === 'privacy' && <PrivacyPolicyPage onNavigate={setActiveTab} />}
       </main>
 
-      {}
+      {/* Cropping Modal */}
       {cropping && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="glass-panel w-full max-w-lg p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold text-white">Crop & Adjust Eye Scan Region</h3>
-            <div className="relative h-64 w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="glass-panel w-full max-w-lg p-6 rounded-3xl border border-slate-200 bg-white shadow-2xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900">Crop & Adjust Eye Scan Region</h3>
+            <div className="relative h-64 w-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
               <Cropper
                 image={previewUrl}
                 crop={crop}
@@ -2606,89 +2281,134 @@ export default function App() {
               />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
-              <button onClick={() => setCropping(false)} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
-              <button onClick={applyCrop} className="px-5 py-2 text-xs font-bold text-white bg-cyan-500 rounded-xl hover:bg-cyan-400 shadow-lg shadow-cyan-500/20">Apply Crop</button>
+              <button onClick={() => setCropping(false)} className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">Cancel</button>
+              <button onClick={applyCrop} className="px-5 py-2 text-xs font-bold text-white bg-cyan-600 rounded-xl hover:bg-cyan-500 shadow-md shadow-cyan-600/20 transition-colors">Apply Crop</button>
             </div>
           </div>
         </div>
       )}
 
-      {}
+      {/* Embedded Doctor AI Chatbot */}
       <ChatBot diagnosisContext={result ? { diagnosis: result.diagnosis, confidence: result.confidence, group_name: result.group_name, details: result.details } : null} />
 
       {/* Modern Public & Clinical Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 pt-12 pb-8">
+      <footer className="border-t border-slate-200 bg-slate-100/90 pt-12 pb-8 text-slate-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8">
             {/* Column 1: Brand & Mission */}
-            <div className="md:col-span-5 space-y-3">
+            <div className="md:col-span-4 space-y-3">
               <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-400 text-white shadow-md shadow-cyan-500/20">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 via-teal-500 to-blue-600 text-white shadow-md shadow-cyan-500/20">
                   <Eye className="w-4 h-4" />
                 </div>
-                <span className="text-base font-extrabold tracking-wide text-white font-display">
-                  Ophthalmo<span className="text-cyan-400">AI</span>
+                <span className="text-base font-extrabold tracking-wide text-slate-900 font-display">
+                  Ophthalmo<span className="text-cyan-600">AI</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+              <p className="text-xs text-slate-600 leading-relaxed max-w-sm">
                 Free, private, and accessible AI eye screening designed to help individuals, families, and clinics detect potential eye issues early and connect with specialist care.
               </p>
               <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-medium">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Free Eye Health Screening Online</span>
               </div>
             </div>
 
             {/* Column 2: Quick Navigation */}
-            <div className="md:col-span-4 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            <div className="md:col-span-3 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Explore & Screen
               </p>
-              <ul className="space-y-2 text-xs text-slate-400">
+              <ul className="space-y-2 text-xs text-slate-600">
                 <li>
-                  <button onClick={() => { setActiveTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                  <button onClick={() => { setActiveTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-700 transition">
                     Home & Overview
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setActiveTab('diagnostic'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                  <button onClick={() => { setActiveTab('diagnostic'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-700 transition">
                     Eye Screening Tool
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setActiveTab('conditions'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
-                    Conditions Guide (12)
+                  <button onClick={() => { setActiveTab('conditions'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-700 transition">
+                    Conditions Guide (6 Pathologies)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setActiveTab('workflow'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
-                    Architecture & Specs (Technical Page)
+                  <button onClick={() => { setActiveTab('workflow'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-700 transition">
+                    Architecture & Specs
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { setActiveTab('news'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-400 transition">
+                  <button onClick={() => { setActiveTab('news'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-cyan-700 transition">
                     Clinical Research & Preprints
                   </button>
                 </li>
               </ul>
             </div>
 
-            {/* Column 3: Privacy, Legal & Contact */}
+            {/* Column 3: Live Hosts & Cloud Mirrors */}
             <div className="md:col-span-3 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Live Deployments
+              </p>
+              <ul className="space-y-2 text-xs text-slate-600">
+                <li>
+                  <a
+                    href="https://ophthalmo-ai-mu.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-cyan-700 transition flex items-center gap-1.5 font-medium"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>Primary Web App (Vercel)</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-amber-700 transition flex items-center gap-1.5 font-medium"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Hugging Face Space</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://akashkundu114-ophthalmoai-demo.static.hf.space"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-teal-700 transition flex items-center gap-1.5 font-medium"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Static Cloud Mirror</span>
+                  </a>
+                </li>
+                <li className="pt-1 text-[11px] text-slate-500">
+                  Global edge redundancy & multi-cloud availability.
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Privacy, Legal & Contact */}
+            <div className="md:col-span-2 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Privacy & Legal
               </p>
-              <ul className="space-y-2 text-xs text-slate-400">
+              <ul className="space-y-2 text-xs text-slate-600">
                 <li>
                   <button
                     onClick={() => {
                       setActiveTab('terms')
                       window.scrollTo({ top: 0, behavior: 'smooth' })
                     }}
-                    className="hover:text-cyan-400 transition flex items-center gap-1.5"
+                    className="hover:text-cyan-700 transition flex items-center gap-1.5"
                   >
-                    <Scale className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Terms & Conditions</span>
+                    <Scale className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>Terms</span>
                   </button>
                 </li>
                 <li>
@@ -2697,47 +2417,41 @@ export default function App() {
                       setActiveTab('privacy')
                       window.scrollTo({ top: 0, behavior: 'smooth' })
                     }}
-                    className="hover:text-teal-400 transition flex items-center gap-1.5"
+                    className="hover:text-teal-700 transition flex items-center gap-1.5"
                   >
-                    <Lock className="w-3.5 h-3.5 text-teal-400" />
-                    <span>Privacy Policy</span>
+                    <Lock className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Privacy</span>
                   </button>
                 </li>
                 <li>
                   <a
                     href="mailto:akashkundu1152@gmail.com"
-                    className="hover:text-cyan-400 transition flex items-center gap-1.5"
+                    className="hover:text-cyan-700 transition flex items-center gap-1.5"
                   >
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    <span>akashkundu1152@gmail.com</span>
+                    <Mail className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="truncate">Contact</span>
                   </a>
-                </li>
-                <li className="pt-2">
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
-                    <span className="font-semibold text-slate-300 block">Patient Privacy First</span>
-                    <span>Secure in-memory processing. Photos and symptoms are never stored, sold, or shared.</span>
-                  </div>
                 </li>
               </ul>
             </div>
           </div>
 
           {/* Clinical Advisory Alert */}
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400 leading-relaxed">
-            <strong className="text-slate-300">Medical Notice:</strong> OphthalmoAI is an educational screening aid designed to assist, not replace, an in-person medical evaluation. If you experience sudden vision loss, intense eye pain, or an eye injury, please consult an eye doctor or emergency medical center immediately.
+          <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center text-xs text-slate-600 leading-relaxed shadow-2xs">
+            <strong className="text-slate-900">Medical Notice:</strong> OphthalmoAI is an educational screening aid designed to assist, not replace, an in-person medical evaluation. If you experience sudden vision loss, intense eye pain, or an eye injury, please consult an eye doctor or emergency medical center immediately.
           </div>
 
           {/* Copyright & Disclaimer Bar */}
-          <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="border-t border-slate-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div>
               &copy; {new Date().getFullYear()} OphthalmoAI. Free Eye Health Screening Platform. All rights reserved.
             </div>
             <div className="flex items-center gap-4 text-[11px]">
-              <button onClick={() => { setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
+              <button onClick={() => { setActiveTab('terms'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-700 transition">
                 Terms
               </button>
               <span>·</span>
-              <button onClick={() => { setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-400 transition">
+              <button onClick={() => { setActiveTab('privacy'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-slate-700 transition">
                 Privacy
               </button>
             </div>

@@ -294,34 +294,34 @@ export default function ClinicalResearchPage() {
   const getCategoryColor = (cat) => {
     switch (cat) {
       case 'Foundation Models':
-        return 'bg-purple-950/60 text-purple-300 border-purple-800/80'
+        return 'bg-purple-50 text-purple-700 border-purple-200'
       case 'Vision Ensembles':
-        return 'bg-cyan-950/60 text-cyan-300 border-cyan-800/80'
+        return 'bg-cyan-50 text-cyan-800 border-cyan-200'
       case 'Explainability & XAI':
-        return 'bg-teal-950/60 text-teal-300 border-teal-800/80'
+        return 'bg-teal-50 text-teal-800 border-teal-200'
       case 'Uncertainty & Safety':
-        return 'bg-amber-950/60 text-amber-300 border-amber-800/80'
+        return 'bg-amber-50 text-amber-800 border-amber-200'
       case 'Clinical Trials':
-        return 'bg-rose-950/60 text-rose-300 border-rose-800/80'
+        return 'bg-rose-50 text-rose-700 border-rose-200'
       case 'Pediatric & Epidemiology':
-        return 'bg-indigo-950/60 text-indigo-300 border-indigo-800/80'
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200'
       default:
-        return 'bg-slate-900/60 text-slate-300 border-slate-800'
+        return 'bg-slate-100 text-slate-700 border-slate-200'
     }
   }
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
       {/* Header Banner */}
-      <div className="border-b border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800/80 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 mb-2">
             <BookOpen className="w-3.5 h-3.5" /> Ophthalmic AI Research Archive & Literature Repository
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Clinical Research & Preprints
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+          <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
             Curated repository of recent peer-reviewed ophthalmology literature, cutting-edge <strong>arXiv preprints</strong>, foundation vision architectures, Grad-CAM explainability, and clinical uncertainty benchmarks.
           </p>
         </div>
@@ -333,7 +333,7 @@ export default function ClinicalResearchPage() {
             placeholder="Search arXiv ID, author, model, topic..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3.5 py-2.5 pl-9 text-xs rounded-xl glass-input text-slate-200"
+            className="w-full px-3.5 py-2.5 pl-9 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
           />
           <Search className="absolute w-4 h-4 left-3 top-3 text-slate-400" />
         </div>
@@ -341,58 +341,58 @@ export default function ClinicalResearchPage() {
 
       {/* Highlights Metric Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+        <div className="glass-card p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-cyan-400" /> arXiv AI Preprints
+            <span className="text-xs font-bold text-cyan-800 flex items-center gap-1.5">
+              <Cpu className="w-4 h-4 text-cyan-600" /> arXiv AI Preprints
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200">
               {arxivCount} Papers
             </span>
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-600">
             Pre-print research covering RETFound, ConvNeXt-DenseNet ensembles, and Monte Carlo conformal calibration.
           </p>
         </div>
 
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+        <div className="glass-card p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-              <Microscope className="w-4 h-4 text-emerald-400" /> Peer-Reviewed Journals
+            <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+              <Microscope className="w-4 h-4 text-emerald-600" /> Peer-Reviewed Journals
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
               {journalCount} Articles
             </span>
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-600">
             Validated clinical trials and epidemiological cohorts from Nature Medicine, The Lancet, and JAMA.
           </p>
         </div>
 
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-1">
+        <div className="glass-card p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-indigo-400" /> Grounded In Evidence
+            <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-indigo-600" /> Grounded In Evidence
             </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">
               Active Citations
             </span>
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-600">
             Direct DOI and arXiv links with verified performance metrics and model architecture specs.
           </p>
         </div>
       </div>
 
       {/* Main Publication Type Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200">
           <button
             onClick={() => setSelectedType('All')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
               selectedType === 'All'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-cyan-800 border border-slate-200 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             All Papers ({PAPERS_DATABASE.length})
@@ -401,34 +401,34 @@ export default function ClinicalResearchPage() {
             onClick={() => setSelectedType('arXiv Preprint')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
               selectedType === 'arXiv Preprint'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-cyan-800 border border-slate-200 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+            <Cpu className="w-3.5 h-3.5 text-cyan-600" />
             <span>arXiv Preprints ({arxivCount})</span>
           </button>
           <button
             onClick={() => setSelectedType('Peer-Reviewed Journal')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
               selectedType === 'Peer-Reviewed Journal'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-emerald-800 border border-slate-200 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+            <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
             <span>Peer-Reviewed Journals ({journalCount})</span>
           </button>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Showing <strong className="text-cyan-300">{filteredPapers.length}</strong> of {PAPERS_DATABASE.length} publications
+        <div className="text-xs text-slate-600">
+          Showing <strong className="text-cyan-800">{filteredPapers.length}</strong> of {PAPERS_DATABASE.length} publications
         </div>
       </div>
 
       {/* Category Pills Filter */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-mono uppercase text-slate-500 mr-1 flex items-center gap-1">
+        <span className="text-[11px] font-mono uppercase text-slate-500 mr-1 flex items-center gap-1 font-bold">
           <Filter className="w-3 h-3" /> Topic:
         </span>
         {categories.map(cat => (
@@ -437,8 +437,8 @@ export default function ClinicalResearchPage() {
             onClick={() => setSelectedCategory(cat)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
               selectedCategory === cat
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm'
-                : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                ? 'bg-cyan-50 text-cyan-800 border-cyan-300 shadow-2xs font-bold'
+                : 'bg-white text-slate-600 border-slate-200 hover:text-slate-900 hover:border-slate-300 shadow-2xs'
             }`}
           >
             {cat}
@@ -454,8 +454,8 @@ export default function ClinicalResearchPage() {
             return (
               <div
                 key={paper.id}
-                className={`glass-card p-6 rounded-2xl border transition-all flex flex-col justify-between space-y-4 hover:border-cyan-500/40 ${
-                  paper.highlight ? 'border-cyan-500/30 shadow-lg shadow-cyan-500/5' : 'border-slate-800'
+                className={`glass-card p-6 rounded-2xl border border-slate-200 bg-white transition-all flex flex-col justify-between space-y-4 hover:border-cyan-400 shadow-2xs ${
+                  paper.highlight ? 'ring-1 ring-cyan-400/40 shadow-md' : ''
                 }`}
               >
                 <div className="space-y-3">
@@ -467,20 +467,20 @@ export default function ClinicalResearchPage() {
                       </span>
                       <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border ${
                         isArxiv
-                          ? 'bg-red-950/40 text-red-300 border-red-900/60'
-                          : 'bg-emerald-950/40 text-emerald-300 border-emerald-900/60'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       }`}>
                         {paper.arxivId}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                      <span className="flex items-center gap-1 font-mono text-slate-400">
-                        <Calendar className="w-3 h-3 text-slate-500" /> {paper.date}
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1 font-mono text-slate-500">
+                        <Calendar className="w-3 h-3 text-slate-400" /> {paper.date}
                       </span>
                       <span>·</span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-slate-500" /> {paper.readTime}
+                        <Clock className="w-3 h-3 text-slate-400" /> {paper.readTime}
                       </span>
                     </div>
                   </div>
@@ -488,49 +488,49 @@ export default function ClinicalResearchPage() {
                   {/* Title & Featured Badge */}
                   <div className="space-y-1.5">
                     {paper.highlight && (
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-cyan-400">
-                        <Star className="w-3.5 h-3.5 fill-current text-cyan-400" />
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-cyan-700">
+                        <Star className="w-3.5 h-3.5 fill-current text-cyan-600" />
                         <span>Highlighted Landmark Study</span>
                       </div>
                     )}
-                    <h2 className="text-base font-bold text-white leading-snug hover:text-cyan-300 transition-colors">
+                    <h2 className="text-base font-bold text-slate-900 leading-snug hover:text-cyan-700 transition-colors">
                       <a href={paper.url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-1.5 group">
                         <span>{paper.title}</span>
-                        <ArrowUpRight className="w-4 h-4 shrink-0 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all mt-0.5" />
+                        <ArrowUpRight className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all mt-0.5" />
                       </a>
                     </h2>
                   </div>
 
                   {/* Summary */}
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     {paper.summary}
                   </p>
 
                   {/* Architecture & Metrics Strip */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px]">
-                      <span className="text-slate-500 block uppercase font-mono text-[9px]">Model Architecture</span>
-                      <span className="font-semibold text-slate-200">{paper.architecture}</span>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                      <span className="text-slate-500 block uppercase font-mono text-[9px] font-bold">Model Architecture</span>
+                      <span className="font-semibold text-slate-800">{paper.architecture}</span>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px]">
-                      <span className="text-slate-500 block uppercase font-mono text-[9px]">Benchmark Metric</span>
-                      <span className="font-bold text-cyan-300">{paper.metric}</span>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                      <span className="text-slate-500 block uppercase font-mono text-[9px] font-bold">Benchmark Metric</span>
+                      <span className="font-bold text-cyan-700">{paper.metric}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer Strip */}
-                <div className="pt-3 border-t border-slate-800/80 space-y-2">
+                <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="text-[11px] text-slate-400 space-y-0.5">
-                      <div><strong className="text-slate-300">Venue:</strong> <span className="text-cyan-300 font-medium">{paper.venue}</span></div>
+                    <div className="text-[11px] text-slate-500 space-y-0.5">
+                      <div><strong className="text-slate-700">Venue:</strong> <span className="text-cyan-800 font-semibold">{paper.venue}</span></div>
                       <div><strong>Authors:</strong> {paper.authors}</div>
                     </div>
                     <a
                       href={paper.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-cyan-700 hover:text-cyan-800 transition"
                     >
                       <span>Read Paper at {isArxiv ? 'arXiv.org' : 'Journal'}</span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -539,7 +539,7 @@ export default function ClinicalResearchPage() {
 
                   <div className="flex flex-wrap gap-1 pt-1">
                     {paper.tags.map((tag, idx) => (
-                      <span key={idx} className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+                      <span key={idx} className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                         #{tag}
                       </span>
                     ))}
@@ -550,15 +550,15 @@ export default function ClinicalResearchPage() {
           })}
         </div>
       ) : (
-        <div className="glass-panel p-12 rounded-3xl border border-slate-800 text-center space-y-3">
-          <BookOpen className="w-10 h-10 text-slate-600 mx-auto" />
-          <h3 className="text-base font-bold text-slate-300">No matching research publications found</h3>
+        <div className="glass-panel p-12 rounded-3xl border border-slate-200 bg-white shadow-2xs text-center space-y-3">
+          <BookOpen className="w-10 h-10 text-slate-400 mx-auto" />
+          <h3 className="text-base font-bold text-slate-800">No matching research publications found</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Try adjusting your search keywords or resetting the category filter to view all archived papers.
           </p>
           <button
             onClick={() => { setSearchQuery(''); setSelectedType('All'); setSelectedCategory('All'); }}
-            className="px-4 py-2 text-xs font-semibold text-cyan-400 hover:underline"
+            className="px-4 py-2 text-xs font-semibold text-cyan-700 hover:underline"
           >
             Clear Search & Filters
           </button>
@@ -566,9 +566,9 @@ export default function ClinicalResearchPage() {
       )}
 
       {/* Academic Advisory Note */}
-      <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-900/30 flex items-start gap-3">
-        <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-amber-200/80 leading-relaxed">
+      <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3 shadow-2xs">
+        <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <p className="text-[11px] text-amber-900 leading-relaxed">
           <strong>Academic & Peer-Review Advisory Note:</strong> These publications and preprints are cataloged for biomedical education and computational ophthalmology research. Preprints posted on arXiv have not yet undergone peer review; findings must be evaluated independently by certified clinicians before clinical translation.
         </p>
       </div>

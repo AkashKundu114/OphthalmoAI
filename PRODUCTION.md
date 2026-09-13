@@ -1,6 +1,14 @@
 # OphthalmoAI Production Deployment Guide
 
-This guide details requirements and procedures for deploying OphthalmoAI in production environments using Docker Compose, Kubernetes, or cloud VMs.
+This guide details requirements and procedures for deploying OphthalmoAI in production environments using Vercel, Hugging Face Spaces, Docker Compose, Kubernetes, or cloud VMs.
+
+---
+
+## 🌐 Live Production Hosts & Mirrors
+
+- **Primary Web App (Vercel)**: [https://ophthalmo-ai-mu.vercel.app/](https://ophthalmo-ai-mu.vercel.app/)
+- **Hugging Face Space**: [https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo](https://huggingface.co/spaces/AkashKundu114/ophthalmoai-demo)
+- **Hugging Face Static App Mirror**: [https://akashkundu114-ophthalmoai-demo.static.hf.space](https://akashkundu114-ophthalmoai-demo.static.hf.space)
 
 ---
 

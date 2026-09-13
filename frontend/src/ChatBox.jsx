@@ -36,7 +36,7 @@ function renderMarkdown(rawText) {
   const flushList = () => {
     if (listBuf.length === 0) return
     nodes.push(
-      <ul key={`ul-${nodes.length}`} className="list-disc pl-4 space-y-1 my-1.5 text-slate-300">
+      <ul key={`ul-${nodes.length}`} className="list-disc pl-4 space-y-1 my-1.5 text-slate-700">
         {listBuf.map((item, i) => (
           <li key={i} className="text-xs leading-relaxed">{inlineTokens(item)}</li>
         ))}
@@ -72,7 +72,7 @@ function inlineTokens(text) {
   const boldParts = text.split(/\*\*(.+?)\*\*/g)
   return boldParts.flatMap((part, i) => {
     if (i % 2 === 1) {
-      return [<strong key={`b-${i}`} className="font-semibold text-cyan-300">{inlineItalicCode(part)}</strong>]
+      return [<strong key={`b-${i}`} className="font-bold text-cyan-900">{inlineItalicCode(part)}</strong>]
     }
     return [inlineItalicCode(part)]
   })
@@ -84,7 +84,7 @@ function inlineItalicCode(text) {
     if (i % 2 === 1) {
       return [
         <code key={`c-${i}`}
-          className="font-mono text-[11px] bg-slate-800 text-teal-300 px-1.5 py-0.5 rounded border border-slate-700">
+          className="font-mono text-[11px] bg-slate-100 text-teal-800 px-1.5 py-0.5 rounded border border-slate-200">
           {part}
         </code>
       ]
@@ -92,7 +92,7 @@ function inlineItalicCode(text) {
     const italicParts = part.split(/\*(.+?)\*/g)
     return italicParts.map((p, j) =>
       j % 2 === 1
-        ? <em key={`em-${i}-${j}`} className="italic text-slate-200">{p}</em>
+        ? <em key={`em-${i}-${j}`} className="italic text-slate-600">{p}</em>
         : <span key={`t-${i}-${j}`}>{p}</span>
     )
   })
@@ -248,40 +248,40 @@ const ChatBot = ({ diagnosisContext }) => {
         }
       </button>
 
-      {}
+      {/* Floating Chat Modal */}
       {isOpen && (
         <div
           role="dialog"
           aria-label="OphthalmoAI Doctor chat"
-          className="fixed z-50 flex flex-col overflow-hidden border border-slate-700/60 bottom-24 right-6 rounded-2xl glass-panel"
+          className="fixed z-50 flex flex-col overflow-hidden border border-slate-200 bottom-20 sm:bottom-24 right-4 sm:right-6 rounded-2xl bg-white"
           style={{
             width: 'min(400px, calc(100vw - 32px))',
             height: isMinimized ? 'auto' : 'min(560px, calc(100vh - 120px))',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 173, 181, 0.2)',
+            boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.25), 0 0 20px rgba(2, 132, 199, 0.1)',
           }}
         >
-          {}
-          <div className="flex items-center gap-3 px-4 py-3.5 shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/80 border-b border-slate-800">
-            <div className="flex items-center justify-center rounded-full w-9 h-9 bg-cyan-500/20 border border-cyan-500/40">
+          {/* Chat Header */}
+          <div className="flex items-center gap-3 px-4 py-3.5 shrink-0 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-950 border-b border-slate-700">
+            <div className="flex items-center justify-center rounded-full w-9 h-9 bg-cyan-500/20 border border-cyan-400/40">
               <Bot className="w-5 h-5 text-cyan-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-white tracking-wide">OphthalmoAI Doctor</p>
-                <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
-                  Gemini Free Tier
+                <p className="text-sm font-bold text-white tracking-wide">OphthalmoAI Assistant</p>
+                <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest rounded bg-cyan-950 text-cyan-300 border border-cyan-700">
+                  Clinical AI
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-[11px] text-cyan-200/80 truncate">
-                  {diagnosisContext ? `Context: ${diagnosisContext.diagnosis}` : 'Eye Health Assistant'}
+                <p className="text-[11px] text-cyan-200/90 truncate">
+                  {diagnosisContext ? `Context: ${diagnosisContext.diagnosis}` : 'Eye Health Guidance'}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsMinimized(m => !m)}
-              className="p-1 transition rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+              className="p-1 transition rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white"
               aria-label={isMinimized ? 'Expand chat' : 'Minimise chat'}
             >
               <ChevronDown className={`w-4 h-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`} />
@@ -290,17 +290,17 @@ const ChatBot = ({ diagnosisContext }) => {
 
           {!isMinimized && (
             <>
-              {}
-              <div className="flex items-start gap-2 px-3.5 py-2 shrink-0 bg-amber-950/40 border-b border-amber-900/40">
-                <AlertCircle className="w-4 h-4 mt-0.5 text-amber-400 shrink-0" />
-                <p className="text-[11px] text-amber-200/90 leading-tight">
-                  For educational use only. Please consult an eye care professional for medical evaluation.
+              {/* Clinical Educational Disclaimer Banner */}
+              <div className="flex items-start gap-2 px-3.5 py-2 shrink-0 bg-amber-50 border-b border-amber-200">
+                <AlertCircle className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" />
+                <p className="text-[11px] text-amber-800 leading-tight font-medium">
+                  For educational screening use only. Consult an eye care professional for medical diagnosis.
                 </p>
               </div>
 
-              {}
+              {/* Messages Scroll Area */}
               <div
-                className="flex-1 p-4 space-y-3.5 overflow-y-auto bg-slate-950/60"
+                className="flex-1 p-4 space-y-3.5 overflow-y-auto bg-slate-50/70"
                 aria-live="polite"
               >
                 {messages.map((msg, i) => (
@@ -311,8 +311,8 @@ const ChatBot = ({ diagnosisContext }) => {
                     <div
                       className={`flex items-center justify-center rounded-full w-7 h-7 shrink-0 ${
                         msg.role === 'assistant'
-                          ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                          : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                          ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                          : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
                       }`}
                     >
                       {msg.role === 'assistant'
@@ -321,19 +321,19 @@ const ChatBot = ({ diagnosisContext }) => {
                       }
                     </div>
                     <div
-                      className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs ${
+                      className={`max-w-[84%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                         msg.is_emergency
-                          ? 'bg-red-950/90 text-red-100 border border-red-700 rounded-bl-sm shadow-xl animate-pulse-glow'
+                          ? 'bg-red-50 text-red-900 border border-red-300 rounded-bl-sm shadow-sm'
                           : msg.role === 'assistant'
-                          ? 'bg-slate-900/90 text-slate-100 border border-slate-800 rounded-bl-sm shadow-md'
-                          : 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-br-sm shadow-md'
+                          ? 'bg-white text-slate-800 border border-slate-200 rounded-bl-sm shadow-sm'
+                          : 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-br-sm shadow-sm font-medium'
                       }`}
                     >
                       {renderMarkdown(msg.content)}
                       {msg.is_emergency && (
-                        <div className="mt-2.5 pt-2 border-t border-red-800/80 flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase text-red-300">Call Emergency: 911 / 112</span>
-                          <a href="tel:911" className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-[10px]">Call Now</a>
+                        <div className="mt-2.5 pt-2 border-t border-red-200 flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase text-red-700">Urgent: Seek Emergency Care</span>
+                          <a href="tel:911" className="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-[10px]">Call 911</a>
                         </div>
                       )}
                     </div>
@@ -342,10 +342,10 @@ const ChatBot = ({ diagnosisContext }) => {
 
                 {loading && (
                   <div className="flex items-end gap-2.5">
-                    <div className="flex items-center justify-center rounded-full w-7 h-7 shrink-0 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    <div className="flex items-center justify-center rounded-full w-7 h-7 shrink-0 bg-cyan-100 text-cyan-700 border border-cyan-200">
                       <Bot className="w-4 h-4" />
                     </div>
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-sm">
+                    <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm shadow-sm px-3 py-2">
                       <TypingDots />
                     </div>
                   </div>
@@ -354,12 +354,12 @@ const ChatBot = ({ diagnosisContext }) => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {}
+              {/* Quick Questions Strip */}
               {messages.length <= 2 && !loading && (
-                <div className="px-3.5 pb-2 shrink-0 bg-slate-950/60">
+                <div className="px-3.5 py-2 shrink-0 bg-slate-50 border-t border-slate-200/80">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <Sparkles className="w-3 h-3 text-cyan-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <Sparkles className="w-3 h-3 text-cyan-600" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Suggested Questions
                     </span>
                   </div>
@@ -368,7 +368,7 @@ const ChatBot = ({ diagnosisContext }) => {
                       <button
                         key={i}
                         onClick={() => sendMessage(q)}
-                        className="text-[11px] px-2.5 py-1 rounded-full border border-slate-700 bg-slate-900/80 text-slate-300 hover:text-white hover:border-cyan-500/60 hover:bg-cyan-950/50 transition-all duration-200"
+                        className="text-[11px] px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-700 hover:text-cyan-800 hover:border-cyan-300 hover:bg-cyan-50 transition-all duration-150 shadow-2xs font-medium text-left"
                       >
                         {q}
                       </button>
@@ -377,8 +377,8 @@ const ChatBot = ({ diagnosisContext }) => {
                 </div>
               )}
 
-              {}
-              <div className="p-3 shrink-0 bg-slate-900 border-t border-slate-800">
+              {/* Input Area */}
+              <div className="p-3 shrink-0 bg-white border-t border-slate-200">
                 <div className="flex gap-2">
                   <div className="flex flex-col flex-1">
                     <textarea
@@ -387,7 +387,7 @@ const ChatBot = ({ diagnosisContext }) => {
                       onChange={handleInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder="Ask about eye health, symptoms, prevention..."
-                      className="flex-1 text-xs px-3 py-2.5 rounded-xl resize-none outline-none glass-input"
+                      className="flex-1 text-xs px-3 py-2.5 rounded-xl resize-none outline-none bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 transition-all"
                       style={{
                         borderColor: inputError ? '#EF4444' : undefined,
                         maxHeight: '80px',
@@ -395,7 +395,7 @@ const ChatBot = ({ diagnosisContext }) => {
                       aria-label="Chat message input"
                     />
                     {inputError && (
-                      <p className="text-[10px] text-red-400 mt-0.5 px-1">
+                      <p className="text-[10px] text-red-600 mt-0.5 px-1 font-medium">
                         {inputError}
                       </p>
                     )}
@@ -403,7 +403,7 @@ const ChatBot = ({ diagnosisContext }) => {
                   <button
                     onClick={() => sendMessage()}
                     disabled={!canSend}
-                    className="flex items-center self-start justify-center w-10 h-10 transition-all rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 hover:from-cyan-400 hover:to-teal-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-lg shadow-cyan-500/20"
+                    className="flex items-center self-start justify-center w-10 h-10 transition-all rounded-xl bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-md shadow-cyan-600/20"
                     aria-label="Send message"
                   >
                     {loading
@@ -412,8 +412,8 @@ const ChatBot = ({ diagnosisContext }) => {
                     }
                   </button>
                 </div>
-                <p className="text-center text-[9px] mt-2 text-slate-500">
-                  Powered by Google Gemini Free Tier API · Press Enter to send
+                <p className="text-center text-[9px] mt-2 text-slate-400">
+                  Medical AI Assistant · Educational guidance only
                 </p>
               </div>
             </>

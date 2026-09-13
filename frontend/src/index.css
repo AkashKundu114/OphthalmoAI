@@ -5,22 +5,22 @@
 @tailwind utilities;
 
 :root {
-  --bg: #090D16;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #0F172A 0%, #090D16 100%);
-  --surface: rgba(15, 23, 42, 0.75);
-  --surface-border: rgba(255, 255, 255, 0.08);
-  --surface-raised: rgba(30, 41, 59, 0.8);
+  --bg: #F8FAFC;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #FFFFFF 0%, #F1F5F9 100%);
+  --surface: #FFFFFF;
+  --surface-border: #E2E8F0;
+  --surface-raised: #FFFFFF;
   
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
   --text-tertiary: #64748B;
   
   --teal-primary: #00ADB5;
-  --teal-glow: rgba(0, 173, 181, 0.35);
-  --cyan-accent: #0891B2;
-  --blue-accent: #3B82F6;
-  --indigo-accent: #6366F1;
-  --navy: #0F2040;
+  --teal-glow: rgba(0, 173, 181, 0.18);
+  --cyan-accent: #0284C7;
+  --blue-accent: #2563EB;
+  --indigo-accent: #4F46E5;
+  --navy: #0F172A;
   
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -32,72 +32,19 @@
 }
 
 /* ==========================================================================
-   CLINICAL USAGE THEME: Precision Medical Terminal / Workstation
+   LIGHT CLINICAL THEME: Clean, Trustworthy, Accessible Medical Interface
    ========================================================================== */
-.theme-clinical {
-  background-color: #050811 !important;
+.theme-public,
+.theme-clinical,
+body {
+  background-color: #F8FAFC !important;
   background-image: 
-    radial-gradient(at 50% 0%, #0c142b 0%, #050811 100%),
-    linear-gradient(to right, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 102, 241, 0.03) 1px, transparent 1px) !important;
-  background-size: 100% 100%, 32px 32px, 32px 32px !important;
-  color: #F1F5F9;
+    radial-gradient(at 50% 0%, #FFFFFF 0%, #F1F5F9 100%),
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 28px 28px, 28px 28px !important;
+  color: #0F172A !important;
 }
-
-.theme-clinical .glass-panel {
-  background: rgba(8, 14, 28, 0.85);
-  border: 1px solid rgba(99, 102, 241, 0.16);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.theme-clinical .glass-card {
-  background: linear-gradient(135deg, rgba(13, 22, 45, 0.7) 0%, rgba(8, 14, 28, 0.9) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-.theme-clinical .glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
-}
-
-.theme-clinical .clinical-glow-indigo {
-  box-shadow: 0 0 24px rgba(99, 102, 241, 0.25);
-}
-
-.theme-clinical .clinical-grid-pill {
-  font-family: var(--font-mono);
-  letter-spacing: -0.02em;
-}
-
-/* ==========================================================================
-   PUBLIC USAGE THEME: Clean, Reassuring, Accessible Health Portal
-   ========================================================================== */
-.theme-public {
-  background-color: #090D16 !important;
-  background-image: 
-    radial-gradient(circle at 50% -10%, #0c2738 0%, #090D16 100%),
-    radial-gradient(circle at 100% 100%, #061923 0%, transparent 60%) !important;
-  color: #F8FAFC;
-}
-
-.theme-public .glass-panel {
-  background: rgba(13, 24, 38, 0.78);
-  border: 1px solid rgba(0, 173, 181, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
-}
-
-.theme-public .glass-card {
-  background: linear-gradient(135deg, rgba(18, 34, 52, 0.65) 0%, rgba(11, 20, 32, 0.85) 100%);
-  border: 1px solid rgba(0, 173, 181, 0.12);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-}
-
-.theme-public .glass-card:hover {
-  border-color: rgba(0, 173, 181, 0.35);
-  box-shadow: 0 8px 30px rgba(0, 173, 181, 0.18);
-}
-
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -105,14 +52,11 @@
 
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   font-family: var(--font-body);
-  background: #090d16;
-  background-image: var(--bg-gradient);
-  color: var(--text-primary);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -124,75 +68,76 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
+  color: #0F172A;
 }
 
-
+/* Clinical Glass Components */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: #FFFFFF !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04) !important;
+  color: #0F172A;
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+  background: #FFFFFF !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 2px 8px -1px rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03) !important;
+  color: #0F172A;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(0, 173, 181, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 173, 181, 0.15);
+  border-color: #00ADB5 !important;
+  box-shadow: 0 12px 28px -4px rgba(0, 173, 181, 0.14), 0 4px 8px -2px rgba(15, 23, 42, 0.04) !important;
   transform: translateY(-2px);
 }
 
 .glass-input {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #F8FAFC;
-  backdrop-filter: blur(8px);
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .glass-input:focus {
-  border-color: #00ADB5;
-  box-shadow: 0 0 16px rgba(0, 173, 181, 0.25);
+  border-color: #00ADB5 !important;
+  box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.16) !important;
   outline: none;
 }
 
 .glow-teal {
-  box-shadow: 0 0 25px rgba(0, 173, 181, 0.4);
+  box-shadow: 0 0 20px rgba(0, 173, 181, 0.25);
 }
 
 .glow-blue {
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.25);
 }
 
-
 .gradient-text {
-  background: linear-gradient(135deg, #38BDF8 0%, #00ADB5 50%, #818CF8 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #00ADB5 50%, #4F46E5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-heading {
-  background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #334155 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 15px rgba(0, 173, 181, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(0, 173, 181, 0.6); }
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 173, 181, 0.2); }
+  50% { box-shadow: 0 0 24px rgba(0, 173, 181, 0.45); }
 }
 
 @keyframes floatSlow {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-6px); }
 }
 
 .animate-pulse-glow {
@@ -203,72 +148,70 @@ h1, h2, h3, h4, h5, h6 {
   animation: floatSlow 6s infinite ease-in-out;
 }
 
-
 .prob-bar-fill {
   transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-
+/* Light Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: #CBD5E1;
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 173, 181, 0.5);
+  background: #00ADB5;
 }
 
 ::selection {
-  background: rgba(0, 173, 181, 0.25);
-  color: #FFFFFF;
+  background: rgba(0, 173, 181, 0.2);
+  color: #0F172A;
 }
 
-/* Clinical Status Badges & Glows */
+/* Clinical Status Badges & Glows in Light Mode */
 .badge-emergency {
-  background: rgba(220, 38, 38, 0.15);
-  color: #F87171;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.05);
 }
 
 .badge-urgent {
-  background: rgba(217, 119, 6, 0.15);
-  color: #FBBF24;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+  background: #FFFBEB !important;
+  color: #B45309 !important;
+  border: 1px solid #FDE68A !important;
+  box-shadow: 0 1px 2px rgba(217, 119, 6, 0.05);
 }
 
 .badge-elective {
-  background: rgba(8, 145, 178, 0.15);
-  color: #38BDF8;
-  border: 1px solid rgba(14, 165, 233, 0.35);
-  box-shadow: 0 0 12px rgba(14, 165, 233, 0.15);
+  background: #F0F9FF !important;
+  color: #0369A1 !important;
+  border: 1px solid #BAE6FD !important;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.05);
 }
 
 .badge-normal {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  background: #ECFDF5 !important;
+  color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.05);
 }
 
 .clinical-mesh-bg {
   background-image: 
-    radial-gradient(at 0% 0%, rgba(0, 173, 181, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.06) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(0, 173, 181, 0.06) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(2, 132, 199, 0.05) 0px, transparent 50%);
 }
 
 .subtle-ring {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
-
