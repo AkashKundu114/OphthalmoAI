@@ -250,7 +250,7 @@ def sanitise_chat_message(message: str) -> Tuple[bool, str]:
     return True, cleaned.strip()
 
 
-ALLOWED_ROLES = frozenset({"patient", "clinician", "admin"})
+ALLOWED_ROLES = frozenset({"patient", "technician", "clinician", "admin"})
 
 
 def validate_role_claim(role: Optional[str]) -> Tuple[bool, str]:

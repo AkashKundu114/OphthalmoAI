@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import uvicorn
 from fastapi import (
-    Depends, FastAPI, File, Form, HTTPException,
+    Depends, FastAPI, File, Form, Header, HTTPException,
     Request, Response, UploadFile, status,
     WebSocket, WebSocketDisconnect,
 )
@@ -91,6 +91,12 @@ from .biomarker_extractor import extract_visual_biomarkers, format_biomarkers_fo
 from .onnx_inference import get_cached_benchmark_results, LatencyBenchmarkSuite
 from .domain_adaptation import adapt_fundus_domain
 from .async_screening import JobStatus, ScreeningStage, screening_queue
+from .vector_search import vector_index
+from .fairness_audit import get_fairness_audit_report
+from .metrics import metrics_collector
+from .tracing import tracer_buffer, trace_pipeline_span
+from .tenancy import apply_tenant_filter, create_new_tenant, ensure_default_tenant, get_current_tenant_id
+from .db import Tenant
 from .validators import (
     detect_medical_emergency,
     sanitise_chat_message,
@@ -1676,6 +1682,112 @@ async def websocket_job_stream(websocket: WebSocket, job_id: str):
     except Exception:
         await screening_queue.notifier.disconnect(job_id, websocket)
 
+
+# =============================================================================
+# Dual-Track Endpoints: AI Engineering (CBMIR, Fairness) & SWE (Metrics, Tracing, Tenancy)
+# =============================================================================
+
+class SimilarCasesRequest(BaseModel):
+    probabilities: Optional[Dict[str, float]] = None
+    embedding: Optional[List[float]] = None
+    top_k: int = 3
+
+
+@app.post("/api/v1/cases/similar")
+async def find_similar_reference_cases(payload: SimilarCasesRequest):
+    """
+    Content-Based Medical Image Retrieval (CBMIR):
+    Returns top-k historical clinical cases matching either patient embedding
+    or posterior model probability vector with verified 12-month outcomes.
+    """
+    if payload.embedding:
+        query_vec = np.array(payload.embedding, dtype=np.float32)
+    elif payload.probabilities:
+        query_vec = vector_index.extract_embedding_from_probabilities(payload.probabilities)
+    else:
+        raise HTTPException(status_code=400, detail="Either 'probabilities' or 'embedding' must be provided.")
+
+    results = vector_index.query_similar_cases(query_vec, top_k=payload.top_k)
+    return {
+        "count": len(results),
+        "results": results,
+    }
+
+
+@app.get("/api/v1/audit/fairness")
+async def get_fairness_audit(force_refresh: bool = False):
+    """
+    Demographic Fairness, Bias Auditing & Slice Disparity Evaluation:
+    Evaluates equalized odds, disparate impact ratio, and four-fifths compliance.
+    """
+    report = get_fairness_audit_report(force_refresh=force_refresh)
+    return report
+
+
+@app.get("/metrics")
+async def get_prometheus_metrics():
+    """
+    Exposes real-time Prometheus telemetry in standard text format
+    for Prometheus scraping and Grafana dashboards.
+    """
+    return Response(
+        content=metrics_collector.generate_prometheus_text(),
+        media_type="text/plain; version=0.0.4",
+    )
+
+
+@app.get("/api/v1/traces/recent")
+async def get_recent_traces(limit: int = 20):
+    """
+    OpenTelemetry-compatible distributed tracing endpoint.
+    Returns the recent completed execution spans.
+    """
+    return {
+        "traces": tracer_buffer.get_recent_traces(limit=limit),
+    }
+
+
+class TenantCreateRequest(BaseModel):
+    name: str
+    slug: str
+    tier: str = "hospital_standard"
+
+
+@app.post("/api/v1/tenants")
+async def create_tenant_endpoint(
+    payload: TenantCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    """Admin-only endpoint to onboard a new hospital/clinic tenant."""
+    tenant = create_new_tenant(db, name=payload.name, slug=payload.slug, tier=payload.tier)
+    return {
+        "id": tenant.id,
+        "name": tenant.name,
+        "slug": tenant.slug,
+        "tier": tenant.tier,
+        "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
+    }
+
+
+@app.get("/api/v1/tenants/current")
+async def get_current_tenant_info(
+    request: Request,
+    db: Session = Depends(get_db),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
+):
+    """Returns organizational context and active tier for current tenant."""
+    t_id = get_current_tenant_id(x_tenant_id=x_tenant_id)
+    tenant = db.query(Tenant).filter((Tenant.id == t_id) | (Tenant.slug == t_id)).first()
+    if not tenant:
+        tenant = ensure_default_tenant(db)
+    return {
+        "tenant_id": tenant.id,
+        "name": tenant.name,
+        "slug": tenant.slug,
+        "tier": tenant.tier,
+        "is_active": tenant.is_active,
+    }
 
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ JWT_SECRET_KEY = SECRET_KEY
 ALGORITHM  = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
 
-ROLE_HIERARCHY = {"patient": 0, "clinician": 1, "admin": 2}
+ROLE_HIERARCHY = {"patient": 0, "technician": 1, "clinician": 2, "admin": 3}
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
@@ -158,6 +158,8 @@ async def get_current_user(
 
 
 def require_role(*roles: str):
+    if len(roles) == 1 and isinstance(roles[0], (list, tuple, set)):
+        roles = tuple(roles[0])
     min_rank = min(ROLE_HIERARCHY.get(r, 0) for r in roles)
 
     async def _dep(

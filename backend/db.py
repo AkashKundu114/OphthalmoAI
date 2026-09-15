@@ -45,10 +45,28 @@ def _uuid() -> str:
     return str(uuid.uuid4())
 
 
+class Tenant(Base):
+    __tablename__ = "tenants"
+
+    id = Column(String(36), primary_key=True, default=_uuid)
+    name = Column(String(255), nullable=False)
+    slug = Column(String(64), unique=True, nullable=False, index=True)
+    tier = Column(String(32), nullable=False, default="hospital_standard")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
+
+    users = relationship("User", back_populates="tenant")
+    scans = relationship("ScanResult", back_populates="tenant")
+
+    def __repr__(self):
+        return f"<Tenant {self.name} slug={self.slug}>"
+
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(String(36), primary_key=True, default=_uuid)
+    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="SET NULL"), nullable=True, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
@@ -57,6 +75,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
 
+    tenant = relationship("Tenant", back_populates="users")
     scans = relationship("ScanResult", back_populates="user", cascade="all, delete-orphan")
     overrides = relationship(
         "ClinicianOverride", foreign_keys="ClinicianOverride.clinician_id",
@@ -73,6 +92,7 @@ class ScanResult(Base):
     __tablename__ = "scan_results"
 
     id = Column(String(36), primary_key=True, default=_uuid)
+    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="SET NULL"), nullable=True, index=True)
     user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     diagnosis = Column(String(100), nullable=False, index=True)
@@ -83,6 +103,8 @@ class ScanResult(Base):
     calibrated = Column(Boolean, nullable=False, default=False)
     calibration_temperature = Column(Float, nullable=True)
     uncertainty = Column(Float, nullable=True)
+
+    tenant = relationship("Tenant", back_populates="scans")
     requires_human_review = Column(Boolean, nullable=False, default=False)
     review_reasons = Column(JSON, nullable=True)
 
@@ -247,6 +269,17 @@ class PatientAppointment(Base):
 
 def create_tables() -> None:
     Base.metadata.create_all(bind=engine)
+    if DATABASE_URL.startswith("sqlite"):
+        try:
+            with engine.connect() as conn:
+                for table in ("users", "scan_results"):
+                    res = conn.exec_driver_sql(f"PRAGMA table_info({table})").fetchall()
+                    col_names = [r[1] for r in res]
+                    if "tenant_id" not in col_names:
+                        conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN tenant_id VARCHAR(36)")
+                conn.commit()
+        except Exception:
+            pass
 
 
 def get_db():

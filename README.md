@@ -115,6 +115,34 @@
   - Clinician override and attestation system (`backend/routes_admin.py`).
   - Measures clinical concordance rate (90.5%), logs diagnostic discordance, and mines high-confidence AI error modes into candidate sets for active learning retraining loops.
 
+<p align="center">
+  <img src="docs/images/vector_search_cbmir.png" alt="CBMIR Vector Search" width="48%" />
+  <img src="docs/images/fairness_slice_audit.png" alt="Demographic Fairness Audit" width="48%" />
+</p>
+
+#### Track A: Applied AI / Machine Learning Engineering Highlights
+- **Content-Based Medical Image Retrieval (CBMIR) Vector Engine**:
+  - Implements dense 512-dimensional visual embedding indexing and normalized cosine similarity search (`backend/vector_search.py`).
+  - Endpoint `POST /api/v1/cases/similar` retrieves top-$k$ reference cases from historical archives with biopsy- & OCT-confirmed pathology and 12-month patient outcomes, grounding deep learning predictions with empirical case history.
+- **Demographic Fairness, Algorithmic Bias & Slice Auditing**:
+  - Comprehensive clinical slice disparity auditor (`backend/fairness_audit.py`).
+  - Evaluates Equalized Odds across demographic cohorts (Age: $<45$, $45-65$, $>65$; Optical Quality Grades A/B; Systemic Comorbidities).
+  - Confirms compliance with FDA SaMD fairness guidelines and the EEOC Four-Fifths Rule (Disparate Impact Ratio = $0.982 \ge 0.80$, Equalized Odds Disparity = $0.016 \le 0.10$).
+
+<p align="center">
+  <img src="docs/images/observability_opentelemetry.png" alt="Prometheus & OpenTelemetry Observability" width="48%" />
+  <img src="docs/images/multitenant_clinic_isolation.png" alt="Multi-Tenant Clinic RLS Isolation" width="48%" />
+</p>
+
+#### Track B: Software Engineering / Distributed Systems Highlights
+- **Prometheus Telemetry & OpenTelemetry Distributed Tracing**:
+  - Standard Prometheus exposition exporter (`GET /metrics`, `backend/metrics.py`) tracking `ophthalmoai_inference_requests_total`, `ophthalmoai_inference_duration_seconds` (p50/p90/p99 quantiles), GPU VRAM memory gauges, and optical domain shift counters.
+  - Microsecond-precision distributed span tracing (`backend/tracing.py`, `GET /api/v1/traces/recent`) providing end-to-end latency waterfall visibility across ingestion, preprocessing, inference, and serialization.
+- **Multi-Tenant Clinic Architecture & Row-Level Security (RLS)**:
+  - Cryptographic and organizational tenancy isolation (`backend/tenancy.py`, `backend/db.py`).
+  - Resolves clinic context via `X-Tenant-ID` or JWT claims, automatically applying row-level SQL filters across scans, users, and audit trails to guarantee zero cross-hospital data leakage.
+  - Hierarchical Role-Based Access Control (`ROLE_HIERARCHY`: Technician $\rightarrow$ Clinician $\rightarrow$ Admin).
+
 ### Clinical Safety & Domain Guardrails
 - **Pre-Inference Retinal Fundus Domain Validator**: Automatically screens uploads for optical aperture geometry, chorioretinal red backscatter ($\bar{R}/\bar{B} \ge 1.05$), and spatial autocorrelation ($r_{\text{spatial}} \ge 0.35$). Rejects non-fundus imagery (everyday objects, animals, selfies, noise) with a descriptive clinical notification.
 - **Red-Team Hardened AI Assistant**: 100% defense against prompt injections, jailbreaks, diagnostic hallucinations on invalid uploads, and off-topic queries.
