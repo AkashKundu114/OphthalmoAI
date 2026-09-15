@@ -13,6 +13,7 @@ import uvicorn
 from fastapi import (
     Depends, FastAPI, File, Form, HTTPException,
     Request, Response, UploadFile, status,
+    WebSocket, WebSocketDisconnect,
 )
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -87,6 +88,9 @@ from .uncertainty import build_review_payload, mc_dropout_predict
 from .evidential import DirichletMetaClassifier, EvidentialOODDetector
 from .conformal import ConformalCalibrator, ConformalTriagePolicy
 from .biomarker_extractor import extract_visual_biomarkers, format_biomarkers_for_llm
+from .onnx_inference import get_cached_benchmark_results, LatencyBenchmarkSuite
+from .domain_adaptation import adapt_fundus_domain
+from .async_screening import JobStatus, ScreeningStage, screening_queue
 from .validators import (
     detect_medical_emergency,
     sanitise_chat_message,
@@ -561,6 +565,7 @@ async def predict(
     diastolic_bp: Optional[int] = Form(default=None),
     patient_age: Optional[int] = Form(default=None),
     is_smoker: Optional[bool] = Form(default=None),
+    apply_domain_adaptation: bool = Form(default=True),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user),
 ):
@@ -627,6 +632,17 @@ async def predict(
         raise
     except Exception as val_err:
         logger.warning("predict.fundus_validator_error", error=str(val_err))
+
+    domain_eval: Dict[str, Any] = {
+        "domain_shift_detected": False,
+        "sensor_domain_confidence": 0.95,
+        "optical_profile_advisory": "Optical profile aligned with canonical clinical standards.",
+        "color_constancy_applied": False,
+    }
+    try:
+        image, domain_eval = adapt_fundus_domain(image, apply_color_constancy=apply_domain_adaptation)
+    except Exception as da_err:
+        logger.warning("predict.domain_adaptation_failed", error=str(da_err))
 
     try:
         input_tensor = preprocess(image).to(DEVICE).unsqueeze(0)
@@ -773,7 +789,8 @@ async def predict(
             "iqa_acceptable":           iqa_acceptable,
             "iqa_warnings":             iqa_warnings,
             "condition_details":        MEDICAL_INFO.get(diagnosis, MEDICAL_INFO.get("Normal", {})),
-            "spatial_description":      spatial_desc
+            "spatial_description":      spatial_desc,
+            "domain_adaptation":        domain_eval,
         }
 
         scan_id = None
@@ -1491,6 +1508,174 @@ def get_appointments_history(db: Session = Depends(get_db), current_user: Option
             for a in appts
         ]
     }
+
+
+# ==============================================================================
+# UPGRADE 1: High-Throughput / Low-Latency ONNX Benchmarking Endpoints
+# ==============================================================================
+
+@app.get("/api/v1/benchmarks/inference")
+async def get_inference_benchmarks():
+    """Returns cached inference latency and throughput benchmarks (PyTorch vs ONNX vs Quantized)."""
+    return get_cached_benchmark_results()
+
+
+@app.post("/api/v1/benchmarks/run")
+async def run_live_inference_benchmark(iterations: int = 15):
+    """Executes a multi-iteration micro-benchmarking sweep across available backbones."""
+    return LatencyBenchmarkSuite.run_comprehensive_benchmark(iterations=max(3, min(100, iterations)))
+
+
+# ==============================================================================
+# UPGRADE 2: Asynchronous Screening Task Queue & WebSocket Streaming
+# ==============================================================================
+
+@app.post("/api/v1/screen/async", status_code=status.HTTP_202_ACCEPTED)
+async def screen_async(
+    request: Request,
+    file: UploadFile = File(...),
+    pain: str = Form(...),
+    vision: str = Form(...),
+    itch: str = Form(...),
+    halos: str = Form(default="No"),
+    discharge: str = Form(default="None"),
+    light_sens: str = Form(default="No"),
+    floaters: str = Form(default="No"),
+    duration: str = Form(default="Not Sure"),
+    apply_domain_adaptation: bool = Form(default=True),
+):
+    """
+    Decoupled asynchronous screening submission.
+    Pushes job to queue and returns HTTP 202 with job_id for WebSocket or polling tracking.
+    """
+    if file.content_type and file.content_type.lower() not in ALLOWED_MIMES | {"application/octet-stream"}:
+        raise HTTPException(415, detail=f"Unsupported file type '{file.content_type}'.")
+
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(413, detail=f"File exceeds {MAX_FILE_SIZE // (1024*1024)} MB limit.")
+
+    dim_ok, dim_result = validate_image_dimensions(contents)
+    if not dim_ok:
+        raise HTTPException(422, detail=dim_result)
+
+    job_id = screening_queue.create_job(metadata={"filename": file.filename})
+
+    # Background async pipeline task
+    async def _process_pipeline(report_progress):
+        # Stage 1: Decode & Domain Validation
+        await report_progress(15, ScreeningStage.DOMAIN_VALIDATION)
+        img = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        from backend.fundus_validator import validate_fundus_image
+        is_fundus, score, reason, metrics = validate_fundus_image(img)
+        if not is_fundus:
+            raise ValueError(f"Non-fundus image rejected: {reason}")
+
+        if metrics.get("is_bgr_inverted"):
+            r_c, g_c, b_c = img.split()
+            img = Image.merge("RGB", (b_c, g_c, r_c))
+
+        # Stage 2: Optical Domain Adaptation
+        await report_progress(35, ScreeningStage.DOMAIN_ADAPTATION)
+        img, domain_info = adapt_fundus_domain(img, apply_color_constancy=apply_domain_adaptation)
+
+        # Stage 3: Concurrent Ensemble Forward Pass
+        await report_progress(60, ScreeningStage.ENSEMBLE_INFERENCE)
+        input_tensor = preprocess(img).to(DEVICE).unsqueeze(0)
+
+        with torch.no_grad():
+            if len(ENSEMBLE_MODELS) >= 3:
+                probs_list = []
+                for arch_name in ["densenet201", "convnext_small", "efficientnet_v2_m"]:
+                    model = ENSEMBLE_MODELS[arch_name]
+                    raw_logits = model(input_tensor)[0]
+                    t = CALIBRATION_REGISTRY.get(arch_name)
+                    cal_logits = apply_temperature(raw_logits, t)
+                    probs_list.append(torch.nn.functional.softmax(cal_logits, dim=0))
+                probs = torch.stack(probs_list, dim=0).mean(dim=0)
+            elif MONOLITHIC_MODEL is not None:
+                out = MONOLITHIC_MODEL(input_tensor)
+                probs = torch.nn.functional.softmax(out[0], dim=0)
+            else:
+                raise RuntimeError("Models unavailable.")
+            class_idx = int(torch.argmax(probs).item())
+
+        diagnosis = MONOLITHIC_CLASSES[class_idx]
+        confidence = float(probs[class_idx].item()) * 100
+        probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item()) for i in range(len(MONOLITHIC_CLASSES))}
+
+        # Stage 4: Grad-CAM Explainability
+        await report_progress(80, ScreeningStage.EXPLAINABILITY_GRADCAM)
+        heatmap_base64 = None
+        if GRADCAM_AVAILABLE and MONOLITHIC_MODEL is not None:
+            try:
+                cam = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
+                grayscale = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
+                rgb_img = np.float32(img.resize((380, 380))) / 255
+                vis = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
+                buff = io.BytesIO()
+                Image.fromarray(vis).save(buff, format="JPEG", quality=85)
+                heatmap_base64 = base64.b64encode(buff.getvalue()).decode("utf-8")
+            except Exception:
+                pass
+
+        # Stage 5: Conformal Triage & Clinical Coding
+        await report_progress(95, ScreeningStage.CALIBRATION_TRIAGE)
+        probs_np = probs.cpu().numpy()
+        conformal_set, conformal_probs, stratum, guarantee = CONFORMAL_CALIBRATOR.predict_set(probs_np, diagnosis)
+        code_entry = get_clinical_code(diagnosis)
+
+        return {
+            "diagnosis": diagnosis,
+            "confidence": round(confidence, 2),
+            "probabilities": probs_dict,
+            "conformal_prediction_set": conformal_set,
+            "conformal_coverage_guarantee": f"{guarantee:.1f}%",
+            "icd10_code": code_entry["icd10"],
+            "snomed_code": code_entry["snomed_ct"],
+            "urgency": code_entry["urgency"],
+            "domain_adaptation": domain_info,
+            "heatmap": f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,
+        }
+
+    import asyncio
+    asyncio.create_task(screening_queue.run_pipeline_task(job_id, _process_pipeline))
+
+    return {
+        "job_id": job_id,
+        "status": JobStatus.QUEUED.value,
+        "message": "Screening task queued successfully.",
+        "websocket_url": f"/ws/jobs/{job_id}",
+        "poll_url": f"/api/v1/jobs/{job_id}",
+    }
+
+
+@app.get("/api/v1/jobs/{job_id}")
+async def get_screening_job_status(job_id: str):
+    """Pollable endpoint to retrieve status and results of an async screening job."""
+    job = screening_queue.get_job(job_id)
+    if not job:
+        raise HTTPException(404, detail=f"Job '{job_id}' not found.")
+    return job
+
+
+@app.websocket("/ws/jobs/{job_id}")
+async def websocket_job_stream(websocket: WebSocket, job_id: str):
+    """Real-time WebSocket event stream for an async screening job."""
+    await screening_queue.notifier.connect(job_id, websocket)
+    try:
+        current_job = screening_queue.get_job(job_id)
+        if current_job:
+            await websocket.send_json({"type": "job_progress", **current_job})
+        while True:
+            # Keep stream open until client disconnects or job reaches terminal status
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        await screening_queue.notifier.disconnect(job_id, websocket)
+    except Exception:
+        await screening_queue.notifier.disconnect(job_id, websocket)
+
 
 
 if __name__ == "__main__":

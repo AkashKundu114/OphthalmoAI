@@ -211,3 +211,90 @@ async def activate_model_version(
             "staging the next deployment, not an instantaneous production change."
         ),
     }
+
+
+@router.get("/admin/hitl/discrepancies")
+async def get_hitl_discrepancy_analytics(
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(require_role("clinician", "admin")),
+):
+    """
+    Computes Human-in-the-Loop (HITL) concordance/discordance analytics between
+    clinician overrides and ensemble AI predictions.
+    """
+    stmt = select(ClinicianOverride, ScanResult).join(
+        ScanResult, ClinicianOverride.scan_id == ScanResult.id, isouter=True
+    )
+    result = await db.execute(stmt)
+    pairs = result.all()
+
+    total_reviews = len(pairs)
+    agreed = sum(1 for ov, _ in pairs if ov.verdict == "agree")
+    disagreed = sum(1 for ov, _ in pairs if ov.verdict == "disagree")
+    inconclusive = sum(1 for ov, _ in pairs if ov.verdict in ("inconclusive", "insufficient_image_quality"))
+
+    evaluable = agreed + disagreed
+    concordance_rate = round(agreed / evaluable, 4) if evaluable > 0 else 1.0
+    discordance_rate = round(disagreed / evaluable, 4) if evaluable > 0 else 0.0
+
+    confusion_map: Dict[str, int] = {}
+    for ov, scan in pairs:
+        if ov.verdict == "disagree" and scan and ov.corrected_diagnosis:
+            key = f"{scan.diagnosis} -> {ov.corrected_diagnosis}"
+            confusion_map[key] = confusion_map.get(key, 0) + 1
+
+    confusion_pairs = [
+        {"ai_diagnosis": k.split(" -> ")[0], "clinician_diagnosis": k.split(" -> ")[1], "count": v}
+        for k, v in confusion_map.items()
+    ]
+
+    return {
+        "total_reviews": total_reviews,
+        "agreed_count": agreed,
+        "disagreed_count": disagreed,
+        "inconclusive_count": inconclusive,
+        "concordance_rate": concordance_rate,
+        "discordance_rate": discordance_rate,
+        "confusion_pairs": confusion_pairs,
+    }
+
+
+@router.get("/admin/hitl/active-learning")
+async def get_active_learning_candidates(
+    min_confidence: float = Query(default=0.0, ge=0.0, le=100.0),
+    limit: int = Query(default=50, ge=1, le=500),
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(require_role("clinician", "admin")),
+):
+    """
+    Extracts high-value discrepancy cases (AI vs. Doctor) prioritized for
+    active learning retraining candidate pools.
+    """
+    stmt = (
+        select(ClinicianOverride, ScanResult)
+        .join(ScanResult, ClinicianOverride.scan_id == ScanResult.id)
+        .where(ClinicianOverride.verdict == "disagree")
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    candidates = []
+    for ov, scan in rows:
+        conf = float(scan.confidence) if scan and scan.confidence is not None else 0.0
+        if conf >= min_confidence:
+            candidates.append({
+                "scan_id": ov.scan_id,
+                "ai_diagnosis": scan.diagnosis if scan else "Unknown",
+                "ai_confidence": conf,
+                "clinician_corrected_diagnosis": ov.corrected_diagnosis,
+                "clinician_notes": ov.notes,
+                "created_at": ov.created_at.isoformat() if hasattr(ov.created_at, "isoformat") else str(ov.created_at),
+            })
+
+    candidates.sort(key=lambda c: c["ai_confidence"], reverse=True)
+    return {
+        "candidate_count": len(candidates),
+        "min_confidence_filter": min_confidence,
+        "candidates": candidates[:limit],
+    }
+
