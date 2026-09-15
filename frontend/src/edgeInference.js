@@ -85,7 +85,7 @@ export async function runEdgeInference(sourceImage) {
   const { data } = imgData;
 
   let totalR = 0, totalG = 0, totalB = 0;
-  let centerR = 0, centerG = 0, centerB = 0, centerCount = 0;
+  let centerR = 0, centerCount = 0;
   const numPixels = 224 * 224;
 
   for (let i = 0; i < data.length; i += 4) {
@@ -102,8 +102,6 @@ export async function runEdgeInference(sourceImage) {
     // Center 50% quadrant
     if (x >= 56 && x <= 168 && y >= 56 && y <= 168) {
       centerR += r;
-      centerG += g;
-      centerB += b;
       centerCount++;
     }
   }
@@ -112,7 +110,6 @@ export async function runEdgeInference(sourceImage) {
   const meanG = totalG / numPixels;
   const meanB = totalB / numPixels;
   const cMeanR = centerR / centerCount;
-  const cMeanG = centerG / centerCount;
 
   // Domain guardrail on edge
   const rbRatio = (meanR + 1) / (meanB + 1);

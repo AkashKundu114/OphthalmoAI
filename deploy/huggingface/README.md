@@ -21,6 +21,10 @@ Point-of-care retinal disease screening API powered by a Calibrated Tri-Backbone
 - `GET /health` - Liveness health check
 - `GET /ready` - Readiness check for models and database
 - `POST /predict` - Retinal fundus disease screening, domain verification & Grad-CAM analysis
+- `POST /api/v1/screen/async` - Asynchronous task queue yielding 202 job tickets
 - `POST /chat` - Grounded clinical reasoning assistant with red-team guardrails
+- `POST /api/v1/cases/similar` - CBMIR vector search for historical reference cases
 - `GET /conditions` - List detectable retinal conditions (6 diagnostic classes)
+- `GET /metrics` - Prometheus metrics exposition
 - `GET /metrics/system` - Live hardware telemetry (VRAM, RAM, throughput)
+- `GET /api/v1/traces/recent` - OpenTelemetry distributed span traces

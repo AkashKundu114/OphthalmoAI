@@ -961,6 +961,7 @@ export default function App() {
     setError(null)
     setResult(null)
     setOverrideSubmitted(false)
+    setStreamProgress({ percent: 0, stage: '' })
 
     // UPGRADE 3: 100% Client-Side In-Browser Edge Inference
     if (edgeMode) {
@@ -2138,7 +2139,7 @@ export default function App() {
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Checking Eye Photo & Symptoms...
+                        {streamProgress.stage ? `${streamProgress.stage} (${streamProgress.percent}%)` : 'Checking Eye Photo & Symptoms...'}
                       </>
                     ) : (
                       <>
