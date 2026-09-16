@@ -1,4 +1,4 @@
-export const FALLBACK_TUNNEL_URL = 'https://started-balance-vegetation-clocks.trycloudflare.com'
+export const FALLBACK_TUNNEL_URL = 'https://mls-scholar-selling-reference.trycloudflare.com'
 export const VERCEL_API_URL = 'https://ophthalmo-ai-mu.vercel.app/api'
 
 export const getActiveApiUrl = () => {

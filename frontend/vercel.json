@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:match*",
-      "destination": "https://started-balance-vegetation-clocks.trycloudflare.com/:match*"
+      "destination": "https://mls-scholar-selling-reference.trycloudflare.com/:match*"
     },
     {
       "source": "/(.*)",
