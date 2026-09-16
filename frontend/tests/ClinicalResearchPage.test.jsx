@@ -13,7 +13,8 @@ describe('Clinical Research & Preprints Page', () => {
     // arXiv preprints
     expect(screen.getByText(/RETFound-Green/i)).toBeInTheDocument()
     expect(screen.getByText(/Dual-IFM/i)).toBeInTheDocument()
-    expect(screen.getByText(/Heterogeneous Meta-Classifier Ensemble/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Heterogeneous Meta-Classifier/i).length).toBeGreaterThan(0)
+
 
     // Peer-reviewed papers
     expect(screen.getAllByText(/Nature Medicine/i).length).toBeGreaterThan(0)

@@ -61,7 +61,7 @@ const PAPERS_DATABASE = [
   },
   {
     id: 'arxiv-2402-18950',
-    title: 'OphthalmoAI: Calibrated Multi-Backbone Vision Ensemble with Domain Guardrails for Retinal Pathology Triage',
+    title: 'OphthalmoAI: Calibrated Heterogeneous Meta-Classifier Ensemble with Domain Guardrails for Retinal Pathology Triage',
     category: 'Vision Ensembles',
     type: 'arXiv Preprint',
     arxivId: 'arXiv:2402.18950',

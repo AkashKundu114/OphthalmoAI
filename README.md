@@ -281,7 +281,28 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 
 ## Quick Start (Local Setup)
 
-### 1. Backend Setup
+### 1-Click Launch (Recommended)
+Launch both FastAPI backend and Vite frontend with automatic GPU detection and browser launch:
+
+```bash
+# Windows (Double-click or run from CMD):
+start.bat
+
+# PowerShell:
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+
+# Linux / macOS / WSL:
+chmod +x start.sh && ./start.sh
+
+# Public GPU Mode (RTX 5060 + Cloudflare Tunnel + Hugging Face & Vercel Sync):
+start_public_gpu.bat
+```
+
+---
+
+### Manual Setup & Execution
+
+#### 1. Backend Setup
 ```bash
 # Clone the repository
 git clone https://github.com/AkashKundu114/OphthalmoAI.git
@@ -292,7 +313,7 @@ python -m venv venv
 # On Windows: .\venv\Scripts\activate
 # On Linux/macOS: source venv/bin/activate
 
-# Install PyTorch and dependencies (CUDA 12.4)
+# Install PyTorch and dependencies (CUDA 12.4+)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 pip install -r backend/requirements.txt
 
@@ -301,7 +322,7 @@ python backend/main.py
 ```
 > Backend API serves at `http://localhost:8000` (Swagger UI at `http://localhost:8000/docs`).
 
-### 2. Frontend Setup
+#### 2. Frontend Setup
 ```bash
 cd frontend
 npm install
@@ -309,7 +330,7 @@ npm run dev
 ```
 > Frontend SPA serves at `http://localhost:5173`.
 
-### 3. Run Quality Gates & Tests
+#### 3. Run Quality Gates & Tests
 ```bash
 # Run all 190 Pytest unit and integration tests
 pytest tests -q
@@ -317,6 +338,7 @@ pytest tests -q
 # Run frontend build verification
 cd frontend && npm run build
 ```
+
 
 ---
 

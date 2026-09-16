@@ -119,6 +119,11 @@ logs/
 .cloudflared/
 *.bat
 *.ps1
+start.sh
+start.*
+scripts/start_app.py
+scripts/start_public_gpu.py
+
 temp/
 tmp/
 uploads/

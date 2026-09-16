@@ -1,9 +1,10 @@
-﻿export const FALLBACK_TUNNEL_URL = ''
+export const FALLBACK_TUNNEL_URL = 'https://started-balance-vegetation-clocks.trycloudflare.com'
+export const VERCEL_API_URL = 'https://ophthalmo-ai-mu.vercel.app/api'
 
 export const getActiveApiUrl = () => {
   if (typeof window !== 'undefined') {
     const custom = window.localStorage?.getItem('ophthalmo_api_url')
-    if (custom && custom.trim() && !custom.includes('trycloudflare.com')) {
+    if (custom && custom.trim()) {
       return custom.trim().replace(/\/+$/, '')
     }
     const hostname = window.location.hostname
@@ -17,9 +18,20 @@ export const getActiveApiUrl = () => {
       return '/api'
     }
   }
+
   const envUrl = import.meta.env.VITE_API_URL || import.meta.env.API_URL
-  if (envUrl && envUrl.trim() && !envUrl.includes('trycloudflare.com')) {
+  if (envUrl && envUrl.trim()) {
     return envUrl.trim().replace(/\/+$/, '')
   }
+
+  if (FALLBACK_TUNNEL_URL && FALLBACK_TUNNEL_URL.trim()) {
+    return FALLBACK_TUNNEL_URL.trim().replace(/\/+$/, '')
+  }
+
+  if (typeof window !== 'undefined' && window.location.hostname.includes('hf.space')) {
+    return VERCEL_API_URL
+  }
+
   return '/api'
 }
+

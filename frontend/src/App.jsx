@@ -23,6 +23,19 @@ import TermsPage from './TermsPage'
 import PrivacyPolicyPage from './PrivacyPolicyPage'
 import ClinicalResearchPage from './ClinicalResearchPage'
 import { runEdgeInference } from './edgeInference'
+import AmbientOrbs from './components/AmbientOrbs'
+import ComputeTelemetryHud from './components/ComputeTelemetryHud'
+import SplitSenseSlider from './components/SplitSenseSlider'
+import RetinaScanShader from './components/RetinaScanShader'
+import SampleScansCue from './components/SampleScansCue'
+import {
+  playClickSound,
+  playScanStartSound,
+  playSuccessChime,
+  playToggleSound,
+  isSoundEnabled,
+  setSoundEnabled
+} from './utils/soundEffects'
 const ACCENT = '#00ADB5'
 const ACCENT_DARK = '#0891B2'
 const NAVY = '#0F2040'
@@ -106,11 +119,14 @@ const FALLBACK_CONDITIONS = [
 
 const TabButton = ({ active, onClick, icon, label }) => (
   <button
-    onClick={onClick}
+    onClick={(e) => {
+      playClickSound()
+      onClick(e)
+    }}
     aria-label={label}
-    className={`px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold transition-all duration-200 ${
+    className={`px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold transition-all duration-200 btn-tactile ${
       active
-        ? 'bg-white text-cyan-700 border border-slate-200 shadow-xs'
+        ? 'bg-white text-cyan-700 border border-slate-200 shadow-xs ring-1 ring-cyan-500/20'
         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent'
     }`}
   >
@@ -418,8 +434,89 @@ const HomePage = ({ onNavigate }) => {
   )
 }
 
-const ArchitectureTelemetryPage = () => (
-  <div className="space-y-12 animate-fade-in">
+const ArchitectureTelemetryPage = ({
+  edgeMode,
+  setEdgeMode,
+  asyncStreamingMode,
+  setAsyncStreamingMode,
+  onOpenBenchmarks,
+  fetchAndShowBenchmarks,
+  fetchAndShowHitl,
+  fetchAndShowFairness
+}) => (
+  <div className="space-y-8 animate-fade-in">
+    {/* Live AI Hardware & Compute Telemetry HUD (vgpu.sh & bencho.dev) */}
+    <div className="rounded-xl overflow-hidden border border-slate-800 shadow-sm">
+      <ComputeTelemetryHud 
+        edgeMode={edgeMode} 
+        asyncStreamingMode={asyncStreamingMode} 
+        onOpenBenchmarks={onOpenBenchmarks || fetchAndShowBenchmarks} 
+      />
+    </div>
+
+    {/* Runtime Diagnostics, Benchmarks & Audits Toolbar */}
+    <div className="glass-panel p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">Runtime & Audits:</span>
+        <button
+          type="button"
+          onClick={fetchAndShowBenchmarks}
+          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 hover:bg-cyan-100 transition-all flex items-center gap-1.5 shadow-2xs btn-tactile"
+        >
+          <Zap className="w-3.5 h-3.5 text-cyan-600" />
+          <span>ONNX Benchmarks</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={fetchAndShowHitl}
+          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200 transition-all flex items-center gap-1.5 shadow-2xs btn-tactile"
+        >
+          <Stethoscope className="w-3.5 h-3.5 text-slate-600" />
+          <span>HITL Analytics</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={fetchAndShowFairness}
+          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all flex items-center gap-1.5 shadow-2xs btn-tactile"
+        >
+          <Scale className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Fairness Audit</span>
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setEdgeMode && setEdgeMode(!edgeMode)}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-2xs btn-tactile ${
+            edgeMode
+              ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30'
+              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+          }`}
+          title="Toggle 100% client-side in-browser WebAssembly SIMD inference"
+        >
+          <Cpu className={`w-3.5 h-3.5 ${edgeMode ? 'text-amber-700' : 'text-slate-500'}`} />
+          <span>{edgeMode ? 'Mode: Edge WASM' : 'Mode: Cloud GPU'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAsyncStreamingMode && setAsyncStreamingMode(!asyncStreamingMode)}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-2xs btn-tactile ${
+            asyncStreamingMode
+              ? 'bg-purple-100 text-purple-900 border-purple-300 ring-2 ring-purple-400/30'
+              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+          }`}
+          title="Toggle asynchronous WebSocket job queue"
+        >
+          <Layers className={`w-3.5 h-3.5 ${asyncStreamingMode ? 'text-purple-700' : 'text-slate-500'}`} />
+          <span>{asyncStreamingMode ? 'Queue: Async WebSockets' : 'Queue: Sync HTTP'}</span>
+        </button>
+      </div>
+    </div>
+
     {/* Header */}
     <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
@@ -623,6 +720,12 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [conditionGroup, setConditionGroup] = useState('All')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled())
+  const toggleSound = () => {
+    const next = !soundOn
+    setSoundOn(next)
+    setSoundEnabled(next)
+  }
   const viewMode = 'public'
 
   // Enterprise Upgrades State (Edge, Async, Telemetry, HITL)
@@ -797,7 +900,23 @@ export default function App() {
 
   // Clinical Quick Presets
   const applyPreset = (type) => {
-    if (type === 'diabetic_retinopathy') {
+    playClickSound()
+    if (type === 'normal') {
+      setPainLevel('None')
+      setVisionLoss('No')
+      setItchiness('No')
+      setLightSensitivity('No')
+      setFloaters('No')
+      setDischarge('None')
+      setDuration('Not Sure')
+      setHalos('No')
+      setAffectedEye('Both Eyes (OU)')
+      setPatientAge('35')
+      setSystolicBP('118')
+      setDiastolicBP('76')
+      setHba1c('5.1')
+      setIsSmoker('Non-Smoker')
+    } else if (type === 'diabetic_retinopathy') {
       setPainLevel('None')
       setVisionLoss('Moderate')
       setItchiness('No')
@@ -811,6 +930,7 @@ export default function App() {
       setSystolicBP('138')
       setDiastolicBP('88')
       setPatientAge('58')
+      setIsSmoker('Non-Smoker')
     } else if (type === 'glaucoma') {
       setPainLevel('Mild')
       setVisionLoss('Mild')
@@ -822,17 +942,10 @@ export default function App() {
       setHalos('Yes')
       setAffectedEye('Both Eyes (OU)')
       setPatientAge('64')
-    } else if (type === 'amd') {
-      setPainLevel('None')
-      setVisionLoss('Significant')
-      setItchiness('No')
-      setLightSensitivity('Moderate')
-      setFloaters('No')
-      setDischarge('None')
-      setDuration('1-4 Weeks')
-      setHalos('No')
-      setAffectedEye('Right Eye (OD)')
-      setPatientAge('72')
+      setSystolicBP('128')
+      setDiastolicBP('82')
+      setHba1c('5.5')
+      setIsSmoker('Non-Smoker')
     } else if (type === 'cataract') {
       setPainLevel('None')
       setVisionLoss('Moderate')
@@ -844,6 +957,40 @@ export default function App() {
       setHalos('Yes')
       setAffectedEye('Both Eyes (OU)')
       setPatientAge('68')
+      setSystolicBP('124')
+      setDiastolicBP('80')
+      setHba1c('5.4')
+      setIsSmoker('Non-Smoker')
+    } else if (type === 'amd') {
+      setPainLevel('None')
+      setVisionLoss('Significant')
+      setItchiness('No')
+      setLightSensitivity('Moderate')
+      setFloaters('No')
+      setDischarge('None')
+      setDuration('1-4 Weeks')
+      setHalos('No')
+      setAffectedEye('Right Eye (OD)')
+      setPatientAge('72')
+      setSystolicBP('132')
+      setDiastolicBP('84')
+      setHba1c('5.7')
+      setIsSmoker('Non-Smoker')
+    } else if (type === 'hypertensive_retinopathy') {
+      setPainLevel('Mild')
+      setVisionLoss('Mild')
+      setItchiness('No')
+      setLightSensitivity('Mild')
+      setFloaters('Yes')
+      setDischarge('None')
+      setDuration('>1 Month (Chronic)')
+      setHalos('No')
+      setAffectedEye('Both Eyes (OU)')
+      setPatientAge('62')
+      setSystolicBP('168')
+      setDiastolicBP('102')
+      setHba1c('5.6')
+      setIsSmoker('Non-Smoker')
     } else {
       setPainLevel('None')
       setVisionLoss('No')
@@ -891,6 +1038,7 @@ export default function App() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
     if (file) {
+      playClickSound()
       setSelectedFile(file)
       setPreviewUrl(URL.createObjectURL(file))
       setCropping(true)
@@ -899,11 +1047,21 @@ export default function App() {
     }
   }
 
+  const handleSelectSample = (file, url) => {
+    playClickSound()
+    setSelectedFile(file)
+    setPreviewUrl(url)
+    setCropping(false)
+    setResult(null)
+    setError(null)
+  }
+
   const onCropComplete = useCallback((_, croppedPixels) => {
     setCroppedAreaPixels(croppedPixels)
   }, [])
 
   const applyCrop = async () => {
+    playClickSound()
     try {
       const croppedBlob = await getCroppedImg(previewUrl, croppedAreaPixels)
       setSelectedFile(croppedBlob)
@@ -957,6 +1115,7 @@ export default function App() {
 
   const handleAnalyze = async () => {
     if (!selectedFile) return
+    playScanStartSound()
     setLoading(true)
     setError(null)
     setResult(null)
@@ -972,6 +1131,7 @@ export default function App() {
           setError(edgeRes.error)
         } else {
           setResult(edgeRes)
+          playSuccessChime()
         }
       } catch (e) {
         setError(`Edge execution failed: ${e.message}`)
@@ -1027,6 +1187,7 @@ export default function App() {
               if (data.status === 'COMPLETED' && data.result) {
                 jobCompleted = true
                 setResult(data.result)
+                playSuccessChime()
                 setLoading(false)
                 ws.close()
               } else if (data.status === 'FAILED') {
@@ -1060,6 +1221,7 @@ export default function App() {
               jobCompleted = true
               clearInterval(intervalId)
               setResult(data.result)
+              playSuccessChime()
               setLoading(false)
             } else if (data.status === 'FAILED') {
               jobCompleted = true
@@ -1090,6 +1252,7 @@ export default function App() {
         }
       }
       setResult(res.data)
+      playSuccessChime()
     } catch (err) {
       const detail = err?.response?.data?.detail || err?.message || 'An unexpected error occurred during prediction analysis.'
       setError(typeof detail === 'string' ? detail : JSON.stringify(detail))
@@ -1688,7 +1851,10 @@ export default function App() {
   })
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#F8FAFC] text-slate-900 transition-all duration-300">
+    <div className="min-h-screen flex flex-col font-sans bg-[#F8FAFC] text-slate-900 transition-all duration-300 relative">
+      {/* Ambient Chromatic Orbs Background (libraries.dev/orbs & bookofshapes.com) */}
+      <AmbientOrbs />
+
       {/* Light Clinical Sticky Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1717,76 +1883,12 @@ export default function App() {
               <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
             </nav>
 
-            {/* Header Right Action & Mobile Hamburger */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              {/* Edge Mode Toggle */}
-              <button
-                type="button"
-                onClick={() => setEdgeMode(!edgeMode)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all flex items-center gap-1.5 shadow-2xs ${
-                  edgeMode
-                    ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                }`}
-                title="Toggle 100% on-device client-side inference without server upload"
-              >
-                <Cpu className={`w-3.5 h-3.5 ${edgeMode ? 'text-amber-700' : 'text-slate-500'}`} />
-                <span>{edgeMode ? 'Edge (On-Device)' : 'Cloud AI'}</span>
-              </button>
-
-              {/* Async Streaming Toggle */}
-              <button
-                type="button"
-                onClick={() => setAsyncStreamingMode(!asyncStreamingMode)}
-                className={`hidden lg:flex px-3 py-1.5 rounded-full text-xs font-bold border transition-all items-center gap-1.5 shadow-2xs ${
-                  asyncStreamingMode
-                    ? 'bg-purple-100 text-purple-900 border-purple-300 ring-2 ring-purple-400/30'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                }`}
-                title="Asynchronous Task Queue with WebSocket Streaming"
-              >
-                <Layers className={`w-3.5 h-3.5 ${asyncStreamingMode ? 'text-purple-700' : 'text-slate-500'}`} />
-                <span>{asyncStreamingMode ? 'Async WebSockets' : 'Sync HTTP'}</span>
-              </button>
-
-              {/* Live Benchmarks Modal Trigger */}
-              <button
-                type="button"
-                onClick={fetchAndShowBenchmarks}
-                className="hidden sm:flex px-3 py-1.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 hover:bg-cyan-100 transition-all items-center gap-1.5 shadow-2xs"
-                title="View live PyTorch vs ONNX Runtime latency micro-benchmarks"
-              >
-                <Zap className="w-3.5 h-3.5 text-cyan-600" />
-                <span>ONNX Benchmarks</span>
-              </button>
-
-              {/* HITL Analytics Modal Trigger */}
-              <button
-                type="button"
-                onClick={fetchAndShowHitl}
-                className="hidden xl:flex px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200 transition-all items-center gap-1.5 shadow-2xs"
-                title="View Doctor vs AI agreement rate and active learning candidates"
-              >
-                <Stethoscope className="w-3.5 h-3.5 text-slate-600" />
-                <span>HITL Analytics</span>
-              </button>
-
-              {/* Fairness & Demographic Audit Modal Trigger */}
-              <button
-                type="button"
-                onClick={fetchAndShowFairness}
-                className="hidden xl:flex px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all items-center gap-1.5 shadow-2xs"
-                title="View demographic fairness audit, equalized odds, and slice parity"
-              >
-                <Scale className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Fairness Audit</span>
-              </button>
-
-              {/* Mobile Hamburger Button */}
+            {/* Mobile Hamburger Button */}
+            <div className="flex md:hidden items-center">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+                className="p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
                 aria-label="Toggle Navigation Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -1858,9 +1960,17 @@ export default function App() {
               <div className="space-y-6">
                 {/* 1. Upload Card */}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
-                    <Upload className="w-4 h-4 text-cyan-600" /> 1. Eye Photo or Retinal Scan
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-cyan-600" /> 1. Eye Photo or Retinal Scan
+                    </p>
+                    <span className="text-[10px] text-cyan-700 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full font-semibold font-mono">
+                      CFP / Anterior
+                    </span>
+                  </div>
+
+                  {/* 1-Click Test Samples & Quality Guide (cuedesign.space & shotbase.com) */}
+                  <SampleScansCue onSelectSample={handleSelectSample} />
 
                   <div className="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-cyan-500 transition-all duration-300 bg-slate-50/70 group">
                     <input
@@ -1872,7 +1982,10 @@ export default function App() {
 
                     {previewUrl ? (
                       <div className="relative space-y-3">
-                        <img src={previewUrl} alt="Scan preview" className="max-h-48 mx-auto rounded-xl shadow-md border border-slate-200 object-cover" />
+                        <div className="relative max-w-xs mx-auto rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-950 aspect-square flex items-center justify-center group">
+                          <img src={previewUrl} alt="Scan preview" className="w-full h-full object-contain" />
+                          {loading && <RetinaScanShader stage={streamProgress.stage || 'Analyzing Retinal Biomarkers & Microvasculature...'} />}
+                        </div>
                         <p className="text-[11px] text-cyan-700 font-semibold">
                           Click or drag to replace photo
                         </p>
@@ -1884,7 +1997,7 @@ export default function App() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-800">
-                            Drag & drop an eye photograph or click to browse
+                            Or drag & drop your own eye photograph
                           </p>
                           <p className="text-[10px] text-slate-500 mt-1">
                             Supports JPEG, PNG, BMP, WEBP (Max 20MB) • Quality & Aperture Auto-Verified
@@ -1897,7 +2010,7 @@ export default function App() {
                   {previewUrl && (
                     <button
                       onClick={() => setCropping(true)}
-                      className="w-full py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-colors shadow-2xs"
+                      className="w-full py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-colors shadow-2xs btn-tactile"
                     >
                       Crop & Adjust Photo
                     </button>
@@ -1915,10 +2028,17 @@ export default function App() {
                     </span>
                   </div>
 
-                  {/* Common Quick Presets */}
+                  {/* Common Quick Presets (All 6 Classes) */}
                   <div className="space-y-1.5">
                     <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase block">Quick Clinical Scenarios:</span>
                     <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => applyPreset('normal')}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-2xs"
+                      >
+                        🟢 Normal (Healthy)
+                      </button>
                       <button
                         type="button"
                         onClick={() => applyPreset('diabetic_retinopathy')}
@@ -1935,13 +2055,6 @@ export default function App() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => applyPreset('amd')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors shadow-2xs"
-                      >
-                        🟡 Macular Degeneration (AMD)
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => applyPreset('cataract')}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100 transition-colors shadow-2xs"
                       >
@@ -1949,10 +2062,17 @@ export default function App() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => applyPreset('reset')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition-colors ml-auto shadow-2xs"
+                        onClick={() => applyPreset('amd')}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors shadow-2xs"
                       >
-                        🔄 Reset
+                        🟡 Macular Degeneration (AMD)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyPreset('hypertensive_retinopathy')}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100 transition-colors shadow-2xs"
+                      >
+                        🫀 Hypertensive Retinopathy
                       </button>
                     </div>
                   </div>
@@ -2134,7 +2254,7 @@ export default function App() {
                   <button
                     onClick={handleAnalyze}
                     disabled={!selectedFile || loading}
-                    className="w-full py-3.5 text-xs font-bold text-white rounded-xl transition-all duration-200 shadow-md shadow-cyan-600/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 active:scale-98"
+                    className="w-full py-4 text-xs sm:text-sm font-bold text-white rounded-xl transition-all duration-200 btn-evil-primary disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 active:scale-98 shadow-md shadow-cyan-600/25"
                   >
                     {loading ? (
                       <>
@@ -2144,11 +2264,181 @@ export default function App() {
                     ) : (
                       <>
                         <Activity className="w-4 h-4" />
-                        Check Eye Health
+                        Analyze Eye Health
                       </>
                     )}
                   </button>
                 </div>
+
+                {/* Left Column: Technical Diagnostics & Clinician Feedback */}
+                {result && (
+                  <div className="space-y-6 animate-fade-up">
+                    {/* Clinician Attestation & HITL Review / Feedback Override */}
+                    <div className="glass-panel p-5 rounded-2xl border border-indigo-200 bg-indigo-50/40 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4 text-indigo-600" /> Clinician Attestation & Feedback (HITL)
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={fetchAndShowHitl}
+                          className="text-[11px] text-indigo-700 hover:text-indigo-900 font-semibold underline"
+                        >
+                          Discrepancy Analytics
+                        </button>
+                      </div>
+                      <p className="text-xs text-indigo-900/80 leading-relaxed">
+                        Are these diagnostic findings consistent with your direct ophthalmic evaluation? Clinician feedback actively calibrates future retraining iterations.
+                      </p>
+
+                      {overrideSubmitted ? (
+                        <div className="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-semibold flex items-center gap-2 border border-emerald-300">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Clinician sign-off recorded. Overridden discrepancies are queued into active learning retraining candidates.</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 pt-1">
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { id: 'agree', label: 'Agree with AI' },
+                              { id: 'disagree', label: 'Disagree (Override)' },
+                              { id: 'inconclusive', label: 'Inconclusive Quality' },
+                            ].map((v) => (
+                              <button
+                                key={v.id}
+                                type="button"
+                                onClick={() => setOverrideVerdict(v.id)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                                  overrideVerdict === v.id
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                }`}
+                              >
+                                {v.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {overrideVerdict === 'disagree' && (
+                            <div className="space-y-2 animate-fade-in">
+                              <label className="block text-[11px] font-bold text-slate-700 uppercase">
+                                Corrected Diagnosis
+                              </label>
+                              <select
+                                value={overrideDiagnosis}
+                                onChange={(e) => setOverrideDiagnosis(e.target.value)}
+                                className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900"
+                              >
+                                <option value="">Select Correct Diagnosis...</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Diabetic Retinopathy">Diabetic Retinopathy</option>
+                                <option value="Glaucoma">Glaucoma</option>
+                                <option value="Cataract">Cataract</option>
+                                <option value="Age-related Macular Degeneration">Age-related Macular Degeneration</option>
+                                <option value="Hypertensive Retinopathy">Hypertensive Retinopathy</option>
+                              </select>
+                            </div>
+                          )}
+
+                          <input
+                            type="text"
+                            placeholder="Clinical notes or differential observations (optional)..."
+                            value={overrideNotes}
+                            onChange={(e) => setOverrideNotes(e.target.value)}
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => handleOverrideSubmit(result.scan_id || result.id || 'DEMO-SCAN')}
+                            disabled={overrideLoading || (overrideVerdict === 'disagree' && !overrideDiagnosis)}
+                            className="px-4 py-2 text-xs font-bold text-white rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-2xs"
+                          >
+                            {overrideLoading ? 'Submitting Override...' : 'Submit Clinician Sign-Off'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Camera Sensor Domain Adaptation & Color Constancy (Technical) */}
+                    {result.domain_adaptation && (
+                      <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                            <Eye className="w-4 h-4 text-cyan-600" /> Camera Optics & Sensor Domain Adaptation
+                          </span>
+                          <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${
+                            result.domain_adaptation.domain_shift_detected
+                              ? 'bg-amber-50 text-amber-900 border-amber-300'
+                              : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          }`}>
+                            {result.domain_adaptation.domain_shift_detected ? 'Sensor Shift Detected & Corrected' : 'Benchmark Optics Aligned'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {result.domain_adaptation.optical_profile_advisory}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-500 font-mono">
+                          <span>Sensor Confidence: <strong className="text-slate-800">{(result.domain_adaptation.sensor_domain_confidence * 100).toFixed(0)}%</strong></span>
+                          <span>•</span>
+                          <span>Reinhard Color Constancy: <strong className="text-slate-800">{result.domain_adaptation.color_constancy_applied ? 'Applied' : 'Not Required'}</strong></span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Similar Historical Reference Cases (CBMIR 512-d Vector Retrieval - Technical) */}
+                    <div className="glass-panel p-6 rounded-2xl border border-indigo-200 bg-indigo-50/20 space-y-4 shadow-2xs animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
+                            <Microscope className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                              Similar Historical Reference Cases (CBMIR)
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              512-d dense feature vector retrieval matched against biopsy- & OCT-confirmed archives
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          Cosine Similarity Index
+                        </span>
+                      </div>
+
+                      {similarCasesLoading ? (
+                        <div className="p-6 text-center text-slate-500 flex flex-col items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+                          <span className="text-xs">Querying vector index for clinical cohort matches...</span>
+                        </div>
+                      ) : similarCases && similarCases.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {similarCases.map((sc, idx) => (
+                            <div key={idx} className="p-4 rounded-xl bg-white border border-indigo-100 space-y-2 shadow-2xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-mono font-bold text-slate-600">{sc.case_id}</span>
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {sc.similarity_score}% Match
+                                </span>
+                              </div>
+                              <p className="text-xs font-bold text-slate-800">{sc.diagnosis}</p>
+                              <p className="text-[11px] text-slate-600 line-clamp-2">
+                                <strong>Biomarkers:</strong> {sc.visual_biomarkers}
+                              </p>
+                              <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px] text-slate-600 space-y-1">
+                                <p><strong>Treatment:</strong> {sc.treatment_protocol}</p>
+                                <p className="text-emerald-700"><strong>12-Mo Outcome:</strong> {sc.outcome_12mo}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">No historical references matching threshold.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Column: Diagnostic Results & Specialist Guidance */}
@@ -2291,18 +2581,30 @@ export default function App() {
                           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                             <Layers className="w-4 h-4 text-cyan-600" /> Visual Findings & Highlighted Areas
                           </h4>
-                          <button onClick={() => setShowHeatmap(!showHeatmap)} className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-cyan-800 border border-slate-200 transition-colors shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => setShowHeatmap(!showHeatmap)}
+                            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-cyan-800 border border-slate-200 transition-colors shadow-2xs"
+                          >
                             {showHeatmap ? 'Show Original Photo' : 'Show Highlighted Heatmap'}
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                           <div className="md:col-span-2 space-y-3">
-                            <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group">
-                              <img src={showHeatmap && result.heatmap ? result.heatmap : previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
-                              <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
-                                {showHeatmap && result.heatmap ? 'Highlighted Focus' : 'Original Photo'}
+                            {result.heatmap ? (
+                              <SplitSenseSlider
+                                originalImage={previewUrl}
+                                heatmapImage={result.heatmap}
+                                alt="Retinal Lesion Analysis"
+                              />
+                            ) : (
+                              <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                                <img src={previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
+                                <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
+                                  Original Photo
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                           <div className="md:col-span-3 space-y-4">
                             {result.condition_details?.analysis && (
@@ -2333,7 +2635,7 @@ export default function App() {
                         {result.condition_details?.diagnostic_workup && (
                           <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
                             <h4 className="text-sm font-bold text-indigo-700 flex items-center gap-2">
-                              <Microscope className="w-4 h-4 text-indigo-600" /> Recommended Next Steps with an Eye Doctor
+                              <Microscope className="w-4 h-4 text-indigo-600" /> Recommended Next Steps
                             </h4>
                             <ul className="space-y-2.5">
                               {result.condition_details.diagnostic_workup.map((workup, i) => (
@@ -2433,7 +2735,7 @@ export default function App() {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                           <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
                             <div className="flex items-center gap-1.5 text-cyan-800 font-bold text-xs">
                               <Calendar className="w-4 h-4 text-cyan-600" /> 1. Schedule an Exam
@@ -2461,58 +2763,6 @@ export default function App() {
                             </p>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Similar Patient Reference Cases (CBMIR Vector Retrieval) */}
-                      <div className="glass-panel p-6 rounded-2xl border border-indigo-200 bg-indigo-50/20 space-y-4 shadow-2xs animate-fade-in">
-                        <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
-                              <Microscope className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                                Similar Historical Reference Cases (CBMIR)
-                              </h4>
-                              <p className="text-[11px] text-slate-500">
-                                512-d dense feature vector retrieval matched against biopsy- & OCT-confirmed archives
-                              </p>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
-                            Cosine Similarity Index
-                          </span>
-                        </div>
-
-                        {similarCasesLoading ? (
-                          <div className="p-6 text-center text-slate-500 flex flex-col items-center gap-2">
-                            <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
-                            <span className="text-xs">Querying vector index for clinical cohort matches...</span>
-                          </div>
-                        ) : similarCases && similarCases.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {similarCases.map((sc, idx) => (
-                              <div key={idx} className="p-4 rounded-xl bg-white border border-indigo-100 space-y-2 shadow-2xs">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[11px] font-mono font-bold text-slate-600">{sc.case_id}</span>
-                                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    {sc.similarity_score}% Match
-                                  </span>
-                                </div>
-                                <p className="text-xs font-bold text-slate-800">{sc.diagnosis}</p>
-                                <p className="text-[11px] text-slate-600 line-clamp-2">
-                                  <strong>Biomarkers:</strong> {sc.visual_biomarkers}
-                                </p>
-                                <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px] text-slate-600 space-y-1">
-                                  <p><strong>Treatment:</strong> {sc.treatment_protocol}</p>
-                                  <p className="text-emerald-700"><strong>12-Mo Outcome:</strong> {sc.outcome_12mo}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-500 italic">No historical references matching threshold.</p>
-                        )}
                       </div>
 
                       {/* Doctor Questions & Save/Export Panel */}
@@ -2564,119 +2814,6 @@ export default function App() {
                             </button>
                           </div>
                         </div>
-                      </div>
-
-                      {/* UPGRADE 4: Camera Sensor Domain Adaptation & Color Constancy */}
-                      {result.domain_adaptation && (
-                        <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                              <Eye className="w-4 h-4 text-cyan-600" /> Camera Optics & Sensor Domain Adaptation
-                            </span>
-                            <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${
-                              result.domain_adaptation.domain_shift_detected
-                                ? 'bg-amber-50 text-amber-900 border-amber-300'
-                                : 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                            }`}>
-                              {result.domain_adaptation.domain_shift_detected ? 'Sensor Shift Detected & Corrected' : 'Benchmark Optics Aligned'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 leading-relaxed">
-                            {result.domain_adaptation.optical_profile_advisory}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-500 font-mono">
-                            <span>Sensor Confidence: <strong className="text-slate-800">{(result.domain_adaptation.sensor_domain_confidence * 100).toFixed(0)}%</strong></span>
-                            <span>•</span>
-                            <span>Reinhard Color Constancy: <strong className="text-slate-800">{result.domain_adaptation.color_constancy_applied ? 'Applied' : 'Not Required'}</strong></span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* UPGRADE 5: Human-in-the-Loop (HITL) Doctor Review & Active Learning Override */}
-                      <div className="glass-panel p-5 rounded-2xl border border-indigo-200 bg-indigo-50/40 shadow-2xs space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-2">
-                            <Stethoscope className="w-4 h-4 text-indigo-600" /> Clinician Attestation & HITL Review
-                          </h4>
-                          <button
-                            type="button"
-                            onClick={fetchAndShowHitl}
-                            className="text-[11px] text-indigo-700 hover:text-indigo-900 font-semibold underline"
-                          >
-                            View Discrepancy Analytics
-                          </button>
-                        </div>
-                        <p className="text-xs text-indigo-900/80 leading-relaxed">
-                          Are these diagnostic findings consistent with your direct ophthalmic evaluation? Clinician feedback actively calibrates future retraining iterations.
-                        </p>
-
-                        {overrideSubmitted ? (
-                          <div className="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-semibold flex items-center gap-2 border border-emerald-300">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>Clinician sign-off recorded. Overridden discrepancies are queued into active learning retraining candidates.</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-3 pt-1">
-                            <div className="flex flex-wrap gap-2">
-                              {[
-                                { id: 'agree', label: 'Agree with AI' },
-                                { id: 'disagree', label: 'Disagree (Override)' },
-                                { id: 'inconclusive', label: 'Inconclusive Quality' },
-                              ].map((v) => (
-                                <button
-                                  key={v.id}
-                                  type="button"
-                                  onClick={() => setOverrideVerdict(v.id)}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                                    overrideVerdict === v.id
-                                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                  }`}
-                                >
-                                  {v.label}
-                                </button>
-                              ))}
-                            </div>
-
-                            {overrideVerdict === 'disagree' && (
-                              <div className="space-y-2 animate-fade-in">
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                                  Corrected Diagnosis
-                                </label>
-                                <select
-                                  value={overrideDiagnosis}
-                                  onChange={(e) => setOverrideDiagnosis(e.target.value)}
-                                  className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900"
-                                >
-                                  <option value="">Select Correct Diagnosis...</option>
-                                  <option value="Normal">Normal</option>
-                                  <option value="Diabetic Retinopathy">Diabetic Retinopathy</option>
-                                  <option value="Glaucoma">Glaucoma</option>
-                                  <option value="Cataract">Cataract</option>
-                                  <option value="Age-related Macular Degeneration">Age-related Macular Degeneration</option>
-                                  <option value="Hypertensive Retinopathy">Hypertensive Retinopathy</option>
-                                </select>
-                              </div>
-                            )}
-
-                            <input
-                              type="text"
-                              placeholder="Clinical notes or differential observations (optional)..."
-                              value={overrideNotes}
-                              onChange={(e) => setOverrideNotes(e.target.value)}
-                              className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400"
-                            />
-
-                            <button
-                              type="button"
-                              onClick={() => handleOverrideSubmit(result.scan_id || result.id || 'DEMO-SCAN')}
-                              disabled={overrideLoading || (overrideVerdict === 'disagree' && !overrideDiagnosis)}
-                              className="px-4 py-2 text-xs font-bold text-white rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-2xs"
-                            >
-                              {overrideLoading ? 'Submitting Override...' : 'Submit Clinician Sign-Off'}
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                 ) : (
@@ -2806,7 +2943,17 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'workflow' && <ArchitectureTelemetryPage />}
+        {activeTab === 'workflow' && (
+          <ArchitectureTelemetryPage 
+            edgeMode={edgeMode} 
+            setEdgeMode={setEdgeMode}
+            asyncStreamingMode={asyncStreamingMode} 
+            setAsyncStreamingMode={setAsyncStreamingMode}
+            fetchAndShowBenchmarks={fetchAndShowBenchmarks} 
+            fetchAndShowHitl={fetchAndShowHitl}
+            fetchAndShowFairness={fetchAndShowFairness}
+          />
+        )}
 
         {activeTab === 'news' && <ClinicalResearchPage />}
 
@@ -2959,19 +3106,20 @@ export default function App() {
                     className="hover:text-cyan-700 transition flex items-center gap-1.5"
                   >
                     <Scale className="w-3.5 h-3.5 text-cyan-600" />
-                    <span>Terms</span>
+                    <span>Terms & Conditions</span>
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => {
+                      playClickSound()
                       setActiveTab('privacy')
                       window.scrollTo({ top: 0, behavior: 'smooth' })
                     }}
                     className="hover:text-teal-700 transition flex items-center gap-1.5"
                   >
                     <Lock className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Privacy</span>
+                    <span>Privacy Policy</span>
                   </button>
                 </li>
                 <li>

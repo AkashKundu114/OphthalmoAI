@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -71,14 +71,37 @@ h1, h2, h3, h4, h5, h6 {
   color: #0F172A;
 }
 
-/* Clinical Glass Components */
+/* ==========================================================================
+   GLASS.SAMASANTE.COM: Ultra-Refined Frosted Glass Tokens
+   ========================================================================== */
 .glass-panel {
-  background: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04) !important;
   color: #0F172A;
+}
+
+.glass-specular {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8),
+    0 10px 30px -5px rgba(15, 23, 42, 0.06),
+    0 1px 3px 0 rgba(15, 23, 42, 0.04);
+}
+
+.glass-floating {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 
+    0 20px 40px -15px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
 }
 
 .glass-card {
@@ -110,6 +133,46 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
 }
 
+/* ==========================================================================
+   EVILBUTTONS.COM: Tactile Modern Buttons
+   ========================================================================== */
+.btn-tactile {
+  position: relative;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-tactile:active {
+  transform: scale(0.97);
+}
+
+.btn-evil-primary {
+  position: relative;
+  background: linear-gradient(135deg, #0284C7 0%, #00ADB5 60%, #0891B2 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+    0 4px 14px 0 rgba(0, 173, 181, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.btn-evil-primary:hover {
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+    0 6px 20px 0 rgba(0, 173, 181, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-evil-primary:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.2),
+    0 2px 6px 0 rgba(0, 173, 181, 0.25);
+}
+
+/* Glow styles */
 .glow-teal {
   box-shadow: 0 0 20px rgba(0, 173, 181, 0.25);
 }
@@ -128,6 +191,27 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, #0F172A 0%, #334155 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================================
+   SHADERS.COM & BOOKOFSHAPES.COM: Laser Scanner & HUD Keyframes
+   ========================================================================== */
+@keyframes laserSweep {
+  0% {
+    top: 4%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 94%;
+    opacity: 0.8;
+  }
+}
+
+.animate-laser-sweep {
+  animation: laserSweep 2s ease-in-out infinite alternate;
 }
 
 @keyframes pulseGlow {

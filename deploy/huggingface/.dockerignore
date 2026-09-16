@@ -1,4 +1,4 @@
-﻿__pycache__
+__pycache__
 *.py[cod]
 *.so
 *.pyd
@@ -24,3 +24,7 @@ scripts
 .agents
 .claude
 .last_tunnel_url
+start.*
+*.bat
+*.ps1
+
