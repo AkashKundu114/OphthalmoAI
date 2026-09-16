@@ -117,7 +117,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
                                     REST API / WebSockets
                                                 ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ FASTAPI BACKEND (Python 3.10+ / 3.12 / PyTorch CUDA 12.x / ONNX Runtime)                    │
+│ FASTAPI BACKEND (Python 3.10+ / 3.14 / PyTorch CUDA 12.x / ONNX Runtime)                    │
 │                                                                                             │
 │  ┌─────────────────────────┐     ┌────────────────────────┐     ┌────────────────────────┐  │
 │  │ Optical Domain Filter   │ ──> │ Tenancy & RLS Guard    │ ──> │ Reinhard Color Normal. │  │

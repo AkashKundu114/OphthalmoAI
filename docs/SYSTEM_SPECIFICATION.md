@@ -29,7 +29,7 @@ OphthalmoAI is a clinical decision-support and retinal disease screening platfor
 ---
 
 ## 4. Software Architecture & API
-- **Backend**: FastAPI (Python 3.10+), PyTorch (CUDA 12.x / FP16 Mixed Precision & BF16 Native), ONNX Runtime FP16 serving engine, SQLAlchemy (asyncpg + aiosqlite), Alembic migrations, SlowAPI rate limiting, Structlog structured logging, OpenTelemetry distributed tracing, and Prometheus metrics exposition.
+- **Backend**: FastAPI (Python 3.10+ / 3.14), PyTorch (CUDA 12.x / FP16 Mixed Precision & BF16 Native), ONNX Runtime FP16 serving engine, SQLAlchemy (asyncpg + aiosqlite), Alembic migrations, SlowAPI rate limiting, Structlog structured logging, OpenTelemetry distributed tracing, and Prometheus metrics exposition.
 - **Frontend**: React 19 SPA, Tailwind CSS, Vite 7, Lucide Icons, jsPDF clinical report generator with side-by-side fundus and Grad-CAM embeddings, and HTML5 Canvas offline edge screening engine.
 - **Audience Mode**:
   - **Public View**: Plain-language explanations, urgency badges, patient action steps, and doctor consultation checklists.

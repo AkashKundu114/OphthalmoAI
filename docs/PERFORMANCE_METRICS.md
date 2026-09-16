@@ -190,6 +190,6 @@ To ensure clinical safety and prevent spurious inference on invalid inputs (ever
 
 ### 7.7 Automated Test Suite Status
 - **Total Tests**: **190 / 190 Passing (100% Pass Rate)**.
-- **Execution Time**: ~79.1s across domain validation, multi-backbone inference, temperature calibration, asynchronous job processing, and multi-tenant RLS isolation.
+- **Execution Time**: ~76.5s across domain validation, multi-backbone inference, temperature calibration, asynchronous job processing, and multi-tenant RLS isolation.
 
 

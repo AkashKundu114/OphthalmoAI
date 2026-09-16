@@ -48,7 +48,7 @@ All pull request descriptions must follow Google's XYZ impact framework:
 ## 4. Development Setup & Prerequisites
 
 ### Prerequisites
-- **Python:** 3.10+ (Tested on Python 3.10, 3.11, and 3.12)
+- **Python:** 3.10+ (Tested on Python 3.10, 3.11, 3.12, and 3.14)
 - **PyTorch:** 2.2+ with CUDA 12.x support (or CPU fallback)
 - **Node.js:** 18+ (Node 20+ recommended) & npm 9+
 - **Vite:** 7+ & React 19
