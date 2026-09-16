@@ -96,16 +96,16 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 ### A. Universal Multi-Model Trainer (`train_model.py`)
 ```powershell
 # 1. Train Production Target (EfficientNet-B4) with FP16 on GPU (Batch Size 16, 10 Epochs)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model efficientnet_b4 --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model efficientnet_b4 --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # 2. Train ConvNeXt-Small with BF16 on GPU (Batch Size 16, 10 Epochs)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model convnext_small --precision bf16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model convnext_small --precision bf16 --batch-size 16 --epochs 10 --device cuda
 
 # 3. Train DenseNet-201 with FP16 on GPU (Batch Size 16, 10 Epochs)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model densenet201 --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model densenet201 --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # 4. Train ResNet-50 with FP32 on CPU (32 Ryzen Threads, Batch Size 16, 5 Epochs)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model resnet50 --precision fp32 --batch-size 16 --epochs 5 --device cpu
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model resnet50 --precision fp32 --batch-size 16 --epochs 5 --device cpu
 ```
 
 ---
@@ -113,13 +113,13 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 ### B. Meta-Ensemble Training
 ```powershell
 # 1. Meta-Ensemble with FP16 (ConvNeXt + DenseNet + EfficientNet-V2)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_ensemble.py --precision fp16 --batch-size 16 --epochs 12 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_ensemble.py --precision fp16 --batch-size 16 --epochs 12 --device cuda
 
 # 2. Meta-Ensemble with Native BF16 (No GradScaler needed)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_ensemble.py --precision bf16 --batch-size 16 --epochs 12 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_ensemble.py --precision bf16 --batch-size 16 --epochs 12 --device cuda
 
 # 3. Evidential Meta-Classifier (AC-HDL Cost-Sensitive Loss & Dirichlet Vacuity)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_evidential_meta.py --epochs 15 --batch-size 16 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_evidential_meta.py --epochs 15 --batch-size 16 --device cuda
 ```
 
 ---
@@ -127,19 +127,19 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 ### C. Individual Backbone Training
 ```powershell
 # EfficientNet-B4 (Recommended Safe Batch Size: 16)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model efficientnet_b4 --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model efficientnet_b4 --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # ConvNeXt-Small
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model convnext_small --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model convnext_small --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # DenseNet-201
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model densenet201 --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model densenet201 --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # ResNet-50 (GPU)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_model.py --model resnet50 --precision fp16 --batch-size 16 --epochs 10 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_model.py --model resnet50 --precision fp16 --batch-size 16 --epochs 10 --device cuda
 
 # CPU-Optimized ResNet-50 (Ryzen 9 HX 32 Threads Baseline)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\train_cpu_resnet50.py --batch-size 16 --epochs 5 --threads 32
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\train_cpu_resnet50.py --batch-size 16 --epochs 5 --threads 32
 ```
 
 ---
@@ -147,16 +147,16 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 ### D. Automated Sweeps & Benchmarking Suite
 ```powershell
 # Quick Smoke Test (1 epoch test on CPU & GPU)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode smoke
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode smoke
 
 # Precision Comparison Sweep (FP32 vs FP16 vs BF16)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode precision_sweep --model efficientnet_b4 --epochs 3 --batch-size 16
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode precision_sweep --model efficientnet_b4 --epochs 3 --batch-size 16
 
 # Batch Size Sweep (16 vs 32 vs 64)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode batch_sweep --model efficientnet_b4 --precision fp16 --epochs 3
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode batch_sweep --model efficientnet_b4 --precision fp16 --epochs 3
 
 # Full Architecture Comparison Sweep
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode model_sweep --precision fp16 --batch-size 16 --epochs 3
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\run_all_trainings.py --mode model_sweep --precision fp16 --batch-size 16 --epochs 3
 ```
 
 ---
@@ -164,14 +164,14 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 ### E. Calibration & Final Evaluation
 ```powershell
 # Conformal Risk Control Calibration (99% Emergency / 95% Routine)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\run_conformal_calib.py
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\run_conformal_calib.py
 
 # Temperature Scaling Calibration (Minimizing ECE)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\calibrate_models.py --model efficientnet_b4
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\calibrate_models.py --model efficientnet_b4
 
 # Full Test Set Evaluation (AUROC, Confusion Matrix, Sensitivity/Specificity)
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\evaluate_models.py --model efficientnet_b4 --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\evaluate_models.py --model efficientnet_b4 --device cuda
 
 # Ensemble Test Set Evaluation
-& "d:\AI-based Retinal Disease Predictor\venv_gpu\Scripts\python.exe" scripts\evaluate_ensemble.py --device cuda
+& "d:\OphthalmoAI\venv_gpu\Scripts\python.exe" scripts\evaluate_ensemble.py --device cuda
 ```

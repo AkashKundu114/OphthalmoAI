@@ -270,7 +270,19 @@ pinned: false
     save_last_url(new_url)
 
 
+def is_backend_alive(host: str = "127.0.0.1", port: int = 8000) -> bool:
+    """Checks if the FastAPI backend is already running and responsive."""
+    import urllib.request
+    try:
+        req = urllib.request.Request(f"http://{host}:{port}/health", headers={"User-Agent": "OphthalmoAI/1.0"})
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
 def main():
+    global CLOUDFLARED
     print("=" * 68)
     print("   OPHTHALMOAI - NVIDIA RTX 5060 GPU PUBLIC LAUNCHER & HOSTING SYNC")
     print("=" * 68)
@@ -280,31 +292,39 @@ def main():
         sys.exit(1)
 
     if not CLOUDFLARED.exists():
-        print(f"[ERROR] cloudflared not found at {CLOUDFLARED}")
-        sys.exit(1)
+        found = shutil_which("cloudflared") or shutil_which("cloudflared.exe")
+        if found:
+            CLOUDFLARED = Path(found)
+        else:
+            print(f"[ERROR] cloudflared not found at {CLOUDFLARED}")
+            sys.exit(1)
 
-    # 1. Start Backend Server
-    print("\n[1/3] Launching PyTorch backend on RTX 5060 GPU (port 8000)...")
-    backend_env = os.environ.copy()
-    backend_env["PYTHONUNBUFFERED"] = "1"
+    # 1. Start Backend Server if not already alive
+    backend_proc = None
+    if is_backend_alive():
+        print("\n[1/3] PyTorch backend is already active & healthy on port 8000. Reusing instance.")
+    else:
+        print("\n[1/3] Launching PyTorch backend on RTX 5060 GPU (port 8000)...")
+        backend_env = os.environ.copy()
+        backend_env["PYTHONUNBUFFERED"] = "1"
 
-    backend_proc = subprocess.Popen(
-        [str(PYTHON_GPU), "-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", "8000"],
-        cwd=str(ROOT_DIR),
-        env=backend_env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+        backend_proc = subprocess.Popen(
+            [str(PYTHON_GPU), "-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", "8000"],
+            cwd=str(ROOT_DIR),
+            env=backend_env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
 
-    # Wait briefly for backend to bind
-    time.sleep(3)
-    if backend_proc.poll() is not None:
-        err = backend_proc.stderr.read() if backend_proc.stderr else "Unknown error"
-        print(f"[ERROR] Backend failed to start: {err}")
-        sys.exit(1)
+        # Wait briefly for backend to bind
+        time.sleep(3)
+        if backend_proc.poll() is not None:
+            err = backend_proc.stderr.read() if backend_proc.stderr else "Unknown error"
+            print(f"[ERROR] Backend failed to start: {err}")
+            sys.exit(1)
 
-    print("[1/3] Backend running in background on port 8000.")
+        print("[1/3] Backend running in background on port 8000.")
 
     # 2. Start Cloudflare Tunnel
     print("\n[2/3] Starting Cloudflare Tunnel to expose your GPU securely...")
@@ -330,7 +350,8 @@ def main():
 
     if not tunnel_url:
         print("[ERROR] Could not extract Cloudflare Tunnel URL.")
-        kill_proc_tree(backend_proc)
+        if backend_proc is not None:
+            kill_proc_tree(backend_proc)
         sys.exit(1)
 
     print(f"[2/3] Public GPU Tunnel Active: {tunnel_url}")
@@ -357,8 +378,10 @@ def main():
 
     def handle_exit(signum=None, frame=None):
         print("\nStopping services...")
-        kill_proc_tree(backend_proc)
-        kill_proc_tree(tunnel_proc)
+        if backend_proc is not None:
+            kill_proc_tree(backend_proc)
+        if tunnel_proc is not None:
+            kill_proc_tree(tunnel_proc)
         print("All services stopped cleanly. Goodbye!")
         sys.exit(0)
 
@@ -368,10 +391,10 @@ def main():
     try:
         while True:
             time.sleep(1)
-            if backend_proc.poll() is not None:
+            if backend_proc and backend_proc.poll() is not None:
                 print("\n[ALERT] Backend process terminated.")
                 break
-            if tunnel_proc.poll() is not None:
+            if tunnel_proc and tunnel_proc.poll() is not None:
                 print("\n[ALERT] Cloudflare tunnel terminated.")
                 break
     except KeyboardInterrupt:
