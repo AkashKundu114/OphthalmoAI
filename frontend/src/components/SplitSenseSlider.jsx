@@ -75,19 +75,19 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
   return (
     <div className="space-y-3">
       {/* Control / Legend Header */}
-      <div className="flex items-center justify-between text-xs px-1">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-[11px]">
-            <Eye className="w-3.5 h-3.5 text-cyan-600" />
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs px-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-[11px] shadow-2xs">
+            <Eye className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
             Original Image
           </span>
-          <span className="text-slate-400 font-bold">vs</span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 font-semibold text-[11px]">
-            <Flame className="w-3.5 h-3.5 text-rose-500" />
+          <span className="text-slate-400 font-bold text-[11px]">vs</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 font-semibold text-[11px] shadow-2xs">
+            <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" />
             AI Attention Heatmap
           </span>
         </div>
-        <div className="text-[11px] font-mono font-medium text-slate-500 hidden sm:block">
+        <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-mono font-semibold text-slate-600 shadow-2xs shrink-0">
           Split: {Math.round(sliderPos)}%
         </div>
       </div>

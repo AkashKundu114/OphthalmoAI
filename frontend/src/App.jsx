@@ -14,7 +14,7 @@ import {
   ArrowRight, Sparkles, X, Send, Loader2, Bot, User,
   MessageCircle, Heart, Zap, Target, BarChart2, Cpu,
   ChevronLeft, Star, Clock, Tag, Scale, Lock, Mail,
-  GraduationCap, Copy, Check, FileCode, Menu
+  GraduationCap, Copy, Check, FileCode, Menu, Crop
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -1792,10 +1792,23 @@ export default function App() {
       doc.text('Clinician Signature & Official Stamp: ____________________________', margin + 3, currentY + 13.2)
       doc.text('Examination Date & Time: ___________________________________', margin + 98, currentY + 13.2)
 
-      doc.setFontSize(5)
-      doc.setFont('helvetica', 'italic')
-      doc.setTextColor(148, 163, 184)
-      doc.text('[X] Ophthalmic findings verified and correlated with patient clinical presentation.', margin + 3, currentY + 17.2)
+      if (overrideSubmitted) {
+        doc.setFontSize(5.1)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(13, 148, 136) // teal-600
+        const verdictStr = overrideVerdict === 'agree'
+          ? 'CONCUR (AGREED WITH AI FINDINGS)'
+          : overrideVerdict === 'disagree'
+            ? `OVERRIDDEN TO: ${(overrideDiagnosis || 'CORRECTED DIAGNOSIS').toUpperCase()}`
+            : 'INCONCLUSIVE / INSUFFICIENT QUALITY'
+        const noteStr = overrideNotes ? `  |  Note: "${overrideNotes.slice(0, 40)}"` : ''
+        doc.text(`[x] CLINICIAN HITL SIGN-OFF: ${verdictStr}${noteStr}`, margin + 3, currentY + 17.2)
+      } else {
+        doc.setFontSize(5)
+        doc.setFont('helvetica', 'italic')
+        doc.setTextColor(148, 163, 184)
+        doc.text('[X] Ophthalmic findings verified and correlated with patient clinical presentation.', margin + 3, currentY + 17.2)
+      }
 
       // --- 10. RUNNING FOOTER (PAGE 1 OF 1 GUARANTEE) ---
       // Strictly enforce exactly 1 single page by removing any extra pages that autoTable might have created
@@ -1972,42 +1985,73 @@ export default function App() {
                   {/* 1-Click Test Samples & Quality Guide (cuedesign.space & shotbase.com) */}
                   <SampleScansCue onSelectSample={handleSelectSample} />
 
-                  <div className="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-cyan-500 transition-all duration-300 bg-slate-50/70 group">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/bmp,image/webp"
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-
-                    {previewUrl ? (
-                      <div className="relative space-y-3">
-                        <div className="relative max-w-xs mx-auto rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-950 aspect-square flex items-center justify-center group">
-                          <img src={previewUrl} alt="Scan preview" className="w-full h-full object-contain" />
-                          {loading && <RetinaScanShader stage={streamProgress.stage || 'Analyzing Retinal Biomarkers & Microvasculature...'} />}
-                        </div>
-                        <p className="text-[11px] text-cyan-700 font-semibold">
-                          Click or drag to replace photo
-                        </p>
+                  {/* If results with heatmap are ready, render the SplitSenseSlider directly here on the uploaded image! */}
+                  {result && result.heatmap ? (
+                    <div className="space-y-3">
+                      <SplitSenseSlider
+                        originalImage={previewUrl}
+                        heatmapImage={result.heatmap}
+                        alt="Retinal Scan Split Analysis"
+                      />
+                      <div className="flex items-center justify-center gap-2 pt-1">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs border border-slate-200 transition-all shadow-2xs">
+                          <Upload className="w-3.5 h-3.5 text-slate-500" />
+                          Replace Photo
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/bmp,image/webp"
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setCropping(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs border border-slate-200 transition-all shadow-2xs"
+                        >
+                          <Crop className="w-3.5 h-3.5 text-slate-500" />
+                          Crop & Adjust
+                        </button>
                       </div>
-                    ) : (
-                      <div className="space-y-3 py-4">
-                        <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center mx-auto border border-cyan-200 group-hover:scale-105 transition-transform">
-                          <Upload className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">
-                            Or drag & drop your own eye photograph
-                          </p>
-                          <p className="text-[10px] text-slate-500 mt-1">
-                            Supports JPEG, PNG, BMP, WEBP (Max 20MB) • Quality & Aperture Auto-Verified
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-cyan-500 transition-all duration-300 bg-slate-50/70 group">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/bmp,image/webp"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
 
-                  {previewUrl && (
+                      {previewUrl ? (
+                        <div className="relative space-y-3">
+                          <div className="relative max-w-xs mx-auto rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-950 aspect-square flex items-center justify-center group">
+                            <img src={previewUrl} alt="Scan preview" className="w-full h-full object-contain" />
+                            {loading && <RetinaScanShader stage={streamProgress.stage || 'Analyzing Retinal Biomarkers & Microvasculature...'} />}
+                          </div>
+                          <p className="text-[11px] text-cyan-700 font-semibold">
+                            Click or drag to replace photo
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 py-4">
+                          <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center mx-auto border border-cyan-200 group-hover:scale-105 transition-transform">
+                            <Upload className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">
+                              Or drag & drop your own eye photograph
+                            </p>
+                            <p className="text-[10px] text-slate-500 mt-1">
+                              Supports JPEG, PNG, BMP, WEBP (Max 20MB) • Quality & Aperture Auto-Verified
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {previewUrl && !result && (
                     <button
                       onClick={() => setCropping(true)}
                       className="w-full py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-colors shadow-2xs btn-tactile"
@@ -2388,9 +2432,9 @@ export default function App() {
 
                     {/* Similar Historical Reference Cases (CBMIR 512-d Vector Retrieval - Technical) */}
                     <div className="glass-panel p-6 rounded-2xl border border-indigo-200 bg-indigo-50/20 space-y-4 shadow-2xs animate-fade-in">
-                      <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700">
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 pb-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="p-2 rounded-xl bg-indigo-100 text-indigo-700 shrink-0">
                             <Microscope className="w-4 h-4" />
                           </div>
                           <div>
@@ -2402,7 +2446,7 @@ export default function App() {
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200 whitespace-nowrap shrink-0">
                           Cosine Similarity Index
                         </span>
                       </div>
@@ -2413,22 +2457,60 @@ export default function App() {
                           <span className="text-xs">Querying vector index for clinical cohort matches...</span>
                         </div>
                       ) : similarCases && similarCases.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-3">
                           {similarCases.map((sc, idx) => (
-                            <div key={idx} className="p-4 rounded-xl bg-white border border-indigo-100 space-y-2 shadow-2xs">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-mono font-bold text-slate-600">{sc.case_id}</span>
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <div
+                              key={idx}
+                              className={`p-4 rounded-xl border transition-all duration-200 space-y-2.5 ${
+                                idx === 0
+                                  ? 'bg-white border-indigo-200 shadow-xs ring-1 ring-indigo-500/10'
+                                  : 'bg-white/95 border-slate-200 shadow-2xs hover:border-indigo-200'
+                              }`}
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                  <span className="text-[11px] font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded whitespace-nowrap">
+                                    {sc.case_id}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-900">
+                                    {sc.diagnosis}
+                                  </span>
+                                  {sc.icd10 && (
+                                    <span className="text-[10px] font-mono text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 hidden sm:inline-block whitespace-nowrap">
+                                      ICD: {sc.icd10}
+                                    </span>
+                                  )}
+                                  {idx === 0 && (
+                                    <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                      Top Match
+                                    </span>
+                                  )}
+                                </div>
+                                <span
+                                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${
+                                    Number(sc.similarity_score) >= 75
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                                  }`}
+                                >
                                   {sc.similarity_score}% Match
                                 </span>
                               </div>
-                              <p className="text-xs font-bold text-slate-800">{sc.diagnosis}</p>
-                              <p className="text-[11px] text-slate-600 line-clamp-2">
-                                <strong>Biomarkers:</strong> {sc.visual_biomarkers}
+
+                              <p className="text-xs text-slate-700 leading-relaxed">
+                                <strong className="text-slate-900 font-semibold">Biomarkers:</strong>{' '}
+                                {sc.visual_biomarkers}
                               </p>
-                              <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[10px] text-slate-600 space-y-1">
-                                <p><strong>Treatment:</strong> {sc.treatment_protocol}</p>
-                                <p className="text-emerald-700"><strong>12-Mo Outcome:</strong> {sc.outcome_12mo}</p>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
+                                <div className="space-y-0.5">
+                                  <span className="font-semibold text-slate-700 block">Treatment:</span>
+                                  <p className="text-slate-600 leading-relaxed">{sc.treatment_protocol}</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                  <span className="font-semibold text-emerald-800 block">12-Mo Outcome:</span>
+                                  <p className="text-emerald-700 font-medium leading-relaxed">{sc.outcome_12mo}</p>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -2575,57 +2657,55 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Visual Findings & Heatmap */}
-                      <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                      {/* Visual Findings & Pathology Analysis */}
+                      <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <Layers className="w-4 h-4 text-cyan-600" /> Visual Findings & Highlighted Areas
+                            <Layers className="w-4 h-4 text-cyan-600" /> Visual Findings & Pathology Analysis
                           </h4>
-                          <button
-                            type="button"
-                            onClick={() => setShowHeatmap(!showHeatmap)}
-                            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-cyan-800 border border-slate-200 transition-colors shadow-2xs"
-                          >
-                            {showHeatmap ? 'Show Original Photo' : 'Show Highlighted Heatmap'}
-                          </button>
+                          {result.heatmap && (
+                            <span className="text-[10px] font-semibold text-cyan-800 bg-cyan-50 border border-cyan-200/80 px-2.5 py-0.5 rounded-full">
+                              Interactive Split on Left Scan
+                            </span>
+                          )}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                          <div className="md:col-span-2 space-y-3">
-                            {result.heatmap ? (
-                              <SplitSenseSlider
-                                originalImage={previewUrl}
-                                heatmapImage={result.heatmap}
-                                alt="Retinal Lesion Analysis"
-                              />
-                            ) : (
-                              <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 group">
-                                <img src={previewUrl} alt="Scan Analysis" className="w-full h-auto object-cover aspect-square transition-opacity duration-300" />
-                                <div className="absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-md">
-                                  Original Photo
-                                </div>
-                              </div>
-                            )}
+
+                        {result.heatmap && (
+                          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-950 shrink-0 relative group">
+                              <img src={previewUrl} alt="Original Scan" className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 inset-x-0 text-[8px] font-bold text-center bg-black/60 text-white">Scan</span>
+                            </div>
+                            <div className="w-14 h-14 rounded-lg overflow-hidden border border-rose-200 bg-slate-950 shrink-0 relative group">
+                              <img src={result.heatmap} alt="Heatmap" className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 inset-x-0 text-[8px] font-bold text-center bg-rose-950/70 text-rose-200">Heatmap</span>
+                            </div>
+                            <div className="text-xs text-slate-600 leading-snug">
+                              <span className="font-bold text-slate-900 block">AI Lesion Activation Map</span>
+                              Inspect localized retinal microvasculature using the interactive slider directly on your uploaded scan in the left panel.
+                            </div>
                           </div>
-                          <div className="md:col-span-3 space-y-4">
-                            {result.condition_details?.analysis && (
-                              <div>
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1 block">Key Visual Signs</span>
-                                <p className="text-xs text-slate-700 leading-relaxed">{result.condition_details.analysis}</p>
-                              </div>
-                            )}
-                            {result.spatial_description && (
-                              <div className="bg-slate-50 p-3.5 border border-slate-200 rounded-xl space-y-1">
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Highlighted Area Description</span>
-                                <p className="text-xs text-emerald-800 font-mono leading-relaxed font-semibold">{result.spatial_description}</p>
-                              </div>
-                            )}
-                            <div>
-                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2 block">Condition Probability Breakdown</span>
-                              <div className="space-y-2.5">
-                                {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
-                                  <ProbabilityBar key={cls} label={cls} value={prob} />
-                                ))}
-                              </div>
+                        )}
+
+                        <div className="space-y-3 pt-1">
+                          {result.condition_details?.analysis && (
+                            <div className="bg-slate-50 p-3.5 border border-slate-200 rounded-xl space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Key Visual Signs</span>
+                              <p className="text-xs text-slate-700 leading-relaxed">{result.condition_details.analysis}</p>
+                            </div>
+                          )}
+                          {result.spatial_description && (
+                            <div className="bg-cyan-50/60 p-3.5 border border-cyan-200/80 rounded-xl space-y-1">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-800 block">Highlighted Area Description</span>
+                              <p className="text-xs text-cyan-900 font-mono leading-relaxed font-semibold">{result.spatial_description}</p>
+                            </div>
+                          )}
+                          <div className="bg-white p-4 border border-slate-200 rounded-xl space-y-2">
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Condition Probability Breakdown</span>
+                            <div className="space-y-2.5 pt-1">
+                              {Object.entries(result.probabilities || {}).map(([cls, prob]) => (
+                                <ProbabilityBar key={cls} label={cls} value={prob} />
+                              ))}
                             </div>
                           </div>
                         </div>
