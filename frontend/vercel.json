@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:match*",
-      "destination": "https://preventing-eur-able-stuff.trycloudflare.com/:match*"
+      "destination": "https://sensor-specializing-ronald-pulse.trycloudflare.com/:match*"
     },
     {
       "source": "/(.*)",
