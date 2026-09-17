@@ -29,6 +29,13 @@ export default function ComputeTelemetryHud({ edgeMode, asyncStreamingMode, onOp
             <span>TENSOR:</span>
             <span className="text-indigo-300">[1, 3, 384, 384]</span>
           </div>
+
+          <div className="hidden lg:flex items-center gap-1 text-slate-400 text-[11px]">
+            <span>STREAMING:</span>
+            <span className={asyncStreamingMode ? "text-emerald-400 font-bold" : "text-slate-400"}>
+              {asyncStreamingMode ? 'SSE ACTIVE' : 'DIRECT'}
+            </span>
+          </div>
         </div>
 
         {/* Right: Latency & Benchmark Launcher */}

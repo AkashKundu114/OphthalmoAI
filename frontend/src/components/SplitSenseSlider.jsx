@@ -106,18 +106,13 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
           className="absolute inset-0 w-full h-full object-contain pointer-events-none"
         />
 
-        {/* Original Image Layer (Clipped to Slider Percentage) */}
-        <div
-          className="absolute inset-0 overflow-hidden pointer-events-none"
-          style={{ width: `${sliderPos}%` }}
-        >
-          <img
-            src={originalImage}
-            alt="Original Retinal Scan"
-            className="absolute inset-0 w-full h-full object-contain max-w-none"
-            style={{ width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%' }}
-          />
-        </div>
+        {/* Original Image Layer (Clipped to Slider Percentage via clip-path) */}
+        <img
+          src={originalImage}
+          alt="Original Retinal Scan"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+          style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+        />
 
         {/* Vertical Divider Line with Specular Highlight */}
         <div

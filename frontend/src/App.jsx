@@ -714,7 +714,6 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
-  const [showHeatmap, setShowHeatmap] = useState(true)
 
   const [conditions, setConditions] = useState(FALLBACK_CONDITIONS)
   const [searchQuery, setSearchQuery] = useState('')
@@ -725,6 +724,9 @@ export default function App() {
     const next = !soundOn
     setSoundOn(next)
     setSoundEnabled(next)
+    if (next) {
+      playToggleSound()
+    }
   }
   const viewMode = 'public'
 
@@ -1887,17 +1889,38 @@ export default function App() {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80">
-              <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
-              <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Eye Screening" />
-              <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions Guide" />
-              <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Specs" />
-              <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
-            </nav>
+            {/* Desktop Navigation & Controls */}
+            <div className="hidden md:flex items-center gap-3">
+              <nav className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80">
+                <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
+                <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Eye Screening" />
+                <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions Guide" />
+                <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Specs" />
+                <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
+              </nav>
+
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors flex items-center justify-center"
+                title={soundOn ? 'Mute Sound Effects' : 'Enable Sound Effects'}
+                aria-label="Toggle Sound Effects"
+              >
+                {soundOn ? <Volume2 className="w-4 h-4 text-cyan-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              </button>
+            </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="flex md:hidden items-center">
+            <div className="flex md:hidden items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+                title={soundOn ? 'Mute Sound Effects' : 'Enable Sound Effects'}
+                aria-label="Toggle Sound Effects"
+              >
+                {soundOn ? <Volume2 className="w-4 h-4 text-cyan-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              </button>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
