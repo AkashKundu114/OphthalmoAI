@@ -39,7 +39,9 @@ docs/
 │   ├── APP_FLOW.md                            # Request lifecycles, user journeys & state flows
 │   └── UI_UX_BRIEF.md                         # Design tokens, accessibility, and Clinical Light theme spec
 ├── research/                                  # Academic Publication Suite
-│   └── RESEARCH_PAPER_DRAFT.md                # Formal publication draft (IEEE / Nature Medicine style)
+│   ├── RESEARCH_PAPER_DRAFT.md                # Formal publication draft (IEEE / Nature Medicine style)
+│   ├── RESEARCH_UPGRADES_AND_PUBLISHING_GUIDE.md # Literature review, work gaps & publishing strategy
+│   └── ophthalmoai_ieee.tex                   # Ready-to-compile IEEE double-column LaTeX manuscript
 ├── technical/                                 # Enterprise Systems & Security Specifications
 │   ├── AZURE_DEPLOY.md                        # Azure Cloud deployment instructions
 │   ├── BACKEND_SCHEMA.md                      # Database schemas, Alembic migrations & tenancy models
@@ -57,6 +59,8 @@ docs/
 - **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Complete mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
 - **[Clinical Evaluation & Safety](clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Risk controls, intended use statement, and medical disclaimers.
 - **[Research Paper Draft](research/RESEARCH_PAPER_DRAFT.md)**: Full academic manuscript ready for journal submission.
+- **[Research Upgrades & Publishing Strategy](research/RESEARCH_UPGRADES_AND_PUBLISHING_GUIDE.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
+- **[IEEE LaTeX Manuscript](research/ophthalmoai_ieee.tex)**: Camera-ready IEEE double-column source file.
 - **[App Flow & State Machines](design/APP_FLOW.md)**: Sequence diagrams and client-server communication flows.
 - **[UI/UX Design Brief](design/UI_UX_BRIEF.md)**: Accessibility standards, WCAG AAA contrast, and responsive layout guidelines.
 - **[Backend Schema Specification](technical/BACKEND_SCHEMA.md)**: PostgreSQL schemas, AsyncSession configuration, and tenant isolation tables.

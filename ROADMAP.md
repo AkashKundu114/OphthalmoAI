@@ -37,8 +37,10 @@ This roadmap outlines past milestones, recent enterprise upgrades, and future ar
 ## 🚀 Upcoming Milestones
 
 ### v2.6 - Mobile Point-of-Care & Multimodal Synthesis
+- [ ] **RETFound / FLAIR Knowledge Distillation**: Feature-aligned token distillation transferring representations from 304M ViT foundation models into the lightweight FP16 tri-backbone edge ensemble.
 - [ ] **Direct WebRTC Mobile Video Capture**: Smartphone-mounted direct ophthalmoscope video streaming with automated best-frame selection.
 - [ ] **Local Multimodal Report Generation**: Integration of fine-tuned local vision-language model (e.g. Qwen2.5-VL) synthesizing fundus scans into ICD-10 narrative summaries.
+- [ ] **Ordinal Conformal Risk Control**: Severity-aware non-conformity guarantees eliminating skip-grade errors in diabetic retinopathy stages.
 - [ ] **Longitudinal Progression Tracking**: Automated pixel-aligned registration and disease progression heatmaps across sequential patient visits.
 
 ### v3.0 - Hospital Federation & DICOM Standards

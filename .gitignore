@@ -178,6 +178,12 @@ static/uploads/
 !run_docker_train.ps1
 
 
+# ========================
+# Research Paper Drafts & Submission Materials
+# ========================
+research/
+research_paper/
+
 # Synthetic test images generated at runtime
 static/synthetic-*.*
 synthetic-*.*
