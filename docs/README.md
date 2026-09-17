@@ -22,6 +22,14 @@ All benchmark figures and architecture diagrams are rendered in **300+ DPI publi
 | ![Base Monolith Comparison](images/base_monolith_models_comparison.png) | ![Architecture Evolution Summary](images/architecture_evolution_summary.png) |
 | ![Thermal Profile Comparison](images/thermal_comparison.png) | ![Model Convergence Rates](images/convergence_comparison.png) |
 
+### Independent External Clinical Validation Gallery (v2.6)
+
+| External Multi-Cohort Benchmark & Adaptation | Anatomical Geometry & Safety Escalation |
+| :--- | :--- |
+| ![External vs Internal Benchmark Comparison](images/external_vs_internal_benchmark.png) | ![Field of View Spatial Geometry Shift](images/external_fov_sensor_shift.png) |
+| ![IDRiD Post-Adaptation Generalization Gains](images/external_adaptation_gain.png) | ![Clinical Safety Net Escalation Rates](images/external_human_review_uncertainty.png) |
+| ![IDRiD Severity-Stratified Detection](images/external_severity_detection_breakdown.png) | *(Complete report in `docs/clinical/EXTERNAL_VALIDATION_REPORT.md`)* |
+
 ---
 
 ## Documentation Structure
@@ -34,7 +42,8 @@ docs/
 ├── OphthalmoAI_Technical_White_Paper.md       # Formal algorithmic white paper & mathematical formulations
 ├── training_guide.md                          # Data preparation, hyperparameter tuning & training manual
 ├── clinical/                                  # Clinical Safety & Regulatory Documentation
-│   └── CLINICAL_EVALUATION_AND_SAFETY.md      # Intended use, clinical risk mitigation & validation protocols
+│   ├── CLINICAL_EVALUATION_AND_SAFETY.md      # Intended use, clinical risk mitigation & validation protocols
+│   └── EXTERNAL_VALIDATION_REPORT.md          # Multi-cohort external validation & generalization study
 ├── design/                                    # UI/UX & Interaction Design
 │   ├── APP_FLOW.md                            # Request lifecycles, user journeys & state flows
 │   └── UI_UX_BRIEF.md                         # Design tokens, accessibility, and Clinical Light theme spec
@@ -47,7 +56,7 @@ docs/
 │   ├── BACKEND_SCHEMA.md                      # Database schemas, Alembic migrations & tenancy models
 │   ├── ISSUES.md                              # Historical engineering debt & resolution ledger
 │   └── SECURITY_AUDIT.md                      # Automated & red-team security audit reports
-└── images/                                    # 24 publication-grade (300 DPI) performance charts & diagrams
+└── images/                                    # 29 publication-grade (300 DPI) performance charts & diagrams
 ```
 
 ---
@@ -55,9 +64,11 @@ docs/
 ## Key Document Links
 
 - **[System Specification](SYSTEM_SPECIFICATION.md)**: Exhaustive pipeline breakdown from raw fundus ingestion to PDF attestation.
-- **[Performance & Telemetry](PERFORMANCE_METRICS.md)**: Deep dive into the 85.18% test accuracy, 0.9805 AUROC, and Platt scaling.
-- **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Complete mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
+- **[Performance & Telemetry](PERFORMANCE_METRICS.md)**: Deep dive into the 85.18% test accuracy, 0.9818 AUROC, and Platt scaling.
+- **[External Clinical Validation Report](clinical/EXTERNAL_VALIDATION_REPORT.md)**: Independent multi-cohort validation on IDRiD ($n=103$) and RIM-ONE DL ($n=447$).
 - **[Clinical Evaluation & Safety](clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Risk controls, intended use statement, and medical disclaimers.
+- **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Complete mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
+- **[Scripts Catalog & Operations Guide](../scripts/README.md)**: Master operational guide for the consolidated 5-pillar script architecture.
 - **[Research Paper Draft](research/RESEARCH_PAPER_DRAFT.md)**: Full academic manuscript ready for journal submission.
 - **[Research Upgrades & Publishing Strategy](research/RESEARCH_UPGRADES_AND_PUBLISHING_GUIDE.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
 - **[IEEE LaTeX Manuscript](research/ophthalmoai_ieee.tex)**: Camera-ready IEEE double-column source file.

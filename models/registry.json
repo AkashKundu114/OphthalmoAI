@@ -1,15 +1,15 @@
 {
-  "last_updated": "2026-09-17T12:03:01.561407+00:00",
+  "last_updated": "2026-09-17T18:19:22.486366+00:00",
   "active_versions": {
     "surface": {
-      "id": "9ab5c6ed-a29f-498a-b015-5c749cd0c2d4",
+      "id": "fdfa1c4d-4617-44f3-a6f7-0d607fb61c6f",
       "version_tag": "v2",
       "architecture": "EfficientNet-B4",
       "weights_path": "/m2.pth",
       "val_accuracy": null,
       "val_auc": null,
       "calibration_temperature": 1.0,
-      "registered_at": "2026-09-17T12:03:01.556661"
+      "registered_at": "2026-09-17T18:19:22.480959"
     }
   },
   "calibration_temperatures": {

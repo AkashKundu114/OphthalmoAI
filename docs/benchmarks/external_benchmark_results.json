@@ -1,0 +1,110 @@
+{
+  "idrid_ben_graham": {
+    "dataset": "IDRiD_Test",
+    "cohort_size": 103,
+    "method": "ben_graham",
+    "accuracy": 0.7864,
+    "sensitivity": 0.913,
+    "specificity": 0.5294,
+    "precision": 0.7975,
+    "f1_score": 0.8514,
+    "auroc": 0.8824,
+    "human_review_rate": 0.3398,
+    "confusion_matrix": {
+      "tn": 18,
+      "fp": 16,
+      "fn": 6,
+      "tp": 63
+    },
+    "grade_breakdown": {
+      "No DR (Normal)": {
+        "total": 34,
+        "correct": 18,
+        "rate": 0.5294
+      },
+      "Mild DR": {
+        "total": 5,
+        "correct": 4,
+        "rate": 0.8
+      },
+      "Moderate DR": {
+        "total": 32,
+        "correct": 29,
+        "rate": 0.9062
+      },
+      "Severe DR": {
+        "total": 19,
+        "correct": 18,
+        "rate": 0.9474
+      },
+      "Proliferative DR": {
+        "total": 13,
+        "correct": 12,
+        "rate": 0.9231
+      }
+    }
+  },
+  "idrid_reinhard": {
+    "dataset": "IDRiD_Test",
+    "cohort_size": 103,
+    "method": "reinhard_ben_graham",
+    "accuracy": 0.8155,
+    "sensitivity": 0.913,
+    "specificity": 0.6176,
+    "precision": 0.8289,
+    "f1_score": 0.869,
+    "auroc": 0.8112,
+    "human_review_rate": 0.6505,
+    "confusion_matrix": {
+      "tn": 21,
+      "fp": 13,
+      "fn": 6,
+      "tp": 63
+    },
+    "grade_breakdown": {
+      "No DR (Normal)": {
+        "total": 34,
+        "correct": 21,
+        "rate": 0.6176
+      },
+      "Mild DR": {
+        "total": 5,
+        "correct": 3,
+        "rate": 0.6
+      },
+      "Moderate DR": {
+        "total": 32,
+        "correct": 29,
+        "rate": 0.9062
+      },
+      "Severe DR": {
+        "total": 19,
+        "correct": 18,
+        "rate": 0.9474
+      },
+      "Proliferative DR": {
+        "total": 13,
+        "correct": 13,
+        "rate": 1.0
+      }
+    }
+  },
+  "rim_one_ben_graham": {
+    "dataset": "RIM-ONE_DL",
+    "cohort_size": 447,
+    "method": "ben_graham",
+    "accuracy": 0.6398,
+    "sensitivity": 0.0062,
+    "specificity": 1.0,
+    "precision": 1.0,
+    "f1_score": 0.0123,
+    "auroc": 0.5478,
+    "human_review_rate": 1.0,
+    "confusion_matrix": {
+      "tn": 285,
+      "fp": 0,
+      "fn": 161,
+      "tp": 1
+    }
+  }
+}

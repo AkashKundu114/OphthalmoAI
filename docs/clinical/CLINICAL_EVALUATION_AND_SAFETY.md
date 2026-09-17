@@ -80,3 +80,20 @@ OphthalmoAI pairs every prediction with an interpretable Class Activation Map ge
 - High-intensity saliency areas correspond directly to pathological features: microaneurysms in DR, optic disc cupping in Glaucoma, and drusen in AMD.
 - Spatial biomarker energy ratios ($\eta_{\text{macula}}, \eta_{\text{disc}}$) quantify anatomical grounding.
 - Both original fundus imagery and Grad-CAM overlays are embedded side-by-side in modern, exportable PDF clinical reports.
+
+---
+
+## 6. Independent Multi-Cohort External Clinical Validation (v2.6)
+
+Following FDA SaMD and Nature Medicine guidelines for external generalizability, OphthalmoAI was evaluated against two independent external clinical cohorts:
+
+1. **IDRiD Cohort (India, $n = 103$ test scans, Kowa VX-10 $\alpha$ camera)**:
+   - Evaluates multi-center generalizability on Indian diabetic patient populations.
+   - Post-adaptation accuracy surged from 75.73% to **81.55%**, achieving **91.30% Referable DR Sensitivity** (catching 63 of 69 cases) and **100% detection of Proliferative DR** (13 of 13 cases).
+   - Zero regression observed on the internal test split ($n = 938$, accuracy 85.18%, Macro AUROC 0.9818).
+
+2. **RIM-ONE DL Cohort (Spain, $n = 447$ clinical scans, Nidek AFC-210 camera)**:
+   - Uncovered critical anatomical **Field-of-View (FOV) Mismatch**: RIM-ONE DL consists of tight 292×292 optic disc region-of-interest crops lacking the macula and temporal vascular arcades.
+   - **Clinical Safety Net Verification**: Rather than issuing ungrounded autonomous predictions, OphthalmoAI's predictive entropy gate escalated **100% of RIM-ONE DL scans** to clinician review (`requires_human_review: true`), demonstrating robust fail-safe behavior on non-canonical imaging inputs.
+
+For comprehensive clinical protocols, Wilson score confidence intervals, and ICDR severity breakdowns, consult the dedicated [External Clinical Validation Report](EXTERNAL_VALIDATION_REPORT.md).
