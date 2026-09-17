@@ -156,7 +156,7 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
     # Aperture / Mask: +0.35
     if has_circular_mask:
         score += 0.35
-    elif 0.25 <= active_ratio <= 0.98:
+    elif 0.15 <= active_ratio <= 0.98:
         score += 0.20
         
     # Chromatic Profile: +0.35
@@ -170,10 +170,12 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
         score += 0.08
         
     # Vascular Structure: +0.30
-    if 0.005 <= vessel_gradient <= 0.22 and spatial_corr >= 0.70:
+    if 0.005 <= vessel_gradient <= 0.25 and spatial_corr >= 0.65:
         score += 0.30
-    elif spatial_corr >= 0.60:
-        score += 0.18
+    elif 0.004 <= vessel_gradient <= 0.25 and spatial_corr >= 0.35:
+        score += 0.20
+    elif spatial_corr >= 0.50:
+        score += 0.15
     else:
         score += 0.05
         

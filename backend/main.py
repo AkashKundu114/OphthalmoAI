@@ -104,6 +104,13 @@ from .validators import (
     validate_ollama_url_from_env,
     validate_password_strength,
 )
+from .sarvam_service import (
+    transcribe_speech,
+    translate_text,
+    text_to_speech,
+    is_sarvam_available,
+    SUPPORTED_INDIC_LANGUAGES,
+)
 
 configure_logging(json_output=os.getenv("LOG_FORMAT", "json").lower() == "json")
 logger = get_logger("ophthalmoai")
@@ -160,10 +167,45 @@ OPHTHALMOLOGY_SYSTEM_PROMPT = (
 )
 
 preprocess = transforms.Compose([
-    transforms.Resize((380, 380)),
+    transforms.Resize((384, 384)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
 ])
+
+def is_already_ben_graham(img_np: np.ndarray) -> bool:
+    """Checks if image has already undergone Ben Graham local color constancy enhancement."""
+    ch_means = img_np.mean(axis=(0, 1))
+    diff = max(abs(ch_means[0] - ch_means[1]), abs(ch_means[0] - ch_means[2]), abs(ch_means[1] - ch_means[2]))
+    return bool(diff < 8.0 and (65.0 < float(np.mean(ch_means)) < 125.0))
+
+def ben_graham_preprocess(img_pil: Image.Image, target_size: int = 384) -> Image.Image:
+    """
+    Applies Ben Graham's circular crop and local Gaussian color subtraction to match
+    the exact training distribution of the ensemble backbones (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M).
+    """
+    img = np.array(img_pil.convert("RGB"))
+    if is_already_ben_graham(img):
+        return img_pil.resize((target_size, target_size), Image.Resampling.BILINEAR)
+
+    try:
+        import cv2
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        _, mask = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            c_cnt = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(c_cnt)
+            if w > 30 and h > 30:
+                img = img[y:y+h, x:x+w]
+        img = cv2.resize(img, (target_size, target_size), interpolation=cv2.INTER_AREA)
+        blur = cv2.GaussianBlur(img, (0, 0), target_size / 30)
+        enhanced = cv2.addWeighted(img, 4, blur, -4, 128)
+        mask = np.zeros((target_size, target_size), dtype=np.uint8)
+        cv2.circle(mask, (target_size // 2, target_size // 2), int(target_size * 0.48), 255, -1)
+        enhanced = cv2.bitwise_and(enhanced, enhanced, mask=mask)
+        return Image.fromarray(enhanced)
+    except Exception:
+        return img_pil.resize((target_size, target_size), Image.Resampling.BILINEAR)
 
 def build_monolithic_model(num_classes: int) -> nn.Module:
     model = models.efficientnet_b4(weights=None)
@@ -350,6 +392,13 @@ class ChatRequest(BaseModel):
     message: str
     history: List[ChatMessage] = []
     diagnosis_context: Optional[Dict[str, Any]] = None
+    language: Optional[str] = "en-IN"
+    audio_output_requested: Optional[bool] = False
+
+class TTSRequest(BaseModel):
+    text: str
+    language: Optional[str] = "hi-IN"
+
 
 class RegisterRequest(BaseModel):
     email: str
@@ -651,7 +700,8 @@ async def predict(
         logger.warning("predict.domain_adaptation_failed", error=str(da_err))
 
     try:
-        input_tensor = preprocess(image).to(DEVICE).unsqueeze(0)
+        model_input_image = ben_graham_preprocess(image, target_size=384)
+        input_tensor = preprocess(model_input_image).to(DEVICE).unsqueeze(0)
 
         with torch.no_grad():
             if len(ENSEMBLE_MODELS) >= 3:
@@ -713,7 +763,7 @@ async def predict(
             try:
                 cam        = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
                 grayscale  = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
-                rgb_img    = np.float32(image.resize((380, 380))) / 255
+                rgb_img    = np.float32(model_input_image.resize((384, 384))) / 255
                 vis        = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
                 buff       = io.BytesIO()
                 Image.fromarray(vis).save(buff, format="JPEG", quality=85)
@@ -977,17 +1027,48 @@ async def chat_endpoint(
     if not safe_ok:
         raise HTTPException(422, detail=safe_msg)
 
-    is_emergency, emergency_msg = detect_medical_emergency(chat_request.message)
+    target_lang = (chat_request.language or "en-IN").strip()
+    is_indic = target_lang != "en-IN" and target_lang in SUPPORTED_INDIC_LANGUAGES
+    sarvam_active = is_sarvam_available()
+
+    # Step 1: In rural / Indic mode, translate user query to English for medical reasoning
+    english_query = safe_msg
+    if is_indic and sarvam_active:
+        ok_trans, translated_q = await translate_text(
+            safe_msg, source_lang=target_lang, target_lang="en-IN"
+        )
+        if ok_trans and translated_q:
+            english_query = translated_q
+
+    # Step 2: Emergency detection (check both original and translated text)
+    is_emergency, emergency_msg = detect_medical_emergency(safe_msg)
+    if not is_emergency and english_query != safe_msg:
+        is_emergency, emergency_msg = detect_medical_emergency(english_query)
+
     if is_emergency:
         log_event(
             db, "chat.emergency_flagged", success=True,
             user_id=current_user.id if current_user else None,
             ip_address=client_ip,
         )
+        # Translate emergency escalation message to patient's native Indic language
+        if is_indic and sarvam_active:
+            ok_emerg_trans, translated_emerg = await translate_text(
+                emergency_msg, source_lang="en-IN", target_lang=target_lang
+            )
+            if ok_emerg_trans and translated_emerg:
+                emergency_msg = translated_emerg
+
+        audio_b64 = None
+        if chat_request.audio_output_requested and sarvam_active:
+            _, audio_b64, _ = await text_to_speech(emergency_msg, target_lang=target_lang)
+
         return {
             "reply": emergency_msg,
             "model_used": "emergency_interceptor",
             "is_emergency": True,
+            "language": target_lang,
+            "audio_base64": audio_b64,
             "disclaimer": "🚨 EMERGENCY NOTICE: Seek immediate in-person emergency medical care.",
         }
 
@@ -995,10 +1076,29 @@ async def chat_endpoint(
     if chat_request.diagnosis_context:
         ctx = chat_request.diagnosis_context
         if ctx.get("status") == "unsupported_image" or ctx.get("is_fundus") is False:
+            refusal_text = (
+                "I cannot provide a diagnostic interpretation for this upload because the image "
+                "could not be verified as an authentic retinal fundus photograph. OphthalmoAI only "
+                "analyzes color fundus photographs of the posterior pole. Please upload a genuine "
+                "retinal fundus scan for clinical evaluation."
+            )
+            if is_indic and sarvam_active:
+                ok_refusal_trans, translated_refusal = await translate_text(
+                    refusal_text, source_lang="en-IN", target_lang=target_lang
+                )
+                if ok_refusal_trans and translated_refusal:
+                    refusal_text = translated_refusal
+
+            audio_b64 = None
+            if chat_request.audio_output_requested and sarvam_active:
+                _, audio_b64, _ = await text_to_speech(refusal_text, target_lang=target_lang)
+
             return {
-                "reply": "I cannot provide a diagnostic interpretation for this upload because the image could not be verified as an authentic retinal fundus photograph. OphthalmoAI only analyzes color fundus photographs of the posterior pole. Please upload a genuine retinal fundus scan for clinical evaluation.",
+                "reply": refusal_text,
                 "model_used": "guardrail_refusal",
                 "is_emergency": False,
+                "language": target_lang,
+                "audio_base64": audio_b64,
                 "disclaimer": "⚠️ Notice: Clinical interpretation requires an authentic color fundus photograph.",
             }
 
@@ -1052,7 +1152,7 @@ async def chat_endpoint(
                 system_instruction=system,
             )
             chat_session = model.start_chat(history=gemini_history)
-            response = await chat_session.send_message_async(safe_msg)
+            response = await chat_session.send_message_async(english_query)
             reply      = response.text.replace("—", ", ").replace("–", "-")
             model_used = "gemini"
 
@@ -1062,7 +1162,7 @@ async def chat_endpoint(
             for m in chat_request.history:
                 if m.role in ("user", "assistant"):
                     messages.append({"role": m.role, "content": m.content})
-            messages.append({"role": "user", "content": safe_msg})
+            messages.append({"role": "user", "content": english_query})
 
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
@@ -1087,6 +1187,19 @@ async def chat_endpoint(
             "Please try again. For urgent eye concerns, contact a qualified ophthalmologist."
         )
 
+    # Step 3: Translate clinical guidance back into the patient's native Indic language
+    if is_indic and sarvam_active and reply:
+        ok_reply_trans, translated_reply = await translate_text(
+            reply, source_lang="en-IN", target_lang=target_lang
+        )
+        if ok_reply_trans and translated_reply:
+            reply = translated_reply
+
+    # Step 4: Synthesize regional spoken audio for visually impaired accessibility
+    audio_b64 = None
+    if chat_request.audio_output_requested and sarvam_active and reply:
+        _, audio_b64, _ = await text_to_speech(reply, target_lang=target_lang)
+
     log_event(
         db, "chat", success=True,
         user_id=current_user.id if current_user else None,
@@ -1096,8 +1209,109 @@ async def chat_endpoint(
     return {
         "reply": reply,
         "model_used": model_used,
+        "language": target_lang,
+        "audio_base64": audio_b64,
         "disclaimer": "AI screening for educational & triage guidance only. Not a binding clinical diagnosis.",
     }
+
+
+@app.post("/chat/tts")
+@app.post("/api/chat/tts")
+@_chat_limit
+async def chat_tts_endpoint(
+    request: Request,
+    tts_req: TTSRequest,
+):
+    """
+    Synthesize text to speech using Sarvam Bulbul for visually impaired accessibility.
+    """
+    if not is_sarvam_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Sarvam TTS service is not configured (missing SARVAM_API_KEY).",
+        )
+
+    target_lang = tts_req.language or "hi-IN"
+    ok, audio_b64, err = await text_to_speech(tts_req.text, target_lang=target_lang)
+    if not ok or not audio_b64:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=err or "Failed to synthesize speech.",
+        )
+
+    return {
+        "audio_base64": audio_b64,
+        "language": target_lang,
+        "content_type": "audio/wav",
+    }
+
+
+@app.post("/chat/voice")
+@app.post("/api/chat/voice")
+@_chat_limit
+async def chat_voice_endpoint(
+    request: Request,
+    file: UploadFile = File(...),
+    language: str = Form("hi-IN"),
+    diagnosis_context_json: Optional[str] = Form(None),
+    audio_output_requested: bool = Form(True),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user),
+):
+    """
+    Direct voice-in / voice-out clinical triage endpoint for visually impaired
+    patients and rural outreach workers (PHC / ASHA).
+    Transcribes audio using Sarvam Saaras, processes clinical triage with Gemini,
+    translates guidance, and synthesizes regional spoken audio using Sarvam Bulbul.
+    """
+    if not is_sarvam_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Sarvam voice services are not configured (missing SARVAM_API_KEY).",
+        )
+
+    audio_bytes = await file.read()
+    if not audio_bytes or len(audio_bytes) < 100:
+        raise HTTPException(status_code=400, detail="Invalid or empty audio recording.")
+
+    # 1. Transcribe speech using Sarvam Saaras
+    ok_stt, transcript, detected_lang = await transcribe_speech(
+        audio_bytes=audio_bytes,
+        filename=file.filename or "recording.webm",
+        content_type=file.content_type or "audio/webm",
+        language_code=language,
+    )
+
+    if not ok_stt or not transcript:
+        raise HTTPException(status_code=500, detail=f"Speech transcription failed: {transcript}")
+
+    # 2. Parse optional diagnosis context
+    diag_ctx = None
+    if diagnosis_context_json:
+        try:
+            diag_ctx = json.loads(diagnosis_context_json)
+        except Exception:
+            diag_ctx = None
+
+    # 3. Formulate standard ChatRequest and run triage pipeline
+    sub_request = ChatRequest(
+        message=transcript,
+        history=[],
+        diagnosis_context=diag_ctx,
+        language=language or detected_lang,
+        audio_output_requested=audio_output_requested,
+    )
+
+    result = await chat_endpoint(
+        request=request,
+        chat_request=sub_request,
+        db=db,
+        current_user=current_user,
+    )
+
+    result["transcript"] = transcript
+    return result
+
 
 
 from .fhir import export_to_fhir_diagnostic_report
@@ -1588,7 +1802,8 @@ async def screen_async(
 
         # Stage 3: Concurrent Ensemble Forward Pass
         await report_progress(60, ScreeningStage.ENSEMBLE_INFERENCE)
-        input_tensor = preprocess(img).to(DEVICE).unsqueeze(0)
+        model_input_img = ben_graham_preprocess(img, target_size=384)
+        input_tensor = preprocess(model_input_img).to(DEVICE).unsqueeze(0)
 
         with torch.no_grad():
             if len(ENSEMBLE_MODELS) >= 3:
@@ -1618,7 +1833,7 @@ async def screen_async(
             try:
                 cam = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
                 grayscale = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
-                rgb_img = np.float32(img.resize((380, 380))) / 255
+                rgb_img = np.float32(model_input_img.resize((384, 384))) / 255
                 vis = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
                 buff = io.BytesIO()
                 Image.fromarray(vis).save(buff, format="JPEG", quality=85)

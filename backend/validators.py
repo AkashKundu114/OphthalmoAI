@@ -170,6 +170,11 @@ _EMERGENCY_PATTERNS = [
     r"punctured\s+(?:my\s+)?eye",
     r"unbearable\s+(?:eye\s+)?pain\s+with\s+vomiting",
     r"foreign\s+object\s+stuck\s+in\s+eye",
+    # Indic / Hinglish acute emergency triggers
+    r"(?:achanak|sudden)\s+(?:andha|dikhna\s+band|vision\s+loss)",
+    r"(?:aankh|ankh)\s+me\s+(?:acid|tezaab|chemical|chot)",
+    r"अचानक\s+(?:दिखना\s+बंद|अंधापन)",
+    r"आंख\s+में\s+(?:एसिड|तेजाब|केमिकल|चोट)",
 ]
 _EMERGENCY_RE = re.compile("|".join(_EMERGENCY_PATTERNS), re.IGNORECASE)
 
@@ -182,7 +187,7 @@ def detect_medical_emergency(text: str) -> Tuple[bool, Optional[str]]:
     if match:
         return True, (
             "🚨 MEDICAL EMERGENCY DETECTED: Your symptoms or query indicates an acute, vision-threatening situation. "
-            "Please DO NOT rely on AI advice. Immediately contact emergency medical services (Call 911 / 112) or go to the nearest Emergency Room / Urgent Eye Care Clinic."
+            "Please DO NOT rely on AI advice. Immediately contact emergency medical services (Call 911, or 112 / 108 in India) or go to the nearest Eye Hospital / Emergency Room."
         )
     return False, None
 

@@ -128,12 +128,12 @@ export async function runEdgeInference(sourceImage) {
   const vascularGreenDominance = meanG / Math.max(1, meanR);
 
   const rawScores = {
-    "Normal": 2.10 + (vascularGreenDominance > 0.40 && vascularGreenDominance < 0.65 ? 1.2 : 0),
-    "Diabetic Retinopathy": 0.85 + (meanG < 65 ? 1.1 : 0),
-    "Glaucoma": 0.70 + (contrastRatio > 1.15 ? 1.3 : 0),
-    "Cataract": 0.50 + (meanB > 85 ? 1.4 : 0),
-    "Age-related Macular Degeneration": 0.65 + (contrastRatio < 0.90 ? 1.0 : 0),
-    "Hypertensive Retinopathy": 0.45 + (vascularGreenDominance < 0.35 ? 1.1 : 0),
+    "Normal": 1.00 + (vascularGreenDominance >= 0.45 && vascularGreenDominance <= 0.60 && contrastRatio >= 0.95 && contrastRatio <= 1.10 ? 1.5 : 0),
+    "Diabetic Retinopathy": 1.00 + (meanG < 68 && vascularGreenDominance < 0.45 ? 1.6 : 0),
+    "Glaucoma": 1.00 + (contrastRatio > 1.12 ? 1.6 : 0),
+    "Cataract": 1.00 + (meanB > 80 || (meanG > 95 && contrastRatio < 0.98) ? 1.7 : 0),
+    "Age-related Macular Degeneration": 1.00 + (contrastRatio < 0.92 ? 1.5 : 0),
+    "Hypertensive Retinopathy": 1.00 + (vascularGreenDominance < 0.38 ? 1.4 : 0),
   };
 
   // Temperature scaling (T = 1.20) and Softmax

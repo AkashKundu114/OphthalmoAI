@@ -20,6 +20,7 @@ services:
       OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.2:3b}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       GEMINI_MODEL: "${GEMINI_MODEL:-gemini-2.0-flash}"
+      SARVAM_API_KEY: "${SARVAM_API_KEY:-}"
       PREDICT_RATE_LIMIT: "${PREDICT_RATE_LIMIT:-10/minute}"
       CHAT_RATE_LIMIT: "${CHAT_RATE_LIMIT:-30/minute}"
       AUTH_RATE_LIMIT: "${AUTH_RATE_LIMIT:-20/minute}"

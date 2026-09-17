@@ -170,16 +170,20 @@ def deploy_to_vercel(new_url: str) -> None:
             )
             if commit_res.returncode == 0:
                 print("[VERCEL] Committed updated tunnel routes.")
-                push_res = subprocess.run(
-                    ["git", "push", "origin", "main"],
-                    cwd=str(ROOT_DIR),
-                    capture_output=True,
-                    text=True,
-                )
-                if push_res.returncode == 0:
-                    print("[VERCEL] Pushed to origin/main -> Vercel is building the live deployment!")
-                else:
-                    print(f"[VERCEL] Git push notice: {push_res.stderr[:150].strip()}")
+                try:
+                    push_res = subprocess.run(
+                        ["git", "push", "origin", "main"],
+                        cwd=str(ROOT_DIR),
+                        capture_output=True,
+                        text=True,
+                        timeout=15,
+                    )
+                    if push_res.returncode == 0:
+                        print("[VERCEL] Pushed to origin/main -> Vercel is building the live deployment!")
+                    else:
+                        print(f"[VERCEL] Git push notice: {push_res.stderr[:150].strip()}")
+                except subprocess.TimeoutExpired:
+                    print("[VERCEL] Git push timed out (waiting on credentials). Continuing tunnel operation.")
         else:
             print("[VERCEL] Git working tree already synchronized with active tunnel.")
     except Exception as exc:
