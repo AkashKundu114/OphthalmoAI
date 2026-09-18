@@ -21,7 +21,6 @@ cd OphthalmoAI
 
 ### Run the Standalone Reproducibility Suite
 ```bash
-# Run via scripts directory (or root forwarder: python reproduce_evaluation.py)
 python scripts/reproduce_evaluation.py
 ```
 

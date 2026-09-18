@@ -11,7 +11,7 @@ GitHub: https://github.com/AkashKundu114/OphthalmoAI
 =====================================================================================
 
 Usage:
-    python reproduce_evaluation.py [--all] [--guardrail] [--benchmarks] [--conformal] [--fairness] [--telemetry]
+    python scripts/reproduce_evaluation.py [--all] [--guardrail] [--benchmarks] [--conformal] [--fairness] [--telemetry]
 """
 
 import os
@@ -22,7 +22,7 @@ import argparse
 from pathlib import Path
 import numpy as np
 
-ROOT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = ROOT_DIR / "models"
 
 LINE_SEP = "=" * 80
