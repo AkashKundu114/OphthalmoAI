@@ -33,6 +33,19 @@
 
 ---
 
+## 🔬 Academic Reproducibility & Benchmark Verification (IEEE J-BHI 2026)
+
+Reviewers and independent researchers evaluating the publication (*"Trustworthy Point-of-Care Retinal Disease Screening via Calibrated Ensembles and Biophysical Domain Guardrails"*) can replicate and verify all empirical metrics, conformal guarantees, and domain guardrails with a single command:
+
+```bash
+git clone https://github.com/AkashKundu114/OphthalmoAI.git
+cd OphthalmoAI
+python reproduce_evaluation.py
+```
+For detailed suite-by-suite instructions, see the complete [Reproducibility Guide (REPRODUCIBILITY.md)](REPRODUCIBILITY.md).
+
+---
+
 ## Table of Contents
 - [Overview & Project Vision](#overview--project-vision)
 - [By the Numbers](#by-the-numbers)
