@@ -40,7 +40,7 @@ Reviewers and independent researchers evaluating the publication (*"Trustworthy 
 ```bash
 git clone https://github.com/AkashKundu114/OphthalmoAI.git
 cd OphthalmoAI
-python reproduce_evaluation.py
+python scripts/reproduce_evaluation.py
 ```
 For detailed suite-by-suite instructions, see the complete [Reproducibility Guide (REPRODUCIBILITY.md)](REPRODUCIBILITY.md).
 

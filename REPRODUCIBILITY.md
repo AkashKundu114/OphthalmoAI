@@ -21,7 +21,8 @@ cd OphthalmoAI
 
 ### Run the Standalone Reproducibility Suite
 ```bash
-python reproduce_evaluation.py
+# Run via scripts directory (or root forwarder: python reproduce_evaluation.py)
+python scripts/reproduce_evaluation.py
 ```
 
 The script executes 5 automated verification suites in `< 1.0 second`:
@@ -59,19 +60,19 @@ To run specific verification modules individually:
 
 ```bash
 # Verify only the biophysical domain guardrails:
-python reproduce_evaluation.py --guardrail
+python scripts/reproduce_evaluation.py --guardrail
 
 # Verify only the classification metrics (Tables IV and V):
-python reproduce_evaluation.py --benchmarks
+python scripts/reproduce_evaluation.py --benchmarks
 
 # Verify only the conformal risk control coverage guarantees (Table VIII):
-python reproduce_evaluation.py --conformal
+python scripts/reproduce_evaluation.py --conformal
 
 # Verify only the demographic fairness audit (Table VII):
-python reproduce_evaluation.py --fairness
+python scripts/reproduce_evaluation.py --fairness
 
 # Profile local hardware and memory utilization (Table VI):
-python reproduce_evaluation.py --telemetry
+python scripts/reproduce_evaluation.py --telemetry
 ```
 
 ---
