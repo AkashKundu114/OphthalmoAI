@@ -9,7 +9,7 @@ OphthalmoAI is a single-page application (SPA) with five top-level views managed
 - **Brand Header**: Displays OphthalmoAI logo, medical screening badge, and the **Audience Mode Toggle**:
   - `[ Public View | Academic / Clinical ]`: Persisted to browser `localStorage`.
   - **Public View**: Shows friendly explanations, urgency badges, Patient Action Plan, and "Questions for Your Doctor" checklist.
-  - **Academic / Clinical View**: Exposes deep statistical rigor (Macro AUROC 0.9805, Macro F1 0.8292, Calibration $T$, ECE 0.0644), raw tensor probability distribution, 1-click BibTeX citation copy, and raw JSON export.
+  - **Academic / Clinical View**: Exposes deep statistical rigor (Macro AUROC 0.9818, Macro F1 0.8292, Calibration $T$, ECE 0.0644), raw tensor probability distribution, 1-click BibTeX citation copy, and raw JSON export.
 - **Navigation Tabs**:
   - `Diagnostic Tool`: Interactive color fundus image screening and analysis.
   - `How It Works`: Interactive multi-backbone architecture and Grad-CAM walkthrough.

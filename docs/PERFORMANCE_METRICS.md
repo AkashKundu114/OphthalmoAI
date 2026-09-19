@@ -16,7 +16,7 @@ Evaluated on a strictly segregated held-out test split of **938 verified color f
 
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Ensemble** | **0.0644** |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
 | ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
 | EfficientNet-V2-M | FP16 | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
@@ -39,7 +39,7 @@ Evaluated on a strictly segregated held-out test split of **938 verified color f
 </p>
 
 ### Key Insights:
-- **Macro AUROC (0.9805)**: Exceptional discriminatory power across all 6 retinal categories.
+- **Macro AUROC (0.9818)**: Exceptional discriminatory power across all 6 retinal categories.
 - **Platt Temperature Scaling**: Dividing logits by learned temperatures $T \in [1.06, 1.34]$ corrects neural overconfidence, cutting Expected Calibration Error (ECE) to under $0.065$.
 
 ---
@@ -51,13 +51,14 @@ Evaluated on a strictly segregated held-out test split of **938 verified color f
   <img src="images/confusion_matrix_ensemble.png" alt="Confusion Matrix" width="48%" />
 </p>
 
-### Diagnostic Metrics per Class:
-- **Normal**: Sensitivity 89.2% | Specificity 94.5%
-- **Diabetic Retinopathy**: Sensitivity 88.5% | Specificity 95.8%
-- **Glaucoma**: Sensitivity 82.1% | Specificity 96.2%
-- **Cataract**: Sensitivity 86.4% | Specificity 97.1%
-- **Age-related Macular Degeneration (AMD)**: Sensitivity 83.7% | Specificity 96.5%
-- **Hypertensive Retinopathy / Pathological Myopia**: Sensitivity 81.1% | Specificity 95.9%
+### Diagnostic Metrics per Class ($n = 938$ Held-Out Cohort):
+- **Normal**: Sensitivity 83.6% | Specificity 91.7% | AUROC 0.9597 | AUPRC 0.8898 | Support $n=225$
+- **Diabetic Retinopathy**: Sensitivity 80.9% | Specificity 96.6% | AUROC 0.9717 | AUPRC 0.9332 | Support $n=225$
+- **Glaucoma**: Sensitivity 91.2% | Specificity 96.1% | AUROC 0.9855 | AUPRC 0.9591 | Support $n=194$
+- **Cataract**: Sensitivity 93.5% | Specificity 98.1% | AUROC 0.9958 | AUPRC 0.9859 | Support $n=200$
+- **Age-related Macular Degeneration (AMD)**: Sensitivity 77.5% | Specificity 98.8% | AUROC 0.9912 | AUPRC 0.8846 | Support $n=40$
+- **Hypertensive Retinopathy / Pathological Myopia**: Sensitivity 63.0% | Specificity 99.5% | AUROC 0.9865 | AUPRC 0.8666 | Support $n=54$
+- **Macro Average / Total**: Sensitivity 81.6% | Specificity 96.8% | Macro AUROC 0.9818 | Macro AUPRC 0.9199 | Total Support $n=938$
 
 ---
 
@@ -101,7 +102,7 @@ To investigate precision-calibration tradeoffs on modern Blackwell-generation Te
 
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Optimal $T$ | Calibrated ECE | Epoch Time (s) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Ensemble (Production)** | **FP16** | **85.18%** | **0.9805** | **0.8292** | **Soft-Vote** | **0.0644** | — |
+| **Ensemble (Production)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Soft-Vote** | **0.0644** | — |
 | Ensemble (Research) | BF16 | 81.02% | 0.9752 | 0.7814 | Soft-Vote | 0.0626 | — |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 | 100.8s |
 | DenseNet-201 | BF16 | 80.28% | 0.9719 | 0.7743 | 1.1215 | 0.0433 | 102.1s |

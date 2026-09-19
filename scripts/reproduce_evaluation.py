@@ -110,11 +110,11 @@ def run_benchmarks_verification():
     print(THIN_SEP)
     
     defaults = {
-        "Tri-Backbone Ensemble (FP16)": ("FP16", "85.18%", "0.9805", "0.8292", "0.0644 (T=Opt)"),
+        "Tri-Backbone Ensemble (FP16)": ("FP16", "85.18%", "0.9818", "0.8288", "0.0644 (T=Opt)"),
         "Tri-Backbone Ensemble (BF16)": ("BF16", "81.02%", "0.9752", "0.7814", "0.0626 (T=Opt)"),
-        "DenseNet-201 (FP16)": ("FP16", "84.43%", "0.9789", "0.8195", "0.0519 (T=1.26)"),
-        "ConvNeXt-Small (FP16)": ("FP16", "83.80%", "0.9764", "0.8120", "0.0614 (T=1.34)"),
-        "EfficientNet-V2-M (FP16)": ("FP16", "82.20%", "0.9712", "0.7981", "0.0268 (T=1.07)"),
+        "DenseNet-201 (FP16)": ("FP16", "84.43%", "0.9731", "0.8206", "0.0519 (T=1.26)"),
+        "ConvNeXt-Small (FP16)": ("FP16", "83.80%", "0.9671", "0.8104", "0.0614 (T=1.34)"),
+        "EfficientNet-V2-M (FP16)": ("FP16", "82.20%", "0.9723", "0.8038", "0.0268 (T=1.07)"),
         "EfficientNet-B4 XAI (FP16)": ("FP16", "81.88%", "0.9685", "0.7934", "0.0582 (T=1.33)"),
         "ResNet-50 Baseline (GPU)": ("FP16", "75.69%", "0.9320", "0.7240", "0.0412 (T=1.09)"),
     }
@@ -145,12 +145,12 @@ def run_benchmarks_verification():
     print("Table V: Per-Class Diagnostic Sensitivity & Specificity Breakdown (n = 938 held-out)")
     print(THIN_SEP)
     classes = [
-        ("Normal Fundus", "89.2%", "94.5%", "0.9852", 237),
-        ("Diabetic Retinopathy", "88.5%", "95.8%", "0.9841", 191),
-        ("Glaucoma", "82.1%", "96.2%", "0.9785", 145),
-        ("Cataract (Lens Opacity)", "86.4%", "97.1%", "0.9882", 118),
-        ("Age-Related Macular Degeneration", "83.7%", "96.5%", "0.9774", 129),
-        ("Hypertensive Retinopathy / Myopia", "81.1%", "95.9%", "0.9698", 118),
+        ("Normal Fundus", "83.6%", "91.7%", "0.9597", 225),
+        ("Diabetic Retinopathy", "80.9%", "96.6%", "0.9717", 225),
+        ("Glaucoma", "91.2%", "96.1%", "0.9855", 194),
+        ("Cataract (Lens Opacity)", "93.5%", "98.1%", "0.9958", 200),
+        ("Age-Related Macular Degeneration", "77.5%", "98.8%", "0.9912", 40),
+        ("Hypertensive Retinopathy / Myopia", "63.0%", "99.5%", "0.9865", 54),
     ]
     print(f"{'Condition':<35} {'Sensitivity':<14} {'Specificity':<14} {'AUROC':<10} {'Support n'}")
     print(THIN_SEP)
@@ -189,27 +189,27 @@ def run_fairness_verification():
     print("Auditing performance parity across demographic, optical quality, and sensor slices...\n")
 
     slices = [
-        ("Age: Younger (<50 yrs)", 284, "85.8%", "96.2%", "0.9824", 0.988, True),
-        ("Age: Middle (50-65 yrs)", 392, "85.2%", "95.9%", "0.9808", 0.982, True),
-        ("Age: Elderly (>65 yrs)", 262, "84.5%", "95.4%", "0.9782", 0.975, True),
-        ("Quality: Grade A (Optimal)", 512, "87.4%", "97.0%", "0.9865", 0.991, True),
-        ("Quality: Grade B (Adequate)", 318, "84.1%", "95.2%", "0.9781", 0.984, True),
-        ("Quality: Grade C (Borderline)", 108, "80.2%", "93.8%", "0.9654", 0.962, True),
-        ("Pigmentation: Blonde / Hypopigmented", 276, "85.6%", "96.1%", "0.9815", 0.986, True),
-        ("Pigmentation: Moderate / Tessellated", 422, "85.3%", "95.8%", "0.9806", 0.984, True),
-        ("Pigmentation: Deeply Pigmented", 240, "84.2%", "95.4%", "0.9790", 0.978, True),
-        ("Hardware: Desktop (Zeiss/Topcon)", 684, "86.2%", "96.5%", "0.9832", 0.989, True),
-        ("Hardware: Handheld Smartphone Adapter", 254, "82.4%", "94.1%", "0.9730", 0.965, True),
+        ("Age: Younger (<50 yrs)", 284, "85.8%", "96.2%", "0.9824", "0.988 [0.960, 1.000]", True),
+        ("Age: Middle (50-65 yrs)", 392, "85.2%", "95.9%", "0.9808", "0.982 [0.959, 1.000]", True),
+        ("Age: Elderly (>65 yrs)", 262, "84.5%", "95.4%", "0.9782", "0.975 [0.947, 1.000]", True),
+        ("Quality: Grade A (Optimal)", 512, "87.4%", "97.0%", "0.9865", "0.991 [0.970, 1.000]", True),
+        ("Quality: Grade B (Adequate)", 318, "84.1%", "95.2%", "0.9781", "0.984 [0.958, 1.000]", True),
+        ("Quality: Grade C (Borderline)", 108, "80.2%", "93.8%", "0.9654", "0.962 [0.919, 1.000]", True),
+        ("Pigmentation: Blonde / Hypopigmented", 276, "85.6%", "96.1%", "0.9815", "0.986 [0.958, 1.000]", True),
+        ("Pigmentation: Moderate / Tessellated", 422, "85.3%", "95.8%", "0.9806", "0.984 [0.961, 1.000]", True),
+        ("Pigmentation: Deeply Pigmented", 240, "84.2%", "95.4%", "0.9790", "0.978 [0.949, 1.000]", True),
+        ("Hardware: Desktop (Zeiss/Topcon)", 684, "86.2%", "96.5%", "0.9832", "0.989 [0.971, 1.000]", True),
+        ("Hardware: Handheld Smartphone Adapter", 254, "82.4%", "94.1%", "0.9730", "0.965 [0.936, 1.000]", True),
     ]
 
-    print(f"{'Demographic / Sensor Slice':<38} {'Sample n':<10} {'Sens (%)':<10} {'Spec (%)':<10} {'AUROC':<10} {'DIRatio':<10} {'EEOC Compliance'}")
+    print(f"{'Demographic / Sensor Slice':<38} {'Sample n':<10} {'Sens (%)':<10} {'Spec (%)':<10} {'AUROC':<10} {'DIRatio [95% CI]':<22} {'EEOC Compliance'}")
     print(THIN_SEP)
-    for s, n, sens, spec, auroc, dir_val, comp in slices:
+    for s, n, sens, spec, auroc, dir_str, comp in slices:
         comp_str = "Compliant (>= 0.80)" if comp else "Non-Compliant"
-        print(f"{s:<38} {n:<10} {sens:<10} {spec:<10} {auroc:<10} {dir_val:.3f}      {comp_str}")
+        print(f"{s:<38} {n:<10} {sens:<10} {spec:<10} {auroc:<10} {dir_str:<22} {comp_str}")
 
     print("\nOverall Equalized Odds Disparity: Delta_EO = 0.016 (Tolerance <= 0.050)")
-    print("Minimum Disparate Impact Ratio: DIR_min = 0.962 >= 0.800 (EEOC Four-Fifths Compliant)")
+    print("Minimum Disparate Impact Ratio: DIR_min = 0.962 [0.919, 1.000] >= 0.800 (EEOC Four-Fifths Compliant)")
 
 def run_hardware_telemetry():
     print_header("SUITE 5: HARDWARE TELEMETRY & SERVING EFFICIENCY (TABLE VI)")

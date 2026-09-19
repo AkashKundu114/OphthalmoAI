@@ -26,7 +26,7 @@ Before creating a new GitHub issue:
 1. **Search Existing Issues:** Search open and closed issues to avoid duplicate tickets.
 2. **Consult System Documentation:** Review [`docs/SYSTEM_SPECIFICATION.md`](docs/SYSTEM_SPECIFICATION.md) and [`docs/PERFORMANCE_METRICS.md`](docs/PERFORMANCE_METRICS.md) for expected pipeline behaviors and benchmark ranges.
 3. **Verify Deployment Version:** Ensure you are running the latest release tag (e.g. `v2.5.0`) or latest `main` commit.
-4. **Check Quality Gates:** If you are developing locally, ensure `pytest tests -q` (all 190 tests) passes on your machine before reporting environment bugs.
+4. **Check Quality Gates:** If you are developing locally, ensure `pytest tests -q` (all 212 tests) passes on your machine before reporting environment bugs.
 
 ---
 

@@ -43,7 +43,7 @@ All models were evaluated using the frozen production checkpoints under Automati
 | **Specificity** | **95.80%** | **55.88%** (19/34 Normal confirmed) | **98.60%** (281/285 Normal confirmed) |
 | **Precision (PPV)** | **82.90%** | **79.73%** | **73.33%** |
 | **F1 Score** | **0.8292** | **0.8252** | **0.1243** |
-| **AUROC** | **0.9805** | **0.7647** | **0.5049** |
+| **AUROC** | **0.9818** | **0.7647** | **0.5049** |
 | **Requires Human Review Rate** | **14.2%** | **65.05%** | **100.00%** |
 
 ---

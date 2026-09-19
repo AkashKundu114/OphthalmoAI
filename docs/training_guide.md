@@ -73,21 +73,21 @@ The telemetry engine (`scripts/metric_logger.py`) records metrics per epoch to b
 
 | Script Filename | Architecture / Function | Target Device | Precision Modes | Recommended Batch Size (8GB VRAM) |
 | :--- | :--- | :---: | :---: | :---: |
-| [`scripts/train_model.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_model.py) | **Universal Trainer**: Any model CLI | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 (GPU) / 16 (CPU) |
-| [`scripts/train_ensemble.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_ensemble.py) | **Meta-Ensemble**: ConvNeXt + DenseNet + EfficientNet | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 |
-| [`scripts/train_evidential_meta.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_evidential_meta.py) | **Evidential AC-HDL**: Dirichlet Uncertainty | `cuda` / `cpu` | `fp32` | 32 |
-| [`scripts/train_efficientnet_b4.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_efficientnet_b4.py) | **Production Target**: EfficientNet-B4 (Grad-CAM) | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 |
-| [`scripts/train_convnext_small.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_convnext_small.py) | **ConvNeXt-Small**: 7x7 Depthwise ConvNet | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 (Safe) / 32 |
-| [`scripts/train_densenet201.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_densenet201.py) | **DenseNet-201**: Feature Reuse Network | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 (Prevents paging) |
-| [`scripts/train_resnet50.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_resnet50.py) | **ResNet-50**: Universal Baseline | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 / 32 |
-| [`scripts/train_cpu_resnet50.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_cpu_resnet50.py) | **CPU ResNet-50**: Ryzen 9 HX (32 threads) | `cpu` only | `fp32` | 16 |
-| [`scripts/train_ensemble_bf16.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_ensemble_bf16.py) | **BF16 Meta-Ensemble**: Tensor Core bfloat16 | `cuda` / `cpu` | `bf16` | 16 / 32 |
-| [`scripts/train_ensemble_bs32.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/train_ensemble_bs32.py) | **BS32 Meta-Ensemble**: 8GB VRAM Optimized | `cuda` / `cpu` | `fp16` | 16 / 32 |
-| [`scripts/run_all_trainings.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/run_all_trainings.py) | **Master Orchestrator**: Automated sweeps & smoke tests | Any | Any | Configurable (Default: 16) |
-| [`scripts/run_conformal_calib.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/run_conformal_calib.py) | **Conformal Calibration**: 99% emergency coverage | `cuda` / `cpu` | `fp32` | 16 / 32 |
-| [`scripts/calibrate_models.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/calibrate_models.py) | **Temperature Scaling**: Platt ECE Minimizer | `cuda` / `cpu` | `fp32` | 16 / 32 |
-| [`scripts/evaluate_models.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/evaluate_models.py) | **Evaluation Suite**: AUROC, ECE, Confusion Matrix | `cuda` / `cpu` | `fp32` | 16 / 32 |
-| [`scripts/evaluate_ensemble.py`](file:///d:/AI-based%20Retinal%20Disease%20Predictor/scripts/evaluate_ensemble.py) | **Ensemble Evaluator**: Tri-Backbone Test Report | `cuda` / `cpu` | `fp32` | 16 / 32 |
+| [`scripts/train_model.py`](../scripts/train_model.py) | **Universal Trainer**: Any model CLI | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 (GPU) / 16 (CPU) |
+| [`scripts/train_ensemble.py`](../scripts/train_ensemble.py) | **Meta-Ensemble**: ConvNeXt + DenseNet + EfficientNet | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 |
+| [`scripts/train_evidential_meta.py`](../scripts/train_evidential_meta.py) | **Evidential AC-HDL**: Dirichlet Uncertainty | `cuda` / `cpu` | `fp32` | 32 |
+| [`scripts/train_efficientnet_b4.py`](../scripts/train_efficientnet_b4.py) | **Production Target**: EfficientNet-B4 (Grad-CAM) | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 32 |
+| [`scripts/train_convnext_small.py`](../scripts/train_convnext_small.py) | **ConvNeXt-Small**: 7x7 Depthwise ConvNet | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 (Safe) / 32 |
+| [`scripts/train_densenet201.py`](../scripts/train_densenet201.py) | **DenseNet-201**: Feature Reuse Network | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 (Prevents paging) |
+| [`scripts/train_resnet50.py`](../scripts/train_resnet50.py) | **ResNet-50**: Universal Baseline | `cuda` / `cpu` | `fp16`, `bf16`, `fp32` | 16 / 32 |
+| [`scripts/train_cpu_resnet50.py`](../scripts/train_cpu_resnet50.py) | **CPU ResNet-50**: Ryzen 9 HX (32 threads) | `cpu` only | `fp32` | 16 |
+| [`scripts/train_ensemble_bf16.py`](../scripts/train_ensemble_bf16.py) | **BF16 Meta-Ensemble**: Tensor Core bfloat16 | `cuda` / `cpu` | `bf16` | 16 / 32 |
+| [`scripts/train_ensemble_bs32.py`](../scripts/train_ensemble_bs32.py) | **BS32 Meta-Ensemble**: 8GB VRAM Optimized | `cuda` / `cpu` | `fp16` | 16 / 32 |
+| [`scripts/run_all_trainings.py`](../scripts/run_all_trainings.py) | **Master Orchestrator**: Automated sweeps & smoke tests | Any | Any | Configurable (Default: 16) |
+| [`scripts/run_conformal_calib.py`](../scripts/run_conformal_calib.py) | **Conformal Calibration**: 99% emergency coverage | `cuda` / `cpu` | `fp32` | 16 / 32 |
+| [`scripts/calibrate_models.py`](../scripts/calibrate_models.py) | **Temperature Scaling**: Platt ECE Minimizer | `cuda` / `cpu` | `fp32` | 16 / 32 |
+| [`scripts/evaluate_models.py`](../scripts/evaluate_models.py) | **Evaluation Suite**: AUROC, ECE, Confusion Matrix | `cuda` / `cpu` | `fp32` | 16 / 32 |
+| [`scripts/evaluate_ensemble.py`](../scripts/evaluate_ensemble.py) | **Ensemble Evaluator**: Tri-Backbone Test Report | `cuda` / `cpu` | `fp32` | 16 / 32 |
 
 ---
 

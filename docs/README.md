@@ -8,6 +8,12 @@ Welcome to the official technical documentation, clinical validation, and archit
 
 All benchmark figures and architecture diagrams are rendered in **300+ DPI publication-grade resolution** adhering to IEEE Transactions on Medical Imaging formatting standards:
 
+<p align="center">
+  <img src="images/end_to_end_pipeline_architecture.png" alt="Figure 1: End-to-End Trustworthy Retinal Disease Screening Pipeline Architecture" width="98%" />
+  <br />
+  <em><strong>Figure 1: End-to-End Trustworthy Retinal Disease Screening Pipeline Architecture.</strong> Multi-stage point-of-care screening workflow integrating biophysical domain guardrails, sensor adaptation, calibrated tri-backbone ensemble, conformal risk control, grounded Grad-CAM, and CBMIR retrieval.</em>
+</p>
+
 | Deep Learning & Benchmark Performance | Systems Engineering & Enterprise Telemetry |
 | :--- | :--- |
 | ![Benchmark Accuracy Comparison](images/benchmark_accuracy_comparison.png) | ![ONNX Latency & Throughput Benchmark](images/onnx_latency_throughput_benchmark.png) |
@@ -47,16 +53,19 @@ docs/
 ├── design/                                    # UI/UX & Interaction Design
 │   ├── APP_FLOW.md                            # Request lifecycles, user journeys & state flows
 │   └── UI_UX_BRIEF.md                         # Design tokens, accessibility, and Clinical Light theme spec
-├── research/                                  # Academic Publication Suite
-│   ├── RESEARCH_PAPER_DRAFT.md                # Formal publication draft (IEEE / Nature Medicine style)
-│   ├── RESEARCH_UPGRADES_AND_PUBLISHING_GUIDE.md # Literature review, work gaps & publishing strategy
-│   └── ophthalmoai_ieee.tex                   # Ready-to-compile IEEE double-column LaTeX manuscript
 ├── technical/                                 # Enterprise Systems & Security Specifications
 │   ├── AZURE_DEPLOY.md                        # Azure Cloud deployment instructions
 │   ├── BACKEND_SCHEMA.md                      # Database schemas, Alembic migrations & tenancy models
 │   ├── ISSUES.md                              # Historical engineering debt & resolution ledger
 │   └── SECURITY_AUDIT.md                      # Automated & red-team security audit reports
 └── images/                                    # 29 publication-grade (300 DPI) performance charts & diagrams
+
+research/                                      # Master Academic Publication Workspace
+├── manuscript.tex                             # Camera-ready IEEE double-column LaTeX manuscript (24 pages)
+├── manuscript.pdf                             # Verified compiled publication PDF
+├── docs/paper_draft.md                        # Full markdown manuscript draft
+├── docs/publishing_guide.md                   # Literature review, work gaps & publishing strategy
+└── figures/ieee_named/                        # Production figures (kundu1.png to kundu14.png)
 ```
 
 ---
@@ -69,9 +78,9 @@ docs/
 - **[Clinical Evaluation & Safety](clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Risk controls, intended use statement, and medical disclaimers.
 - **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Complete mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
 - **[Scripts Catalog & Operations Guide](../scripts/README.md)**: Master operational guide for the consolidated 5-pillar script architecture.
-- **[Research Paper Draft](research/RESEARCH_PAPER_DRAFT.md)**: Full academic manuscript ready for journal submission.
-- **[Research Upgrades & Publishing Strategy](research/RESEARCH_UPGRADES_AND_PUBLISHING_GUIDE.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
-- **[IEEE LaTeX Manuscript](research/ophthalmoai_ieee.tex)**: Camera-ready IEEE double-column source file.
+- **[Research Paper Draft](../research/docs/paper_draft.md)**: Full academic manuscript ready for journal submission.
+- **[Research Upgrades & Publishing Strategy](../research/docs/publishing_guide.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
+- **[IEEE LaTeX Manuscript](../research/manuscript.tex)**: Camera-ready IEEE double-column source file.
 - **[App Flow & State Machines](design/APP_FLOW.md)**: Sequence diagrams and client-server communication flows.
 - **[UI/UX Design Brief](design/UI_UX_BRIEF.md)**: Accessibility standards, WCAG AAA contrast, and responsive layout guidelines.
 - **[Backend Schema Specification](technical/BACKEND_SCHEMA.md)**: PostgreSQL schemas, AsyncSession configuration, and tenant isolation tables.

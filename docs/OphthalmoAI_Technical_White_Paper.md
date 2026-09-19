@@ -13,7 +13,7 @@ Automated posterior pole screening is essential to alleviate global ophthalmolog
 3. **Black-Box Opacity & Conversational Hallucination**: Downstream vision-language assistants generate ungrounded diagnostic claims without spatial anchoring.
 
 **OphthalmoAI** resolves these challenges through an end-to-end engineered pipeline:
-- **Calibrated Tri-Backbone Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with Platt temperature scaling ($T \in [1.06, 1.34]$), achieving **85.18% test accuracy** and **0.9805 Macro AUROC** on $n = 938$ held-out clinical fundus images.
+- **Calibrated Tri-Backbone Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with Platt temperature scaling ($T \in [1.06, 1.34]$), achieving **85.18% test accuracy** and **0.9818 Macro AUROC** on $n = 938$ held-out clinical fundus images.
 - **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)**: Pre-inference deterministic validation filtering out non-fundus objects, noise, documents, and natural scenery with 100% specificity.
 - **Dedicated Saliency Engine (EfficientNet-B4)**: Pixel-level Grad-CAM heatmaps grounding downstream clinical assistants.
 
@@ -73,7 +73,7 @@ Biomarker energy fractions ($\eta_{\text{macula}}, \eta_{\text{disc}}$) are calc
 ### 4.1 Test Cohort Evaluation ($n = 938$)
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | ECE |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| **Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Ensemble** | **0.0644** |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
 | ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
 | EfficientNet-V2-M | FP16 | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |

@@ -30,7 +30,7 @@ All models were benchmarked on a strictly segregated, held-out empirical test sp
 
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| **Calibrated Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Ensemble** | **0.0644** |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
 | ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
 | EfficientNet-V2-M | FP16 | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |
@@ -38,13 +38,14 @@ All models were benchmarked on a strictly segregated, held-out empirical test sp
 | ResNet-50 (Baseline) | FP16 | 75.69% | 0.9320 | 0.7240 | 1.0947 | 0.0412 |
 | Tri-Backbone Soft Ensemble (Research) | BF16 | 81.02% | 0.9752 | 0.7814 | Ensemble | 0.0626 |
 
-### 2.2 Per-Class Sensitivity & Specificity (Ensemble)
-- **Normal**: Sensitivity 89.2% | Specificity 94.5%
-- **Diabetic Retinopathy**: Sensitivity 88.5% | Specificity 95.8%
-- **Glaucoma**: Sensitivity 82.1% | Specificity 96.2%
-- **Cataract**: Sensitivity 86.4% | Specificity 97.1%
-- **Age-related Macular Degeneration (AMD)**: Sensitivity 83.7% | Specificity 96.5%
-- **Hypertensive Retinopathy / Pathological Myopia**: Sensitivity 81.1% | Specificity 95.9%
+### 2.2 Per-Class Sensitivity & Specificity (Ensemble, $n = 938$)
+- **Normal**: Sensitivity 83.6% | Specificity 91.7% | AUROC 0.9597 | AUPRC 0.8898 | Support $n=225$
+- **Diabetic Retinopathy**: Sensitivity 80.9% | Specificity 96.6% | AUROC 0.9717 | AUPRC 0.9332 | Support $n=225$
+- **Glaucoma**: Sensitivity 91.2% | Specificity 96.1% | AUROC 0.9855 | AUPRC 0.9591 | Support $n=194$
+- **Cataract**: Sensitivity 93.5% | Specificity 98.1% | AUROC 0.9958 | AUPRC 0.9859 | Support $n=200$
+- **Age-related Macular Degeneration (AMD)**: Sensitivity 77.5% | Specificity 98.8% | AUROC 0.9912 | AUPRC 0.8846 | Support $n=40$
+- **Hypertensive Retinopathy / Pathological Myopia**: Sensitivity 63.0% | Specificity 99.5% | AUROC 0.9865 | AUPRC 0.8666 | Support $n=54$
+- **Macro Average**: Sensitivity 81.6% | Specificity 96.8% | Macro AUROC 0.9818 | Total Support $n=938$
 
 ---
 

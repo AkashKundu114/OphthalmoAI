@@ -13,7 +13,7 @@ pinned: false
 Point-of-care retinal disease screening API powered by a Calibrated Tri-Backbone Soft Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M), Optical Aperture & Chromophore Domain Guardrails (OAC-DG), dedicated Grad-CAM saliency heatmaps (EfficientNet-B4), and a Red-Team hardened AI clinical assistant (Gemini 2.0 Flash).
 
 ### Key Highlights
-- **85.18% Test Accuracy & 0.9805 Macro AUROC** on held-out clinical fundus test split ($n = 938$).
+- **85.18% Test Accuracy & 0.9818 Macro AUROC** on held-out clinical fundus test split ($n = 938$).
 - **Deterministic Non-Fundus Rejection**: Optical aperture and chromophore backscatter checks block non-medical imagery with HTTP 422.
 - **Explainable Saliency**: High-resolution Grad-CAM overlays highlighting pathognomonic microvascular lesions.
 

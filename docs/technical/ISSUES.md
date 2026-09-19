@@ -17,7 +17,7 @@ This log tracks architectural items, resolved engineering blockers, and ongoing 
 | **R7** | Low | Telemetry & Visuals | Created unified benchmark visualizer generating 24 high-resolution charts in `docs/images/` including dual RAM+VRAM and training speedups. | **Resolved** |
 | **R8** | High | Precision Engineering | Evaluated full BF16 suite across all backbones vs FP16 (+4.16% accuracy gain for FP16); saved weights and calibrated with Platt scaling. | **Resolved** |
 | **R9** | Critical | Clinical Safety / Guardrails | Built multi-spectral retinal fundus domain validator and hardened Gemini conversational API against prompt injection and jailbreaks. | **Resolved** |
-| **R10** | High | Visuals & Test Coverage | Upgraded all benchmark figures to publication-grade academic standards (300 DPI, IEEE/Nature style) and expanded automated test suite to **190 tests with 100% pass rate**. | **Resolved** |
+| **R10** | High | Visuals & Test Coverage | Upgraded all benchmark figures to publication-grade academic standards (300 DPI, IEEE/Nature style) and expanded automated test suite to **212 tests with 100% pass rate**. | **Resolved** |
 | **R11** | Critical | Latency & Optimization | Implemented ONNX Runtime serving with FP16 quantization, cutting p50 latency from 181.0ms to 84.2ms (2.15x speedup) and scaling to 17.3 QPS. | **Resolved** |
 | **R12** | High | Concurrency & Async | Implemented asynchronous task queue (`backend/async_screening.py`) with `202 Accepted` tickets and real-time WebSocket progress updates. | **Resolved** |
 | **R13** | Critical | Telemedicine Privacy | Built 100% client-side in-browser edge screening (`frontend/src/edgeInference.js`) with <50ms turnaround and zero cloud egress. | **Resolved** |

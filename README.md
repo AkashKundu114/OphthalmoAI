@@ -11,7 +11,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://reactjs.org/)
-[![Tests Passing](https://img.shields.io/badge/Tests-201%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-212%20Passed%20(100%25)-brightgreen.svg)](tests/)
 [![Internal Test Accuracy](https://img.shields.io/badge/Internal%20Accuracy-85.18%25-brightgreen.svg)](docs/PERFORMANCE_METRICS.md)
 [![Macro AUROC](https://img.shields.io/badge/Macro%20AUROC-0.9818-blue.svg)](docs/PERFORMANCE_METRICS.md)
 [![External Test (IDRiD)](https://img.shields.io/badge/External%20DR%20Sensitivity-91.30%25-brightgreen.svg)](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)
@@ -79,7 +79,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 - **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India).
 - **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain).
 - **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence.
-- **201 / 201 Pytest Tests Passing (100%):** Exhaustive test coverage across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, and multi-tenant RLS isolation.
+- **212 / 212 Pytest Tests Passing (100%):** Exhaustive test coverage across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, and multi-tenant RLS isolation.
 - **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput.
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
 - **29 Publication-Grade Figures:** Comprehensive IEEE/Nature Medicine standard evaluation visual suite in `docs/images/`.
@@ -88,7 +88,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 
 ## Executive Summary & Key Technical Innovations
 
-> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 201 passing automated tests, **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and multi-tenant Row-Level Security.
+> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 212 passing automated tests, **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and multi-tenant Row-Level Security.
 
 ---
 
@@ -164,7 +164,15 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 ## System Architecture
 
 <p align="center">
-  <img src="docs/images/architecture_evolution_summary.png" alt="OphthalmoAI System Architecture & Evolution" width="92%" />
+  <img src="docs/images/end_to_end_pipeline_architecture.png" alt="Figure 1: End-to-End Trustworthy Point-of-Care Retinal Disease Screening Pipeline Architecture" width="96%" />
+  <br />
+  <em><strong>Figure 1: End-to-End Trustworthy Point-of-Care Retinal Disease Screening Pipeline Architecture.</strong> Multi-stage clinical workflow integrating multi-device fundus acquisition, deterministic biophysical optical aperture guardrail &Phi;(X), sensor domain adaptation, temperature-calibrated tri-backbone soft-voting ensemble (TC-MBE: DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M), urgency-stratified conformal risk control (US-CRC), and Pixel-Aligned Saliency Grounding (PASG-GradCAM) with CBMIR reference case retrieval.</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/architecture_evolution_summary.png" alt="Figure 2: Empirical Architectural Evolution Across Model Generations" width="92%" />
+  <br />
+  <em><strong>Figure 2: Empirical Architectural Evolution Across Model Generations.</strong> Left: Training throughput progression from multi-threaded CPU baseline to GPU acceleration on RTX 5060 silicon. Right: Multi-center held-out clinical test accuracy progression from ResNet-50 baseline (75.69%) to the SOTA TC-MBE ensemble (85.18%, 0.9818 Macro AUROC, Calibrated ECE = 0.0644).</em>
 </p>
 
 ```text
@@ -234,7 +242,7 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 
 | Architecture / Model | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | Calibrated ECE |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Calibrated Tri-Backbone Ensemble (SOTA)** | **85.18%** | **0.9805** | **0.8292** | **Ensemble** | **0.0644** |
+| **Calibrated Tri-Backbone Ensemble (SOTA)** | **85.18%** | **0.9818** | **0.8292** | **Ensemble** | **0.0644** |
 | DenseNet-201 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
 | ConvNeXt-Small | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
 | EfficientNet-V2-M | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |

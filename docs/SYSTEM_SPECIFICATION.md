@@ -48,10 +48,10 @@ OphthalmoAI is a clinical decision-support and retinal disease screening platfor
 - [x] Preprocessing: Ben Graham circular illumination subtraction at $384 \times 384$.
 - [x] Multi-backbone weights loaded at backend startup with graceful single-model fallback.
 - [x] Platt temperature scaling calibrated across all models ($T \in [1.06, 1.34]$).
-- [x] Empirical evaluation on held-out test split ($n=938$): **85.18% Accuracy**, **0.9805 Macro AUROC**, **0.0644 ECE**.
+- [x] Empirical evaluation on held-out test split ($n=938$): **85.18% Accuracy**, **0.9818 Macro AUROC**, **0.0644 ECE**.
 - [x] Pre-inference Retinal Domain Guardrails blocking non-fundus uploads with 100% specificity.
 - [x] Red-Team audited chatbot defenses against jailbreaks and off-topic prompts.
 - [x] Low-latency ONNX Runtime engine (2.15x speedup) and client-side offline edge screening (<50ms).
 - [x] Zero console warnings and passing production builds (`npm run build`).
-- [x] Comprehensive automated test suite with **190 passing tests (100% pass rate)**.
+- [x] Comprehensive automated test suite with **212 passing tests (100% pass rate)**.
 

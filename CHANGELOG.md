@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Consolidated Script Architecture**:
   - Purged obsolete legacy scripts (`train_cpu_resnet50.py`, `train_and_evaluate_bf16_suite.py`) and authored master [`scripts/README.md`](scripts/README.md) organizing all repo scripts into 5 distinct pillars.
 - **Quality Gates & Test Expansion**:
-  - Expanded test suite to **201 / 201 Pytest tests passing (100% pass rate)** in 75.97s.
+  - Expanded test suite to **212 / 212 Pytest tests passing (100% pass rate)**.
 
 ---
 
