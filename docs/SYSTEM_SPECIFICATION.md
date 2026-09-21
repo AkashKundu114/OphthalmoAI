@@ -38,7 +38,7 @@ OphthalmoAI is a clinical decision-support and retinal disease screening platfor
   - **Low-Latency ONNX Serving**: 2.15x speedup (84.2ms p50 latency, 17.3 QPS).
   - **Asynchronous Task Queue**: `POST /api/v1/screen/async` with `202 Accepted` tickets and live WebSocket stage telemetry (`/ws/jobs/{id}`).
   - **Color Constancy Domain Adaptation**: Reinhard $L\alpha\beta$ color normalization neutralizing optical sensor drift.
-  - **Content-Based Medical Image Retrieval (CBMIR)**: 512-dim visual embedding cosine vector search retrieving biopsy- & OCT-confirmed reference cases.
+  - **Content-Based Medical Image Retrieval (CBMIR)**: 512-dim visual embedding cosine vector search retrieving multimodal ophthalmic & OCT-confirmed reference cases.
   - **Demographic Fairness Audit**: EEOC 4/5ths compliant slice auditor across age cohorts and optical quality grades.
   - **Multi-Tenant Clinic RLS Isolation**: Cryptographic tenant boundaries with automated SQL row-level filters.
 

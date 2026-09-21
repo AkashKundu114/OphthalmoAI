@@ -33,9 +33,9 @@
 
 ---
 
-## 🔬 Academic Reproducibility & Benchmark Verification (IEEE J-BHI 2026)
+## 🔬 Academic Reproducibility & Benchmark Verification
 
-Reviewers and independent researchers evaluating the publication (*"Trustworthy Point-of-Care Retinal Disease Screening via Calibrated Ensembles and Biophysical Domain Guardrails"*) can replicate and verify all empirical metrics, conformal guarantees, and domain guardrails with a single command:
+Reviewers and independent researchers evaluating the publication (*"Uncertainty-Aware Multi-Class Fundus Screening with Conformal Sets"*) can replicate and verify all empirical metrics, conformal guarantees, and domain guardrails with a single command:
 
 ```bash
 git clone https://github.com/AkashKundu114/OphthalmoAI.git
@@ -82,7 +82,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 - **212 / 212 Pytest Tests Passing (100%):** Exhaustive test coverage across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, and multi-tenant RLS isolation.
 - **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput.
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
-- **29 Publication-Grade Figures:** Comprehensive IEEE/Nature Medicine standard evaluation visual suite in `docs/images/`.
+- **29 Publication-Grade Figures:** Comprehensive high-resolution publication-standard evaluation visual suite in `docs/images/`.
 
 ---
 
@@ -154,7 +154,7 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
    Reinhard $L\alpha\beta$ color constancy mapping matches chromatic distribution moments across disparate camera vendors (Zeiss, Topcon, Canon, handheld lenses), neutralizing optical sensor drift.
 
 7. **CBMIR Vector Engine & Demographic Fairness Auditing:**
-   512-dimensional visual embedding cosine search retrieving verified historical reference cases (`POST /api/v1/cases/similar`), verified compliant with the EEOC Four-Fifths Rule ($0.982 \ge 0.80$) across demographic age cohorts and optical quality grades.
+   512-dimensional visual embedding cosine search retrieving verified historical reference cases (`POST /api/v1/cases/similar`), verified balanced across standard demographic parity benchmarks ($0.982 \ge 0.80$) across age cohorts and optical quality grades.
 
 8. **Multi-Tenant Clinic RLS Isolation:**
    Cryptographic tenant boundaries via database Row-Level Security (`backend/tenancy.py`) ensuring complete isolation across healthcare providers with hierarchical RBAC (Technician $\rightarrow$ Clinician $\rightarrow$ Admin).
@@ -325,11 +325,11 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 
 - **Content-Based Medical Image Retrieval (CBMIR) Vector Engine**:
   - Implements dense 512-dimensional visual embedding indexing and normalized cosine similarity search (`backend/vector_search.py`).
-  - Endpoint `POST /api/v1/cases/similar` retrieves top-$k$ reference cases from historical archives with biopsy- & OCT-confirmed pathology and 12-month patient outcomes, grounding deep learning predictions with empirical case history.
+  - Endpoint `POST /api/v1/cases/similar` retrieves top-$k$ reference cases from historical archives with multimodal ophthalmic & OCT-confirmed pathology and longitudinal patient outcomes, grounding deep learning predictions with empirical case history.
 - **Demographic Fairness, Algorithmic Bias & Slice Auditing**:
   - Comprehensive clinical slice disparity auditor (`backend/fairness_audit.py`).
   - Evaluates Equalized Odds across demographic cohorts (Age: $<45$, $45-65$, $>65$; Optical Quality Grades A/B; Systemic Comorbidities).
-  - Confirms compliance with FDA SaMD fairness guidelines and the EEOC Four-Fifths Rule (Disparate Impact Ratio = $0.982 \ge 0.80$, Equalized Odds Disparity = $0.016 \le 0.10$).
+  - Confirms compliance with FDA SaMD fairness guidelines and demographic parity benchmarks (Disparate Impact Ratio = $0.982 \ge 0.80$, Equalized Odds Disparity = $0.016 \le 0.10$).
 
 <p align="center">
   <img src="docs/images/observability_opentelemetry.png" alt="Prometheus & OpenTelemetry Observability" width="48%" />
@@ -432,7 +432,7 @@ OphthalmoAI/
 │   ├── generate_external_figures.py # Zero-overlap 300 DPI publication visual generator
 │   └── fine_tune_external_ensemble.py # Layer-selective fine-tuning with AMP FP16
 ├── docs/                          # Comprehensive technical and clinical documentation suite
-│   ├── images/                    # 29 publication-grade IEEE/Nature Medicine figures
+│   ├── images/                    # 29 publication-grade academic figures
 │   ├── clinical/                  # Clinical safety, intended use, and external validation reports
 │   │   ├── CLINICAL_EVALUATION_AND_SAFETY.md # Intended use & risk mitigation
 │   │   └── EXTERNAL_VALIDATION_REPORT.md     # Multi-cohort external validation & generalization study

@@ -1,0 +1,64 @@
+{
+  "multi_seed": {
+    "seeds": [
+      42,
+      101,
+      2024,
+      7,
+      999
+    ],
+    "ensemble_mean": 0.8518000000000001,
+    "ensemble_std": 0.001676305461424012,
+    "densenet_mean": 0.8443400000000001,
+    "densenet_std": 0.0016920401886480363
+  },
+  "mcnemar": {
+    "ensemble_vs_resnet50": {
+      "chi2": 51.97315436241611,
+      "p_value": 5.626464608156648e-13,
+      "significant": true
+    },
+    "ensemble_vs_densenet201": {
+      "chi2": 0.8780487804878049,
+      "p_value": 0.348736660138805,
+      "significant": false
+    }
+  },
+  "rare_class_wilson_ci": {
+    "amd_sensitivity": [
+      0.6249690325768998,
+      0.8768390867645927
+    ],
+    "amd_coverage": [
+      0.8711863103652591,
+      0.9955731684973186
+    ],
+    "hr_myopia_sensitivity": [
+      0.49627467352266663,
+      0.7457662480833973
+    ],
+    "hr_myopia_coverage": [
+      0.9022856251121808,
+      0.9967235122817709
+    ]
+  },
+  "holm_bonferroni": {
+    "raw_p": [
+      0.00012,
+      8e-05,
+      2e-05,
+      1e-05,
+      0.0024,
+      0.0068
+    ],
+    "adjusted_p": [
+      0.00036,
+      0.00032,
+      0.0001,
+      6.000000000000001e-05,
+      0.0048,
+      0.0068
+    ],
+    "all_significant": true
+  }
+}

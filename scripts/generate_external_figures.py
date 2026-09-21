@@ -1,6 +1,6 @@
 """
 Publication-Grade Academic Visual Suite for External Clinical Dataset Validation.
-Engineered to IEEE Transactions on Medical Imaging & Nature Medicine formatting standards.
+Engineered to high-resolution academic and scientific publication formatting standards.
 
 Features:
 - Pure white canvas with generous headroom (no text/bar/legend collisions)

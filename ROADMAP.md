@@ -37,7 +37,7 @@ This roadmap outlines past milestones, recent enterprise upgrades, and future ar
 - [x] **Zero Internal Regression**: Maintained 85.18% accuracy on internal held-out test split ($n = 938$) while increasing Macro AUROC to 0.9818 and cutting ECE to 0.0381.
 - [x] **Optical Field-of-View Root Cause Discovery**: Mapped 45° canonical posterior pole input space against 292×292 localized optic nerve crop mismatch.
 - [x] **Fail-Safe Clinical Safety Net**: 100% of out-of-distribution localized optic disc crops safely routed to human specialists via predictive entropy (`requires_human_review: true`).
-- [x] **Publication Visual Suite Expansion**: Added 5 Nature Medicine / IEEE formatted figures in `docs/images/` (29 total in repository).
+- [x] **Publication Visual Suite Expansion**: Added 5 publication-standard figures in `docs/images/` (29 total in repository).
 - [x] **Formal Clinical Validation Report**: Authored [`docs/clinical/EXTERNAL_VALIDATION_REPORT.md`](docs/clinical/EXTERNAL_VALIDATION_REPORT.md).
 - [x] **Operational Script Consolidation**: Consolidated repository scripts into a standardized 5-pillar catalog ([`scripts/README.md`](scripts/README.md)).
 - [x] **Test Suite Expansion**: **201 / 201 Pytest tests passing (100% pass rate)**.

@@ -63,7 +63,7 @@ If OphthalmoAI's **Optical Aperture & Chromophore Domain Validator (OAC-DG)** in
 Feature proposals are welcomed! When submitting a feature request:
 - Explain the **clinical rationale** or **engineering advantage** of the proposed feature.
 - Detail how it integrates with the existing Tri-Backbone soft ensemble, Grad-CAM interpretability engine, or frontend clinical interface.
-- Provide references to published medical or deep learning literature where applicable (e.g., IEEE TMI, Nature Medicine, Ophthalmology).
+- Provide references to published medical or deep learning literature where applicable (e.g., Nature Medicine, Ophthalmology, Medical Image Analysis).
 
 ---
 

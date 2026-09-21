@@ -2,8 +2,8 @@
 
 This repository provides full independent reproducibility for all empirical benchmarks, biophysical domain guardrails, conformal coverage guarantees, and demographic fairness audits presented in the publication:
 
-> **"Trustworthy Point-of-Care Retinal Disease Screening via Calibrated Ensembles and Biophysical Domain Guardrails"**  
-> *IEEE Journal of Biomedical and Health Informatics (J-BHI), 2026.*  
+> **"Uncertainty-Aware Multi-Class Fundus Screening with Conformal Sets"**  
+> *Research Manuscript & Empirical Benchmark Evaluation.*  
 > Author: **Akash Kundu** (Techno India University & Independent Researcher)  
 > Repository: [https://github.com/AkashKundu114/OphthalmoAI](https://github.com/AkashKundu114/OphthalmoAI)
 

@@ -6,7 +6,7 @@ Welcome to the official technical documentation, clinical validation, and archit
 
 ## Visual Architecture & Benchmark Gallery
 
-All benchmark figures and architecture diagrams are rendered in **300+ DPI publication-grade resolution** adhering to IEEE Transactions on Medical Imaging formatting standards:
+All benchmark figures and architecture diagrams are rendered in **300+ DPI publication-grade resolution** adhering to academic journal formatting standards:
 
 <p align="center">
   <img src="images/end_to_end_pipeline_architecture.png" alt="Figure 1: End-to-End Trustworthy Retinal Disease Screening Pipeline Architecture" width="98%" />
@@ -61,11 +61,11 @@ docs/
 └── images/                                    # 29 publication-grade (300 DPI) performance charts & diagrams
 
 research/                                      # Master Academic Publication Workspace
-├── manuscript.tex                             # Camera-ready IEEE double-column LaTeX manuscript (24 pages)
+├── manuscript.tex                             # Camera-ready double-column LaTeX manuscript (24 pages)
 ├── manuscript.pdf                             # Verified compiled publication PDF
 ├── docs/paper_draft.md                        # Full markdown manuscript draft
 ├── docs/publishing_guide.md                   # Literature review, work gaps & publishing strategy
-└── figures/ieee_named/                        # Production figures (kundu1.png to kundu14.png)
+└── figures/named/                             # Production figures (kundu1.png to kundu14.png)
 ```
 
 ---
@@ -80,7 +80,7 @@ research/                                      # Master Academic Publication Wor
 - **[Scripts Catalog & Operations Guide](../scripts/README.md)**: Master operational guide for the consolidated 5-pillar script architecture.
 - **[Research Paper Draft](../research/docs/paper_draft.md)**: Full academic manuscript ready for journal submission.
 - **[Research Upgrades & Publishing Strategy](../research/docs/publishing_guide.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
-- **[IEEE LaTeX Manuscript](../research/manuscript.tex)**: Camera-ready IEEE double-column source file.
+- **[LaTeX Manuscript](../research/manuscript.tex)**: Camera-ready double-column source file.
 - **[App Flow & State Machines](design/APP_FLOW.md)**: Sequence diagrams and client-server communication flows.
 - **[UI/UX Design Brief](design/UI_UX_BRIEF.md)**: Accessibility standards, WCAG AAA contrast, and responsive layout guidelines.
 - **[Backend Schema Specification](technical/BACKEND_SCHEMA.md)**: PostgreSQL schemas, AsyncSession configuration, and tenant isolation tables.

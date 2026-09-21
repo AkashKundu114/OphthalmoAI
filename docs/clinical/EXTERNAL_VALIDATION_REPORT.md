@@ -2,7 +2,7 @@
 
 **Author**: Akash Kundu  
 **Target Architecture**: Calibrated Tri-Backbone Vision Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)  
-**Standard**: FDA SaMD Good Machine Learning Practice (GMLP) & IEEE / Nature Medicine External Validation Guidelines  
+**Standard**: FDA SaMD Good Machine Learning Practice (GMLP) & International External Validation Guidelines  
 **Status**: Completed Empirical Evaluation  
 
 ---

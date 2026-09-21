@@ -26,7 +26,7 @@ scripts/
 │   ├── evaluate_models.py              # Evaluates individual backbones (AUROC, Macro F1, ECE)
 │   ├── evaluate_ensemble.py            # Evaluates the tri-backbone ensemble on held-out test split
 │   ├── evaluate_external_dataset.py    # Independent external clinical evaluation (IDRiD & RIM-ONE DL)
-│   └── generate_external_figures.py    # Generates 300 DPI IEEE/Nature Medicine academic figures
+│   └── generate_external_figures.py    # Generates 300 DPI publication-quality academic figures
 │
 ├── 4. Calibration & Risk Control
 │   ├── calibrate_models.py             # Computes optimal Platt temperature scaling (T*) per backbone
@@ -110,7 +110,7 @@ python scripts/evaluate_external_dataset.py --device cuda
 ```
 
 ### `generate_external_figures.py`
-Compiles 5 publication-ready academic figures formatted to **IEEE Transactions on Medical Imaging** and **Nature Medicine** standards (300 DPI, 95% Wilson binomial confidence intervals, accessible scientific color palettes):
+Compiles 5 publication-ready academic figures formatted to high-resolution scientific publication standards (300 DPI, 95% Wilson binomial confidence intervals, accessible color palettes):
 ```bash
 python scripts/generate_external_figures.py
 ```

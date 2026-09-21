@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-calibrated Platt scaling temperatures across all vision backbones ([`models/calibration.json`](models/calibration.json)), reducing internal test ECE to 0.0381.
   - External IDRiD accuracy surged from 75.73% to 81.55%, referable DR sensitivity reached 91.30% (63/69 caught), and Proliferative DR reached 100% (13/13 caught), with 0% regression on internal test split ($n=938$, Macro AUROC improved to 0.9818).
 - **Publication-Grade Figure Suite (v2.6)**:
-  - Authored [`scripts/generate_external_figures.py`](scripts/generate_external_figures.py) producing 5 Nature Medicine / IEEE formatted figures in `docs/images/` (now 29 total in repository) with exact 95% Wilson binomial confidence intervals and zero-overlap layout geometry.
+  - Authored [`scripts/generate_external_figures.py`](scripts/generate_external_figures.py) producing 5 publication-standard figures in `docs/images/` (now 29 total in repository) with exact 95% Wilson binomial confidence intervals and zero-overlap layout geometry.
 - **Clinical Validation Report**:
   - Authored formal FDA SaMD / Nature Medicine compliant validation report in [`docs/clinical/EXTERNAL_VALIDATION_REPORT.md`](docs/clinical/EXTERNAL_VALIDATION_REPORT.md).
 - **Consolidated Script Architecture**:
@@ -67,7 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Measures clinical concordance rate (90.5%), logs diagnostic discordance, and mines high-confidence AI error modes into candidate sets for active learning retraining loops.
 - **Content-Based Medical Image Retrieval (CBMIR) Vector Engine**:
   - Implemented dense 512-dimensional visual embedding indexing and normalized cosine similarity search (`backend/vector_search.py`).
-  - Endpoint `POST /api/v1/cases/similar` retrieves top-$k$ reference cases from historical archives with biopsy- & OCT-confirmed pathology and 12-month patient outcomes, grounding deep learning predictions with empirical case history.
+  - Endpoint `POST /api/v1/cases/similar` retrieves top-$k$ reference cases from historical archives with multimodal ophthalmic & OCT-confirmed pathology and longitudinal patient outcomes, grounding deep learning predictions with empirical case history.
 - **Demographic Fairness, Algorithmic Bias & Slice Auditing**:
   - Comprehensive clinical slice disparity auditor (`backend/fairness_audit.py`).
   - Evaluates Equalized Odds across demographic cohorts (Age: $<45$, $45-65$, $>65$; Optical Quality Grades A/B; Systemic Comorbidities).
@@ -98,7 +98,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Red-Team Hardened Conversational Assistant**: Hardened Gemini conversational endpoint against prompt injection, jailbreaks, diagnostic hallucinations on invalid uploads, and off-topic queries with 100% test suite defense.
 - **Dual-Resource Telemetry & Visuals**: Upgraded memory graph to display both Dedicated GPU VRAM and Host System RAM; revamped training time graph with dual-panel layout showing 25x GPU speedup.
 - **Novel Algorithmic Formulations**: Integrated 4 formal mathematical formulations (TC-MBE, OAC-DG, US-CRC, and PASG-GradCAM) into research draft and technical white paper.
-- **Publication-Grade Academic Figures Suite**: Upgraded all 10 benchmark and telemetry figures in `docs/images/` to 300 DPI IEEE Transactions on Medical Imaging and Nature Medicine formatting, complete with 95% Wilson CIs, monochrome-safe hatching, and high-specificity inset zoom windows.
+- **Publication-Grade Academic Figures Suite**: Upgraded all 10 benchmark and telemetry figures in `docs/images/` to 300 DPI publication-grade scientific formatting, complete with 95% Wilson CIs, monochrome-safe hatching, and high-specificity inset zoom windows.
 - **Comprehensive Automated Test Suite**: Expanded backend unit and integration tests to 168 tests with 100% pass rate, covering domain validators, non-fundus rejection, clinical codes, calibration, uncertainty decomposition, and precision consistency.
 - **Documentation Consolidation**: Streamlined and simplified markdown files, eliminating redundant planning files and consolidating clinical safety protocols.
 

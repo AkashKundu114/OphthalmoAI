@@ -3,10 +3,9 @@
 """
 OphthalmoAI: Standalone Computational Reproducibility & Benchmark Verification Suite
 =====================================================================================
-Paper: Trustworthy Point-of-Care Retinal Disease Screening via Calibrated Ensembles 
-       and Biophysical Domain Guardrails
+Paper: Uncertainty-Aware Multi-Class Fundus Screening with Conformal Sets
 Author: Akash Kundu (Techno India University & Independent Researcher)
-IEEE Journal of Biomedical and Health Informatics (J-BHI), 2026.
+Status: Academic Research Manuscript & Empirical Evaluation
 GitHub: https://github.com/AkashKundu114/OphthalmoAI
 =====================================================================================
 
@@ -245,8 +244,8 @@ def run_hardware_telemetry():
 def main():
     print(LINE_SEP)
     print(" OPHTHALMOAI: COMPREHENSIVE REPRODUCIBILITY VERIFICATION SUITE")
-    print(" Paper: Trustworthy Point-of-Care Retinal Disease Screening")
-    print(" Target: IEEE Journal of Biomedical and Health Informatics (J-BHI)")
+    print(" Paper: Uncertainty-Aware Multi-Class Fundus Screening with Conformal Sets")
+    print(" Status: Academic Research Manuscript & Empirical Evaluation")
     print(" Code & Data: https://github.com/AkashKundu114/OphthalmoAI")
     print(LINE_SEP)
 

@@ -13,8 +13,8 @@ Automated posterior pole screening is essential to alleviate global ophthalmolog
 3. **Black-Box Opacity & Conversational Hallucination**: Downstream vision-language assistants generate ungrounded diagnostic claims without spatial anchoring.
 
 **OphthalmoAI** resolves these challenges through an end-to-end engineered pipeline:
-- **Calibrated Tri-Backbone Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with Platt temperature scaling ($T \in [1.06, 1.34]$), achieving **85.18% test accuracy** and **0.9818 Macro AUROC** on $n = 938$ held-out clinical fundus images.
-- **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)**: Pre-inference deterministic validation filtering out non-fundus objects, noise, documents, and natural scenery with 100% specificity.
+- **Calibrated Tri-Backbone Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with Platt temperature scaling ($T \in [1.06, 1.34]$), achieving **85.18% test accuracy**, **0.9818 Macro AUROC**, and **0.0381 post-fusion ECE** (0.0644 pre-fusion) on $n = 938$ held-out clinical fundus images.
+- **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)**: Pre-inference deterministic validation filtering out non-fundus objects, noise, documents, and corrupt files (92.0% rejection across negative stress test, 100% on synthetic noise and documents) with 0.0% false rejection rate on verified clinical scans.
 - **Dedicated Saliency Engine (EfficientNet-B4)**: Pixel-level Grad-CAM heatmaps grounding downstream clinical assistants.
 
 ---
@@ -42,18 +42,19 @@ Final diagnosis is computed by soft-voting probability averaging:
 $$P_{\text{ensemble}}(y = c \mid X) = \frac{1}{M} \sum_{m=1}^M p_m(y = c \mid X; T_m^*)$$
 
 ### 3.2 Optical Aperture & Chromophore Domain Guardrail (OAC-DG)
-Before executing neural inference, images undergo deterministic domain verification:
-$$\Phi(X) = \mathbb{I}\left( \mathcal{S}_{\text{aperture}}(X) + \mathcal{S}_{\text{chromophore}}(X) + \mathcal{S}_{\text{autocorr}}(X) + \mathcal{S}_{\text{contrast}}(X) \ge 0.50 \right)$$
+Before executing neural inference, images undergo deterministic domain verification structured as a conjunctive veto gate:
+$$\Phi(X) = \mathcal{G}_{\text{pre}}(X) \cdot \mathbb{I}\left( \mathcal{S}_{\text{aperture}}(X) + \mathcal{S}_{\text{chromophore}}(X) + \mathcal{S}_{\text{autocorr}}(X) + \mathcal{S}_{\text{contrast}}(X) \ge 0.50 \right)$$
+where $\mathcal{G}_{\text{pre}}(X)$ requires $\sigma_{\text{lum}} \ge 8.0$, $r_{\text{white}} \le 0.65$, $r_{\text{spatial}} \ge 0.35$, and $\mathcal{S}_{\text{chromophore}} > 0$.
 - **Aperture Criterion ($\mathcal{S}_{\text{aperture}}$)**: Evaluates circular aperture ratio (dark corners $\bar{I}(\Omega_{\text{corners}}) < 45$ vs bright center $\bar{I}(\Omega_{\text{center}}) / \bar{I}(\Omega_{\text{corners}}) \ge 1.35$).
 - **Chromophore Ratio ($\mathcal{S}_{\text{chromophore}}$)**: Evaluates chorioretinal red-to-blue backscatter ratio ($\rho_{\text{RB}} = \bar{R} / \bar{B} \ge 1.05$).
 - **Spatial Autocorrelation ($\mathcal{S}_{\text{autocorr}}$)**: Evaluates spatial lag-1 correlation ($r_{\text{spatial}} \ge 0.35$) to reject synthetic noise, screenshots, and documents.
 - **Vascular Contrast ($\mathcal{S}_{\text{contrast}}$)**: Verifies green-channel vascular gradient contrast ($0.005 \le C_{\text{vessel}} \le 0.22$).
 
 ### 3.3 Urgency-Stratified Conformal Risk Control (US-CRC)
-Prediction sets $\mathcal{C}(X)$ provide provable finite-sample coverage guarantees:
+Prediction sets $\mathcal{C}(X)$ provide distribution-free finite-sample coverage under exchangeability:
 $$\mathcal{C}(X) = \left\lbrace c \in \mathcal{Y} : P_{\text{ensemble}}(y = c \mid X) \ge 1 - \hat{q}_{\text{strata}(c)} \right\rbrace$$
-- $\alpha_{\text{emerg}} = 0.01$ (99.0% coverage guarantee) for sight-threatening emergencies (DR, Glaucoma, AMD, Hypertensive Retinopathy).
-- $\alpha_{\text{routine}} = 0.05$ (95.0% coverage guarantee) for routine conditions (Cataract, Normal).
+- $\alpha_{\text{emerg}} = 0.01$ ($\ge 99.0\%$ coverage guarantee) for sight-threatening emergencies (DR, Glaucoma, AMD, Hypertensive Retinopathy).
+- $\alpha_{\text{routine}} = 0.05$ ($\ge 95.0\%$ coverage guarantee) for routine conditions (Cataract, Normal).
 
 ### 3.4 Epistemic-Aleatoric Dual-Uncertainty Decomposition (EAD-UD)
 Via Monte Carlo dropout sampling ($S = 20$ forward passes), total predictive uncertainty is partitioned:
@@ -62,9 +63,9 @@ $$\mathcal{U}_{\text{aleatoric}}(X) = \frac{1}{K} \sum_{c=1}^K \left[ \frac{1}{S
 High epistemic uncertainty triggers mandatory human clinician review, while high aleatoric uncertainty prompts re-acquisition of the fundus photograph due to optical media hazing.
 
 ### 3.5 Pixel-Aligned Saliency Grounding (PASG-GradCAM)
-To guarantee clinician interpretability, the dedicated EfficientNet-B4 backbone calculates gradient-weighted activation maps at the final convolutional feature layer $A \in \mathbb{R}^{C \times H' \times W'}$:
+To verify clinician interpretability, the dedicated EfficientNet-B4 backbone calculates gradient-weighted activation maps at the final convolutional feature layer $A \in \mathbb{R}^{C \times H' \times W'}$:
 $$L^c(x, y) = \mathrm{ReLU}\left( \sum_{k=1}^C \alpha_k^c A^k(x, y) \right), \quad \alpha_k^c = \frac{1}{H' \times W'} \sum_{i=1}^{H'} \sum_{j=1}^{W'} \frac{\partial Y^c}{\partial A_{i, j}^k}$$
-Biomarker energy fractions ($\eta_{\text{macula}}, \eta_{\text{disc}}$) are calculated to constrain downstream conversational AI agents, preventing diagnostic hallucinations.
+Biomarker energy fractions ($\eta_{\text{macula}}, \eta_{\text{disc}} \ge 0.40$) are calculated to ground predictions in anatomical structures, preventing diagnostic hallucinations.
 
 ---
 
@@ -73,7 +74,7 @@ Biomarker energy fractions ($\eta_{\text{macula}}, \eta_{\text{disc}}$) are calc
 ### 4.1 Test Cohort Evaluation ($n = 938$)
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Calibration $T$ | ECE |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Ensemble** | **0.0644** |
+| **Tri-Backbone Soft Ensemble (SOTA)** | **FP16** | **85.18%** | **0.9818** | **0.8288** | **Ensemble** | **0.0644 (pre) / 0.0381 (post)** |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 |
 | ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 |
 | EfficientNet-V2-M | FP16 | 82.20% | 0.9712 | 0.7981 | 1.0654 | 0.0268 |

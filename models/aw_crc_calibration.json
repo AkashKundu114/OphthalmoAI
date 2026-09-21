@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-09-21T21:47:01.747176",
+  "gamma": 1.0,
+  "tau_guard": 0.5,
+  "standard_us_crc": {
+    "q_emergency": 0.2157247930812921,
+    "q_routine": 0.1801707783524997,
+    "results": {
+      "overall_cov": 0.9664053751399776,
+      "cov_emerg": 0.9856459330143541,
+      "cov_rout": 0.9494736842105264,
+      "mean_set_size": 0.9664053751399776,
+      "singletons_pct": 96.64053751399776,
+      "tier_set_sizes": {
+        "Grade A": 0.9984732824427481,
+        "Grade B": 0.9290322580645162,
+        "Grade C": 0.7831325301204819
+      },
+      "tier_coverage": {
+        "Grade A": 99.84732824427482,
+        "Grade B": 92.90322580645162,
+        "Grade C": 78.3132530120482
+      }
+    }
+  },
+  "admissibility_weighted_crc": {
+    "q_emergency": 0.12957761980822846,
+    "q_routine": 0.1209596067409966,
+    "results": {
+      "overall_cov": 0.9686450167973124,
+      "cov_emerg": 0.9880382775119617,
+      "cov_rout": 0.9515789473684211,
+      "mean_set_size": 0.9686450167973124,
+      "singletons_pct": 96.86450167973123,
+      "tier_set_sizes": {
+        "Grade A": 0.9770992366412213,
+        "Grade B": 0.9290322580645162,
+        "Grade C": 0.9759036144578314
+      },
+      "tier_coverage": {
+        "Grade A": 97.70992366412213,
+        "Grade B": 92.90322580645162,
+        "Grade C": 97.59036144578313
+      }
+    }
+  }
+}
