@@ -183,6 +183,7 @@ static/uploads/
 # ========================
 research/
 research_paper/
+GEMINI.md
 
 # Synthetic test images generated at runtime
 static/synthetic-*.*
