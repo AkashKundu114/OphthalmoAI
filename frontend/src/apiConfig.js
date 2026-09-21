@@ -1,4 +1,4 @@
-export const FALLBACK_TUNNEL_URL = 'https://mobiles-julia-heart-understanding.trycloudflare.com'
+export const FALLBACK_TUNNEL_URL = 'https://api.trycloudflare.com'
 export const VERCEL_API_URL = 'https://ophthalmo-ai-mu.vercel.app/api'
 
 export const getActiveApiUrl = () => {
