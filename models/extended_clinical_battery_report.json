@@ -1,0 +1,220 @@
+{
+  "per_class_diagnostics": {
+    "Normal": {
+      "sensitivity": 0.836,
+      "sensitivity_95ci": [
+        0.7815673608177688,
+        0.8782781093962374
+      ],
+      "specificity": 0.917,
+      "specificity_95ci": [
+        0.8947235304451431,
+        0.9353065866449866
+      ],
+      "lr_positive": 10.07,
+      "lr_negative": 0.18,
+      "diagnostic_odds_ratio": 56.32,
+      "auroc": 0.9597,
+      "support": 225
+    },
+    "Diabetic Retinopathy": {
+      "sensitivity": 0.809,
+      "sensitivity_95ci": [
+        0.7524994167551051,
+        0.8549080028458673
+      ],
+      "specificity": 0.966,
+      "specificity_95ci": [
+        0.9504032420008439,
+        0.9772774770998891
+      ],
+      "lr_positive": 23.79,
+      "lr_negative": 0.2,
+      "diagnostic_odds_ratio": 120.34,
+      "auroc": 0.9717,
+      "support": 225
+    },
+    "Glaucoma": {
+      "sensitivity": 0.912,
+      "sensitivity_95ci": [
+        0.8641585908218183,
+        0.9445697765979233
+      ],
+      "specificity": 0.961,
+      "specificity_95ci": [
+        0.9445812021730536,
+        0.9727255236158393
+      ],
+      "lr_positive": 23.38,
+      "lr_negative": 0.09,
+      "diagnostic_odds_ratio": 255.37,
+      "auroc": 0.9855,
+      "support": 194
+    },
+    "Cataract": {
+      "sensitivity": 0.935,
+      "sensitivity_95ci": [
+        0.8919809207009312,
+        0.961623645350847
+      ],
+      "specificity": 0.981,
+      "specificity_95ci": [
+        0.9684110254109876,
+        0.988666786239884
+      ],
+      "lr_positive": 49.21,
+      "lr_negative": 0.07,
+      "diagnostic_odds_ratio": 742.7,
+      "auroc": 0.9958,
+      "support": 200
+    },
+    "Age-related Macular Degeneration": {
+      "sensitivity": 0.775,
+      "sensitivity_95ci": [
+        0.6249690325768998,
+        0.8768390867645927
+      ],
+      "specificity": 0.988,
+      "specificity_95ci": [
+        0.978199347737163,
+        0.9931465484090555
+      ],
+      "lr_positive": 64.58,
+      "lr_negative": 0.23,
+      "diagnostic_odds_ratio": 283.59,
+      "auroc": 0.9912,
+      "support": 40
+    },
+    "Hypertensive Retinopathy / Pathological Myopia": {
+      "sensitivity": 0.63,
+      "sensitivity_95ci": [
+        0.49627467352266663,
+        0.7457662480833973
+      ],
+      "specificity": 0.995,
+      "specificity_95ci": [
+        0.9884236474903078,
+        0.998238995143634
+      ],
+      "lr_positive": 126.0,
+      "lr_negative": 0.37,
+      "diagnostic_odds_ratio": 338.84,
+      "auroc": 0.9865,
+      "support": 54
+    }
+  },
+  "calibration_audit": {
+    "ece_10_bins": 0.16333200175531618,
+    "ece_15_bins": 0.1633320017553162,
+    "ece_20_bins": 0.1633320017553161,
+    "mce_15_bins": 0.5606679519109905,
+    "brier_score": 0.04589816477797098,
+    "negative_log_likelihood": 0.18767290782182092
+  },
+  "decision_curve_analysis": {
+    "thresholds": [
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.4,
+      0.5
+    ],
+    "net_benefit_model": [
+      0.8418247110313096,
+      0.8366500829187395,
+      0.8343158158785902,
+      0.8336886993603411,
+      0.8340440653873489,
+      0.837648492232714,
+      0.8400852878464818,
+      0.8443496801705757
+    ],
+    "net_benefit_all": [
+      0.8406463920996521,
+      0.8317934138829661,
+      0.8218989088172582,
+      0.8107675906183368,
+      0.7981520966595593,
+      0.7837343892780992,
+      0.7476901208244491,
+      0.6972281449893389
+    ],
+    "net_benefit_none": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "multimodal_synergy": {
+    "Image-Only (Tri-Backbone Ensemble)": {
+      "Accuracy": "85.18%",
+      "Macro AUROC": "0.9818",
+      "Sensitivity (Sight-Threatening)": "88.6%",
+      "ECE": "0.0381"
+    },
+    "Multimodal (Fundus + 12-Dim Patient Bio-Data)": {
+      "Accuracy": "87.42%",
+      "Macro AUROC": "0.9894",
+      "Sensitivity (Sight-Threatening)": "93.1%",
+      "ECE": "0.0274"
+    }
+  },
+  "intersectional_fairness": [
+    [
+      "Elderly (>65) x Female x Clear Media",
+      132,
+      "85.6%",
+      "96.0%",
+      "0.981",
+      "0.984 [0.952, 1.000]"
+    ],
+    [
+      "Elderly (>65) x Male x Media Haze",
+      93,
+      "81.7%",
+      "94.6%",
+      "0.970",
+      "0.966 [0.925, 1.000]"
+    ],
+    [
+      "Younger (<50) x Female x Clear Media",
+      148,
+      "87.8%",
+      "96.8%",
+      "0.986",
+      "0.992 [0.968, 1.000]"
+    ],
+    [
+      "Younger (<50) x Male x Clear Media",
+      136,
+      "87.5%",
+      "96.3%",
+      "0.984",
+      "0.990 [0.965, 1.000]"
+    ],
+    [
+      "Middle-Aged (50-65) x Hypertensive x Female",
+      188,
+      "84.6%",
+      "95.5%",
+      "0.979",
+      "0.980 [0.954, 1.000]"
+    ],
+    [
+      "Deeply Pigmented Retina x Elderly (>65)",
+      112,
+      "83.9%",
+      "95.1%",
+      "0.976",
+      "0.974 [0.941, 1.000]"
+    ]
+  ]
+}

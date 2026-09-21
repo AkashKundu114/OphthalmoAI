@@ -269,6 +269,49 @@ def run_hardware_telemetry():
     for m, vram, ram, head, temp in table_vi:
         print(f"{m:<25} {vram:<12} {ram:<12} {head:<14} {temp}")
 
+def run_extended_clinical_battery():
+    print_header("SUITE 8: EXTENDED CLINICAL BATTERY (LIKELIHOOD RATIOS, DCA, MULTIMODAL SYNERGY)")
+    battery_path = MODELS_DIR / "extended_clinical_battery_report.json"
+    if not battery_path.exists():
+        print(f"Notice: {battery_path} not found. Running live battery evaluation...")
+        import subprocess
+        subprocess.run([sys.executable, str(ROOT_DIR / "scripts" / "evaluate_extended_clinical_battery.py")], check=True)
+
+    with open(battery_path, "r") as f:
+        data = json.load(f)
+
+    print("\n1. Diagnostic Likelihood Ratios & Odds Ratios (Wilson 95% Confidence Intervals):")
+    print(THIN_SEP)
+    print(f"{'Condition':<32} {'Sens (95% CI)':<22} {'Spec (95% CI)':<22} {'LR+':<8} {'LR-':<8} {'DOR'}")
+    print(THIN_SEP)
+    for c, v in data["per_class_diagnostics"].items():
+        s_ci = f"{v['sensitivity']*100:.1f}% [{v['sensitivity_95ci'][0]*100:.1f}, {v['sensitivity_95ci'][1]*100:.1f}]"
+        sp_ci = f"{v['specificity']*100:.1f}% [{v['specificity_95ci'][0]*100:.1f}, {v['specificity_95ci'][1]*100:.1f}]"
+        print(f"{c:<32} {s_ci:<22} {sp_ci:<22} {v['lr_positive']:<8.2f} {v['lr_negative']:<8.2f} {v['diagnostic_odds_ratio']:<8.1f}")
+
+    print("\n2. Decision Curve Analysis (Net Clinical Benefit vs Universal Referral):")
+    print(THIN_SEP)
+    print(f"{'Threshold (tau)':<18} {'Net Benefit (Model)':<22} {'Net Benefit (All)':<20} {'Referrals Avoided / 100'}")
+    print(THIN_SEP)
+    dca = data["decision_curve_analysis"]
+    for tau, nb_m, nb_all in zip(dca["thresholds"], dca["net_benefit_model"], dca["net_benefit_all"]):
+        avoided = (nb_m - nb_all) * (1 - tau) / tau * 100 if tau > 0 else 0
+        print(f"{tau:<18.2f} {nb_m:<22.4f} {nb_all:<20.4f} {max(0, avoided):.1f} avoided")
+
+    print("\n3. Multimodal Diagnostic Synergy (Fundus Image + 12-Dim Patient Bio-Data):")
+    print(THIN_SEP)
+    for mode, metrics in data["multimodal_synergy"].items():
+        print(f"  * {mode}:")
+        for k, val in metrics.items():
+            print(f"      {k}: {val}")
+
+    print("\n4. Intersectional Fairness Disparity Audit (6 Mutually Exclusive Sub-cohorts):")
+    print(THIN_SEP)
+    print(f"{'Subgroup Cohort':<46} {'N':<6} {'Acc':<8} {'Spec':<8} {'AUROC':<8} {'DIR [95% CI]'}")
+    print(THIN_SEP)
+    for row in data["intersectional_fairness"]:
+        print(f"{row[0]:<46} {row[1]:<6} {row[2]:<8} {row[3]:<8} {row[4]:<8} {row[5]}")
+
 def main():
     parser = argparse.ArgumentParser(description="OphthalmoAI Reproducibility Suite")
     parser.add_argument("--all", action="store_true", default=True, help="Run all verification suites")
@@ -278,6 +321,7 @@ def main():
     parser.add_argument("--conformal", action="store_true", help="Run AW-CRC conformal suite")
     parser.add_argument("--fairness", action="store_true", help="Run demographic fairness suite")
     parser.add_argument("--telemetry", action="store_true", help="Run edge telemetry suite")
+    parser.add_argument("--battery", action="store_true", help="Run extended clinical battery")
     args = parser.parse_args()
 
     print(LINE_SEP)
@@ -296,6 +340,7 @@ def main():
     run_conformal_verification()
     run_fairness_verification()
     run_hardware_telemetry()
+    run_extended_clinical_battery()
 
     elapsed = time.time() - start_time
     print_header("REPRODUCIBILITY AUDIT SUMMARY")

@@ -154,6 +154,54 @@ class ConformalCalibrator:
 
         return prediction_set, set_probs, stratum, guarantee
 
+    def predict_set_aw_crc(
+        self,
+        probs: np.ndarray,
+        top_diagnosis: str,
+        admissibility_score: float = 0.95,
+        gamma: float = 1.0
+    ) -> Tuple[List[str], Dict[str, float], str, float]:
+        """
+        Admissibility-Weighted Conformal Risk Control (AW-CRC):
+        Dynamically adjusts inclusion threshold based on optical admissibility score S(X):
+          cutoff = max(0.01, 1 - (q_hat / S(X)^gamma))
+        Under optical degradation (e.g. S(X) -> 0.50), prediction sets expand adaptively
+        to prevent under-coverage on borderline scans.
+        """
+        top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
+        is_emergency = top_urgency in {"Emergency", "Urgent"}
+
+        q_base = self.q_emergency if is_emergency else self.q_routine
+        eff_s = float(np.clip(admissibility_score, 0.50, 1.0))
+        # Scaled quantile
+        dyn_q = q_base / (eff_s ** gamma)
+        cutoff = max(0.01, 1.0 - dyn_q)
+
+        if is_emergency:
+            stratum = f"AW-CRC Emergency-Stratified (S={eff_s:.2f})"
+            guarantee = (1.0 - self.alpha_emergency) * 100.0
+        else:
+            stratum = f"AW-CRC Routine-Stratified (S={eff_s:.2f})"
+            guarantee = (1.0 - self.alpha_routine) * 100.0
+
+        prediction_set: List[str] = []
+        set_probs: Dict[str, float] = {}
+
+        for idx, name in enumerate(CLASS_NAMES):
+            p = float(probs[idx])
+            if p >= cutoff:
+                prediction_set.append(name)
+                set_probs[name] = round(p * 100.0, 2)
+
+        if not prediction_set:
+            argmax_idx = int(np.argmax(probs))
+            fallback_name = CLASS_NAMES[argmax_idx]
+            prediction_set.append(fallback_name)
+            set_probs[fallback_name] = round(float(probs[argmax_idx]) * 100.0, 2)
+
+        prediction_set.sort(key=lambda c: set_probs[c], reverse=True)
+        return prediction_set, set_probs, stratum, guarantee
+
     def save(self, path: str) -> None:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         data = {

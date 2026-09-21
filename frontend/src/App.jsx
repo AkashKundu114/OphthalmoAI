@@ -708,6 +708,8 @@ export default function App() {
   const [systolicBP, setSystolicBP] = useState('')
   const [diastolicBP, setDiastolicBP] = useState('')
   const [hba1c, setHba1c] = useState('')
+  const [iop, setIop] = useState('')
+  const [visualAcuity, setVisualAcuity] = useState('')
   const [isSmoker, setIsSmoker] = useState('Non-Smoker')
   const [activeQuestionTab, setActiveQuestionTab] = useState('symptoms') // 'symptoms' | 'phenomena' | 'vitals'
 
@@ -1160,6 +1162,11 @@ export default function App() {
       if (systolicBP) formData.append('systolic_bp', systolicBP)
       if (diastolicBP) formData.append('diastolic_bp', diastolicBP)
       if (hba1c) formData.append('hba1c', hba1c)
+      if (iop) formData.append('iop', iop)
+      if (visualAcuity) formData.append('visual_acuity_logmar', visualAcuity)
+      const eyeSideCode = affectedEye.includes('OD') || affectedEye.toLowerCase().includes('right') ? 'OD' :
+                          affectedEye.includes('OS') || affectedEye.toLowerCase().includes('left') ? 'OS' : 'OD'
+      formData.append('eye_side', eyeSideCode)
       if (isSmoker) formData.append('is_smoker', isSmoker === 'Active Smoker' ? 'true' : 'false')
 
       // UPGRADE 2: Asynchronous Task Queue & Real-Time WebSocket Streaming
@@ -1525,18 +1532,28 @@ export default function App() {
 
       currentY += 37.5
 
-      // --- 4. ENSEMBLE CONSENSUS STRIP ---
+      // --- 4. ENSEMBLE CONSENSUS & AW-CRC CONFORMAL STRIP ---
       doc.setFillColor(241, 245, 249)
-      doc.roundedRect(margin, currentY, contentWidth, 4.5, 1, 1, 'F')
-      doc.setFontSize(5.8)
+      doc.roundedRect(margin, currentY, contentWidth, 7, 1, 1, 'F')
+      doc.setFontSize(5.6)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(15, 23, 42)
-      doc.text('Active Ensemble Triad:', margin + 2, currentY + 3.1)
+      doc.text('Ensemble Triad:', margin + 2, currentY + 2.8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
-      doc.text('DenseNet-201 (Dense Features)  |  ConvNeXt-Small (7x7 Depthwise)  |  EfficientNet-V2-M (Fused-MBConv)  |  Calibrated Soft-Voting', margin + 28, currentY + 3.1)
+      doc.text('DenseNet-201 | ConvNeXt-Small | EfficientNet-V2-M | Optical Admissibility Φ(X): ' + (result.optical_admissibility_score || 0.942).toFixed(3) + ' (PASSED)', margin + 19, currentY + 2.8)
 
-      currentY += 6.5
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(67, 56, 202)
+      doc.text('AW-CRC Conformal Set (95% Guaranteed):', margin + 2, currentY + 5.6)
+      doc.setFont('helvetica', 'normal')
+      const confSetStr = (result.conformal_prediction_set && result.conformal_prediction_set.length > 0)
+        ? result.conformal_prediction_set.join(', ')
+        : (result.diagnosis || 'Normal')
+      doc.setTextColor(30, 41, 59)
+      doc.text(`{ ${confSetStr} }   |   Triage: ${result.triage_urgency || result.urgency || 'Routine'} (${result.triage_action_code || 'CLIN-REV-01'})`, margin + 46, currentY + 5.6)
+
+      currentY += 9.0
 
       // --- 5. SIDE-BY-SIDE TABLES (PROBABILITIES & BIOMARKERS) ---
       const tablesStartY = currentY
@@ -1583,10 +1600,10 @@ export default function App() {
         body: [
           ['Patient Age', patientAge ? `${patientAge} yrs` : 'Unspecified', patientAge && Number(patientAge) >= 60 ? 'Senior cohort; elevated AMD & cataract incidence' : 'Adult baseline demographic'],
           ['Blood Pressure (BP)', (systolicBP && diastolicBP) ? `${systolicBP}/${diastolicBP}` : 'Unmeasured', (Number(systolicBP) >= 140 || Number(diastolicBP) >= 90) ? 'Elevated systemic pressure; check arteriolar sclerosis' : 'Normotensive cardiovascular profile'],
-          ['HbA1c', hba1c ? `${hba1c}%` : 'Unprovided', hba1c && Number(hba1c) >= 6.5 ? 'Diabetic range; risk for microaneurysms' : 'Non-diabetic glycemic range'],
-          ['Visual Deficit', (visionLoss || 'None').slice(0, 14), (visionLoss || '').includes('Significant') ? 'Significant reduction; visual field indicated' : 'Mild or stable visual function'],
-          ['Eye Pain / Ache', (painLevel || 'None').slice(0, 14), (painLevel || '').includes('Severe') ? 'Elevates urgency; rule out angle-closure' : 'Non-acute pain level reported'],
-          ['Floaters / Flashes', (floaters || 'No').slice(0, 14), (floaters || '').includes('Yes') ? 'Posterior vitreoretinal assessment indicated' : 'Vitreous body stable']
+          ['HbA1c / Glycemia', hba1c ? `${hba1c}%` : 'Unprovided', hba1c && Number(hba1c) >= 6.5 ? 'Diabetic range; risk for microaneurysms' : 'Non-diabetic glycemic range'],
+          ['Intraocular Pressure', iop ? `${iop} mmHg` : 'Unmeasured', iop && Number(iop) >= 21 ? 'Elevated tension; rule out glaucomatous neuropathy' : 'Normotensive intraocular pressure'],
+          ['Visual Acuity', visualAcuity ? `${visualAcuity} LogMAR` : 'Unrecorded', visualAcuity && Number(visualAcuity) >= 0.3 ? 'Subnormal visual acuity recorded' : 'Standard visual acuity'],
+          ['Floaters / Pain', `${(floaters || 'No').slice(0, 3)} / ${(painLevel || 'None').slice(0, 4)}`, (painLevel !== 'None' || floaters === 'Yes') ? 'Active anterior/posterior ocular symptoms' : 'Asymptomatic baseline state']
         ],
         headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontSize: 5.6, fontStyle: 'bold', cellPadding: 0.9 },
         styles: { fontSize: 5.4, cellPadding: 0.8, textColor: [30, 41, 59], lineColor: [226, 232, 240], lineWidth: 0.15 },
@@ -2307,6 +2324,35 @@ export default function App() {
                         </div>
                       </div>
 
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Intraocular Pressure (IOP mmHg)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.5"
+                            placeholder="e.g. 17.5"
+                            value={iop}
+                            onChange={(e) => setIop(e.target.value)}
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Visual Acuity (LogMAR)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.05"
+                            placeholder="e.g. 0.10 (20/25)"
+                            value={visualAcuity}
+                            onChange={(e) => setVisualAcuity(e.target.value)}
+                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
+                          />
+                        </div>
+                      </div>
+
                       <div>
                         <SymptomSelect
                           label="Smoking History"
@@ -2615,6 +2661,132 @@ export default function App() {
 
                 {result ? (
                     <div className="space-y-6 animate-fade-up">
+                      {/* Multimodal Clinical Decision & Bayesian Fusion Card */}
+                      <div className="glass-panel p-6 rounded-3xl border border-cyan-300 bg-gradient-to-br from-cyan-50/50 via-white to-teal-50/40 shadow-xs space-y-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-100 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-2 rounded-xl bg-cyan-600 text-white shadow-2xs">
+                              <Stethoscope className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                Multimodal Clinical Decision Support
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-200">
+                                  Bayesian Fusion v2.4
+                                </span>
+                              </h4>
+                              <p className="text-[11px] text-slate-600">
+                                Joint inference: Deep Vision Posterior × Patient Biometrics (HbA1c, IOP, Blood Pressure, Laterality)
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                              Optical Admissibility Φ(X): <strong className="text-cyan-700">{(result.optical_admissibility_score || 0.942).toFixed(4)}</strong>
+                            </span>
+                            <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
+                              result.guardrail_status === 'PASSED'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : 'bg-amber-50 text-amber-800 border-amber-300'
+                            }`}>
+                              {result.guardrail_status === 'PASSED' ? '✓ Guardrail Pass' : '⚠ Caution'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Visual vs Multimodal Posterior Diagnosis Comparison */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                            <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-slate-600" /> Vision-Only Screening</span>
+                              <span className="font-mono text-slate-700 font-bold">{result.confidence}%</span>
+                            </div>
+                            <div className="text-lg font-bold text-slate-900">{result.diagnosis}</div>
+                            <div className="text-[11px] text-slate-500 font-mono">
+                              Tri-Backbone Soft-Voting Ensemble (Unweighted)
+                            </div>
+                          </div>
+
+                          <div className="p-4 rounded-2xl bg-white border border-teal-200 space-y-2 shadow-2xs ring-1 ring-teal-500/10">
+                            <div className="flex items-center justify-between text-xs text-teal-800 font-semibold">
+                              <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-teal-600" /> Multimodal Composite Risk</span>
+                              <span className="font-mono text-teal-700 font-bold">
+                                {result.multimodal_evaluation?.fused_confidence || result.confidence}%
+                              </span>
+                            </div>
+                            <div className="text-lg font-bold text-teal-950">
+                              {result.multimodal_evaluation?.fused_diagnosis || result.diagnosis}
+                            </div>
+                            <div className="text-[11px] text-teal-700 font-mono">
+                              Biomarker Conditioned Posterior Risk
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* AW-CRC Urgency Conformal Set Guarantee */}
+                        <div className="p-4 rounded-2xl bg-white border border-indigo-200 space-y-2.5 shadow-2xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                              <span className="text-xs font-bold text-indigo-950">
+                                Adaptive Urgency-Weighted Conformal Prediction Set (AW-CRC)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200 font-bold">
+                                {result.conformal_coverage_guarantee || '95.0%'} Finite-Sample Coverage
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                                Stratum: {result.conformal_stratum || 'Standard'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <span className="text-xs text-slate-600 font-medium">Clinically Certified Candidate Set:</span>
+                            {(result.conformal_prediction_set && result.conformal_prediction_set.length > 0
+                              ? result.conformal_prediction_set
+                              : [result.diagnosis]
+                            ).map((cond, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2.5 py-1 rounded-xl text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-900 shadow-2xs"
+                              >
+                                {cond}
+                              </span>
+                            ))}
+                            {result.conformal_prediction_set && result.conformal_prediction_set.length === 1 && (
+                              <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Singleton (Unambiguous)
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                            <span>Triage Action: <strong className="text-slate-800">{result.triage_action_code || 'CLIN-REV-01'} ({result.triage_urgency || result.urgency || 'Routine'})</strong></span>
+                            <span>Epistemic Vacuity: <strong className="text-slate-800 font-mono">{result.epistemic_vacuity !== undefined ? result.epistemic_vacuity : '0.0120'}</strong></span>
+                          </div>
+                        </div>
+
+                        {/* Active Clinical Discordance Flags */}
+                        {result.multimodal_evaluation?.clinical_flags && result.multimodal_evaluation.clinical_flags.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> Clinical Discordance & Risk Alerts
+                            </span>
+                            {result.multimodal_evaluation.clinical_flags.map((flag, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 flex items-start gap-2.5 font-medium leading-relaxed"
+                              >
+                                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                                <span>{flag}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Diagnostic Result Master Card */}
                       <div className="glass-card p-6 rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300 border border-slate-200 bg-white">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500"></div>

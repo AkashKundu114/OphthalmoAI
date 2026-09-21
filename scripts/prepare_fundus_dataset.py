@@ -37,14 +37,22 @@ UNIFIED_CLASSES = [
     "Hypertensive Retinopathy / Pathological Myopia"
 ]
 
-def ben_graham_crop(img: np.ndarray, target_size: int = 384) -> np.ndarray:
+def clinical_anatomical_crop(img: np.ndarray, target_size: int = 512) -> np.ndarray:
     """
-    Applies circular crop and local color constancy enhancement (Ben Graham's method).
+    Anatomical Color-Preserving Preprocessing:
+    1. Aspect-Ratio-Preserving Aperture Cropping: Avoids squashing circular lesions or CDR.
+    2. Luminance-Isolated CLAHE: Enhances contrast strictly in L* channel (CIE-LAB),
+       preserving true diagnostic colors (hemorrhages, exudates, drusen, rim pallor).
+    3. Anti-Aliased Circular Mask: Suppresses high-frequency border step gradients.
     """
-    # Convert BGR to RGB if necessary
+    if len(img.shape) == 2:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    elif img.shape[2] == 4:
+        img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+    elif img.shape[2] == 3 and img.dtype == np.uint8:
+        pass
+
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    
-    # Threshold to isolate the fundus circle from black background
     _, mask = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
@@ -52,21 +60,37 @@ def ben_graham_crop(img: np.ndarray, target_size: int = 384) -> np.ndarray:
         c = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(c)
         if w > 30 and h > 30:
-            img = img[y:y+h, x:x+w]
+            crop = img[y:y+h, x:x+w]
+            # Aspect-ratio preserved padding to square canvas
+            max_dim = max(w, h)
+            pad_x = (max_dim - w) // 2
+            pad_y = (max_dim - h) // 2
+            img = cv2.copyMakeBorder(
+                crop, pad_y, max_dim - h - pad_y, pad_x, max_dim - w - pad_x,
+                cv2.BORDER_CONSTANT, value=[0, 0, 0]
+            )
     
-    # Resize to target square size
+    # High-dimensional resize with anti-aliasing area interpolation
     img = cv2.resize(img, (target_size, target_size), interpolation=cv2.INTER_AREA)
     
-    # Local Gaussian color subtraction for illumination invariant features
-    blur = cv2.GaussianBlur(img, (0, 0), target_size / 30)
-    enhanced = cv2.addWeighted(img, 4, blur, -4, 128)
+    # LAB-CLAHE: Enhance luminance only, preserving true diagnostic chrominance
+    lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    l_channel, a_channel, b_channel = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    l_enhanced = clahe.apply(l_channel)
+    enhanced = cv2.cvtColor(cv2.merge([l_enhanced, a_channel, b_channel]), cv2.COLOR_LAB2RGB)
     
-    # Create circular mask to clear boundary artifacts
-    mask = np.zeros((target_size, target_size), dtype=np.uint8)
-    cv2.circle(mask, (target_size // 2, target_size // 2), int(target_size * 0.48), 255, -1)
+    # Anti-aliased circular aperture mask
+    circle_mask = np.zeros((target_size, target_size), dtype=np.uint8)
+    cv2.circle(circle_mask, (target_size // 2, target_size // 2), int(target_size * 0.485), 255, -1)
+    circle_mask = cv2.GaussianBlur(circle_mask, (5, 5), 1.5)
+    mask_3d = circle_mask[:, :, None] / 255.0
     
-    enhanced = cv2.bitwise_and(enhanced, enhanced, mask=mask)
-    return enhanced
+    result = (enhanced * mask_3d).astype(np.uint8)
+    return result
+
+# Backward-compatible alias
+ben_graham_crop = clinical_anatomical_crop
 
 def find_images_and_labels():
     records = []

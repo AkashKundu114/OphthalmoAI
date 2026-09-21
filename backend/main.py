@@ -87,6 +87,7 @@ from .security import (
 from .uncertainty import build_review_payload, mc_dropout_predict
 from .evidential import DirichletMetaClassifier, EvidentialOODDetector
 from .conformal import ConformalCalibrator, ConformalTriagePolicy
+from .multimodal_service import fuse_image_and_biodata
 from .biomarker_extractor import extract_visual_biomarkers, format_biomarkers_for_llm
 from .onnx_inference import get_cached_benchmark_results, LatencyBenchmarkSuite
 from .domain_adaptation import adapt_fundus_domain
@@ -180,8 +181,11 @@ def is_already_ben_graham(img_np: np.ndarray) -> bool:
 
 def ben_graham_preprocess(img_pil: Image.Image, target_size: int = 384) -> Image.Image:
     """
-    Applies Ben Graham's circular crop and local Gaussian color subtraction to match
-    the exact training distribution of the ensemble backbones (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M).
+    Anatomical Color-Preserving Preprocessing:
+    1. Aspect-ratio-preserved aperture crop with symmetric square padding (no elliptical distortion).
+    2. Luminance-isolated CLAHE in CIE-LAB space: preserves true diagnostic chrominance of hemorrhages,
+       drusen, lipid exudates, and optic nerve rim color without destructive Gaussian subtraction artifacts.
+    3. Anti-aliased circular mask to eliminate artificial high-frequency border step gradients.
     """
     img = np.array(img_pil.convert("RGB"))
     if is_already_ben_graham(img):
@@ -196,15 +200,36 @@ def ben_graham_preprocess(img_pil: Image.Image, target_size: int = 384) -> Image
             c_cnt = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(c_cnt)
             if w > 30 and h > 30:
-                img = img[y:y+h, x:x+w]
+                crop = img[y:y+h, x:x+w]
+                # Aspect-ratio preserved padding to square canvas
+                max_dim = max(w, h)
+                pad_x = (max_dim - w) // 2
+                pad_y = (max_dim - h) // 2
+                img = cv2.copyMakeBorder(
+                    crop, pad_y, max_dim - h - pad_y, pad_x, max_dim - w - pad_x,
+                    cv2.BORDER_CONSTANT, value=[0, 0, 0]
+                )
+        
+        # High-dimensional resize with anti-aliasing area interpolation
         img = cv2.resize(img, (target_size, target_size), interpolation=cv2.INTER_AREA)
-        blur = cv2.GaussianBlur(img, (0, 0), target_size / 30)
-        enhanced = cv2.addWeighted(img, 4, blur, -4, 128)
-        mask = np.zeros((target_size, target_size), dtype=np.uint8)
-        cv2.circle(mask, (target_size // 2, target_size // 2), int(target_size * 0.48), 255, -1)
-        enhanced = cv2.bitwise_and(enhanced, enhanced, mask=mask)
-        return Image.fromarray(enhanced)
-    except Exception:
+        
+        # LAB-CLAHE: Enhance luminance only, preserving true diagnostic chrominance
+        lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        l_chan, a_chan, b_chan = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        l_enhanced = clahe.apply(l_chan)
+        enhanced = cv2.cvtColor(cv2.merge([l_enhanced, a_chan, b_chan]), cv2.COLOR_LAB2RGB)
+        
+        # Anti-aliased circular aperture mask
+        circle_mask = np.zeros((target_size, target_size), dtype=np.uint8)
+        cv2.circle(circle_mask, (target_size // 2, target_size // 2), int(target_size * 0.485), 255, -1)
+        circle_mask = cv2.GaussianBlur(circle_mask, (5, 5), 1.5)
+        mask_3d = circle_mask[:, :, None] / 255.0
+        
+        result = (enhanced * mask_3d).astype(np.uint8)
+        return Image.fromarray(result)
+    except Exception as e:
+        logger.warning("preprocess.fallback", error=str(e))
         return img_pil.resize((target_size, target_size), Image.Resampling.BILINEAR)
 
 def build_monolithic_model(num_classes: int) -> nn.Module:
@@ -619,6 +644,9 @@ async def predict(
     systolic_bp: Optional[int] = Form(default=None),
     diastolic_bp: Optional[int] = Form(default=None),
     patient_age: Optional[int] = Form(default=None),
+    iop: Optional[float] = Form(default=None),
+    eye_side: Optional[str] = Form(default="OD"),
+    visual_acuity_logmar: Optional[float] = Form(default=None),
     is_smoker: Optional[bool] = Form(default=None),
     apply_domain_adaptation: bool = Form(default=True),
     db: Session = Depends(get_db),
@@ -747,8 +775,8 @@ async def predict(
         epistemic_vacuity = float(min(1.0, max(0.0, len(MONOLITHIC_CLASSES) / (total_strength if total_strength > 0 else 1.0))))
 
         probs_np = probs.cpu().numpy()
-        conformal_set, conformal_probs, conformal_stratum, coverage_guarantee = CONFORMAL_CALIBRATOR.predict_set(
-            probs_np, diagnosis
+        conformal_set, conformal_probs, conformal_stratum, coverage_guarantee = CONFORMAL_CALIBRATOR.predict_set_aw_crc(
+            probs_np, diagnosis, admissibility_score=fundus_score
         )
 
         if ENABLE_UNCERTAINTY:
@@ -811,6 +839,19 @@ async def predict(
 
         spatial_desc = generate_spatial_description(diagnosis)
 
+        # High-dimensional multimodal Bayesian clinical fusion
+        patient_bio = {
+            "patient_age": patient_age,
+            "sex": "Female" if str(request.query_params.get("sex", "")).lower() == "female" else "Male",
+            "eye_laterality": eye_side,
+            "hba1c": hba1c,
+            "systolic_bp": systolic_bp,
+            "diastolic_bp": diastolic_bp,
+            "intraocular_pressure": iop,
+            "visual_acuity_logmar": visual_acuity_logmar,
+        }
+        multimodal_eval = fuse_image_and_biodata(probs_dict, patient_bio)
+
         response_body: Dict[str, Any] = {
             "group_name":               model_group_name,
             "models_ensembled":         list(ENSEMBLE_MODELS.keys()) if len(ENSEMBLE_MODELS) >= 3 else ["efficientnet_b4"],
@@ -821,6 +862,8 @@ async def predict(
             "hybrid_warnings":          hybrid_warnings,
             "hybrid_warnings_structured": hybrid_warnings_structured,
             "probabilities":            probs_dict,
+            "multimodal_evaluation":    multimodal_eval,
+            "patient_biodata_received": patient_bio,
             "calibrated":               is_calibrated,
             "calibration_temperature":  round(calibration_temperature, 4),
             "uncertainty":              review_payload["uncertainty"],
@@ -844,6 +887,8 @@ async def predict(
             "escalation_message":       code_entry["escalation_message"],
             "iqa_acceptable":           iqa_acceptable,
             "iqa_warnings":             iqa_warnings,
+            "optical_admissibility_score": round(fundus_score, 4),
+            "guardrail_status":          "PASSED" if is_fundus else "FLAGGED",
             "condition_details":        MEDICAL_INFO.get(diagnosis, MEDICAL_INFO.get("Normal", {})),
             "spatial_description":      spatial_desc,
             "domain_adaptation":        domain_eval,
