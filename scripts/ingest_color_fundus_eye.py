@@ -109,6 +109,7 @@ def download_dataset():
         repo_id="Peacein/color-fundus-eye",
         repo_type="dataset",
         local_dir=str(RAW_DIR),
+        max_workers=32,
         ignore_patterns=[".gitattributes", "README.md"]
     )
     print(f"[OK] Download completed to {RAW_DIR}")

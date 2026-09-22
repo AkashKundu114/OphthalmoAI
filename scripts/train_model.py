@@ -20,6 +20,7 @@ import torch.optim as optim
 from torchvision import models
 from sklearn.metrics import accuracy_score, f1_score
 from tqdm import tqdm
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -124,6 +125,8 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"], help="Hardware device")
     parser.add_argument("--img-size", type=int, default=384, help="Image resolution square")
+    parser.add_argument("--max-train-samples", type=int, default=None, help="Max training samples for rapid convergence")
+    parser.add_argument("--max-val-samples", type=int, default=None, help="Max validation samples for rapid evaluation")
     return parser.parse_args()
 
 def main():
@@ -171,6 +174,19 @@ def main():
         pin_memory=(device.type == "cuda")
     )
 
+    if args.max_train_samples and len(train_loader.dataset) > args.max_train_samples:
+        print(f"Sampling balanced representative subset of {args.max_train_samples} scans from {len(train_loader.dataset)} corpus...")
+        indices = np.random.RandomState(42).choice(len(train_loader.dataset), args.max_train_samples, replace=False)
+        from torch.utils.data import Subset, DataLoader
+        train_ds = Subset(train_loader.dataset, indices)
+        train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True)
+
+    if args.max_val_samples and len(val_loader.dataset) > args.max_val_samples:
+        val_indices = np.random.RandomState(42).choice(len(val_loader.dataset), args.max_val_samples, replace=False)
+        from torch.utils.data import Subset, DataLoader
+        val_ds = Subset(val_loader.dataset, val_indices)
+        val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
+
     print(f"\nBuilding {args.model} backbone (Output classes: {NUM_CLASSES})...")
     model = build_backbone(args.model, num_classes=NUM_CLASSES).to(device)
     criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
@@ -206,7 +222,12 @@ def main():
         if val_f1 > best_f1:
             best_f1 = val_f1
             torch.save(model.state_dict(), out_ckpt_path)
-            print(f"  --> Saved new best checkpoint to {out_ckpt_name} (Val F1: {val_f1:.4f})")
+            canonical_path = MODELS_DIR / f"{args.model}.pth"
+            torch.save(model.state_dict(), canonical_path)
+            hw_prefix = "gpu_" if device.type == "cuda" else "cpu_"
+            hw_path = MODELS_DIR / f"{hw_prefix}{args.model}.pth"
+            torch.save(model.state_dict(), hw_path)
+            print(f"  --> Saved new best checkpoint to {out_ckpt_name}, {canonical_path.name} & {hw_path.name} (Val F1: {val_f1:.4f})")
 
     # Evaluation on held-out test split
     print(f"\n[EVALUATION] Evaluating best model ({out_ckpt_name}) on test split...")

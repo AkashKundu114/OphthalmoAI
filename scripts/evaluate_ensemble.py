@@ -196,10 +196,13 @@ def main():
         "ece": round(ece, 4),
         "temperatures_applied": temperatures
     }
+    mode_json = MODELS_DIR / f"evaluation_meta_ensemble_{args.mode}.json"
+    with open(mode_json, "w") as f:
+        json.dump(report, f, indent=2)
     out_json = MODELS_DIR / "evaluation_meta_ensemble.json"
     with open(out_json, "w") as f:
         json.dump(report, f, indent=2)
-    print(f"[SAVED] Saved report to: {out_json}")
+    print(f"[SAVED] Saved reports to: {mode_json.name} & {out_json.name}")
     print("=" * 70)
 
 if __name__ == "__main__":

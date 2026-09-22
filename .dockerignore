@@ -73,11 +73,10 @@ frontend/.vite/
 frontend/coverage/
 
 # ========================
-# Raw Datasets, Scripts & Model Weights
+# Raw Datasets & Model Weights
 # ========================
 dataset/
 sample/
-scripts/
 k8s/
 models/*.pth
 models/*.pt

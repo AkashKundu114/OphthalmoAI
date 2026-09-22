@@ -1,15 +1,25 @@
-# Use the official NVIDIA PyTorch container which has full CUDA support
-FROM nvcr.io/nvidia/pytorch:26.07-py3
+# High-performance PyTorch container with NVIDIA CUDA support
+FROM pytorch/pytorch:latest
 
 WORKDIR /workspace/app
 
-# Install additional dependencies
-RUN pip install --upgrade --force-reinstall python-dateutil wcwidth tabulate pandas scikit-learn nvidia-ml-py "pillow<12.0"
+# Upgrade PyTorch and torchvision with CUDA 12.8 nightly supporting Blackwell (sm_120)
+RUN pip install --no-cache-dir --pre --upgrade torch --index-url https://download.pytorch.org/whl/nightly/cu128
+RUN pip uninstall -y torchvision && pip install --no-cache-dir --pre --no-deps torchvision --index-url https://download.pytorch.org/whl/nightly/cu128
 
-# Copy the dataset and scripts
-# We assume the dataset directory is mounted as a volume at runtime to save build time and space
-# But we will copy the code scripts
+# Install dependencies required for training, benchmarking, and telemetry
+RUN pip install --no-cache-dir \
+    pandas \
+    scikit-learn \
+    tqdm \
+    pillow \
+    scipy \
+    tabulate \
+    pynvml \
+    psutil
+
+# Copy code scripts
 COPY scripts/ ./scripts/
 
-# Set the entrypoint to the universal model training script
-CMD ["python", "scripts/train_model.py", "--model", "efficientnet_b4"]
+# Default entrypoint runs training with CUDA GPU acceleration
+CMD ["python", "scripts/train_ensemble.py", "--device", "cuda", "--precision", "fp16", "--batch-size", "32"]

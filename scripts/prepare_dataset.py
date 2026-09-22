@@ -70,15 +70,34 @@ def prepare_fundus_dataloaders(
     batch_size: int = 16,
     img_size: int = 384,
     num_workers: int = 2,
-    pin_memory: bool = True
+    pin_memory: bool = True,
+    train_manifest: str = None,
+    val_manifest: str = None,
+    test_manifest: str = None
 ):
     data_path = Path(data_dir)
     img_dir = data_path / "images"
     train_tf, val_tf = get_transforms(img_size)
 
-    train_ds = RetinalFundusDataset(data_path / "train.csv", img_dir, transform=train_tf)
-    val_ds = RetinalFundusDataset(data_path / "val.csv", img_dir, transform=val_tf)
-    test_ds = RetinalFundusDataset(data_path / "test.csv", img_dir, transform=val_tf)
+    if train_manifest is None:
+        if (data_path / "train_augmented_40k.csv").exists():
+            train_manifest = "train_augmented_40k.csv"
+        elif (data_path / "train_augmented_3x.csv").exists():
+            train_manifest = "train_augmented_3x.csv"
+        elif (data_path / "train_patient_clean.csv").exists():
+            train_manifest = "train_patient_clean.csv"
+        else:
+            train_manifest = "train.csv"
+
+    if val_manifest is None:
+        val_manifest = "val_patient_clean.csv" if (data_path / "val_patient_clean.csv").exists() else "val.csv"
+
+    if test_manifest is None:
+        test_manifest = "test_patient_clean.csv" if (data_path / "test_patient_clean.csv").exists() else "test.csv"
+
+    train_ds = RetinalFundusDataset(data_path / train_manifest, img_dir, transform=train_tf)
+    val_ds = RetinalFundusDataset(data_path / val_manifest, img_dir, transform=val_tf)
+    test_ds = RetinalFundusDataset(data_path / test_manifest, img_dir, transform=val_tf)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, drop_last=True)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)

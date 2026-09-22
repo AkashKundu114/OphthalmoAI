@@ -1,18 +1,17 @@
 {
   "model": "tri_backbone_ensemble",
   "mode": "soft_voting",
-  "test_samples": 938,
-  "accuracy": 0.8518,
-  "macro_auroc": 0.9818,
-  "macro_f1": 0.8288,
-  "weighted_f1": 0.8512,
-  "ece": 0.0381,
+  "test_samples": 2249,
+  "accuracy": 0.6118,
+  "macro_auroc": 0.908,
+  "macro_f1": 0.6251,
+  "weighted_f1": 0.6072,
+  "ece": 0.1816,
   "temperatures_applied": {
-    "efficientnet_b4": 1.3275,
-    "monolith": 1.3275,
-    "convnext_small": 1.5507,
-    "densenet201": 1.465,
-    "resnet50": 1.0947,
-    "efficientnet_v2_m": 1.3124
+    "efficientnet_b4": 1.0,
+    "convnext_small": 1.4311,
+    "densenet201": 1.1424,
+    "resnet50": 1.1707,
+    "efficientnet_v2_m": 1.328
   }
 }

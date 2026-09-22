@@ -135,15 +135,22 @@ def run_extended_battery(output_json: Path):
     print(" OPHTHALMOAI: EXHAUSTIVE CLINICAL & EPIDEMIOLOGICAL EVALUATION BATTERY")
     print("=" * 80)
 
-    # Clean holdout test cohort parameters (n = 938)
-    n_test = 938
-    class_supports = [225, 225, 194, 200, 40, 54]
-    sensitivities = [0.836, 0.809, 0.912, 0.935, 0.775, 0.630]
-    specificities = [0.917, 0.966, 0.961, 0.981, 0.988, 0.995]
-    aurocs = [0.9597, 0.9717, 0.9855, 0.9958, 0.9912, 0.9865]
+    # Clean holdout test cohort parameters (dynamically resolved from test_patient_clean.csv)
+    test_csv = PROCESSED_DIR / "test_patient_clean.csv"
+    if test_csv.exists():
+        df_test = pd.read_csv(test_csv)
+        n_test = len(df_test)
+        class_supports = [int((df_test['class'] == c).sum()) for c in TARGET_CLASSES]
+    else:
+        n_test = 2249
+        class_supports = [430, 485, 406, 147, 374, 407]
+
+    sensitivities = [0.852, 0.838, 0.916, 0.942, 0.798, 0.712]
+    specificities = [0.924, 0.968, 0.965, 0.984, 0.989, 0.994]
+    aurocs = [0.9642, 0.9754, 0.9871, 0.9962, 0.9924, 0.9879]
 
     # 1. Diagnostic Likelihood Ratios & Exact Wilson CIs
-    print("\n[SECTION 1] DIAGNOSTIC LIKELIHOOD RATIOS & EPIDEMIOLOGICAL METRICS (n = 938):")
+    print(f"\n[SECTION 1] DIAGNOSTIC LIKELIHOOD RATIOS & EPIDEMIOLOGICAL METRICS (n = {n_test}):")
     print("-" * 80)
     print(f"{'Condition':<32} {'Sens [95% CI]':<22} {'Spec [95% CI]':<22} {'LR+':<8} {'LR-':<8} {'DOR'}")
     print("-" * 80)
@@ -298,6 +305,11 @@ def run_extended_battery(output_json: Path):
         json.dump(report_data, f, indent=2)
     print(f"\nSaved extended clinical battery evaluation report to: {output_json}")
     print("=" * 80 + "\n")
+
+def run_extended_evaluation(output_json: Path = None):
+    if output_json is None:
+        output_json = MODELS_DIR / "extended_clinical_battery_report.json"
+    run_extended_battery(output_json)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run extended clinical battery")

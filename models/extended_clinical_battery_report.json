@@ -1,115 +1,115 @@
 {
   "per_class_diagnostics": {
     "Normal": {
-      "sensitivity": 0.836,
+      "sensitivity": 0.852,
       "sensitivity_95ci": [
-        0.7815673608177688,
-        0.8782781093962374
+        0.8144171120476459,
+        0.8816897119080979
       ],
-      "specificity": 0.917,
+      "specificity": 0.924,
       "specificity_95ci": [
-        0.8947235304451431,
-        0.9353065866449866
+        0.9110522375332707,
+        0.9354283998987195
       ],
-      "lr_positive": 10.07,
-      "lr_negative": 0.18,
-      "diagnostic_odds_ratio": 56.32,
-      "auroc": 0.9597,
-      "support": 225
+      "lr_positive": 11.21,
+      "lr_negative": 0.16,
+      "diagnostic_odds_ratio": 69.99,
+      "auroc": 0.9642,
+      "support": 430
     },
     "Diabetic Retinopathy": {
-      "sensitivity": 0.809,
+      "sensitivity": 0.838,
       "sensitivity_95ci": [
-        0.7524994167551051,
-        0.8549080028458673
+        0.8016232588080349,
+        0.8673052743586719
       ],
-      "specificity": 0.966,
+      "specificity": 0.968,
       "specificity_95ci": [
-        0.9504032420008439,
-        0.9772774770998891
+        0.9590006682062732,
+        0.9754722686949971
       ],
-      "lr_positive": 23.79,
-      "lr_negative": 0.2,
-      "diagnostic_odds_ratio": 120.34,
-      "auroc": 0.9717,
-      "support": 225
+      "lr_positive": 26.19,
+      "lr_negative": 0.17,
+      "diagnostic_odds_ratio": 156.48,
+      "auroc": 0.9754,
+      "support": 485
     },
     "Glaucoma": {
-      "sensitivity": 0.912,
+      "sensitivity": 0.916,
       "sensitivity_95ci": [
-        0.8641585908218183,
-        0.9445697765979233
+        0.8852543332516465,
+        0.9394548139697798
       ],
-      "specificity": 0.961,
+      "specificity": 0.965,
       "specificity_95ci": [
-        0.9445812021730536,
-        0.9727255236158393
+        0.9552968083385901,
+        0.972232726922028
       ],
-      "lr_positive": 23.38,
+      "lr_positive": 26.17,
       "lr_negative": 0.09,
-      "diagnostic_odds_ratio": 255.37,
-      "auroc": 0.9855,
-      "support": 194
+      "diagnostic_odds_ratio": 300.66,
+      "auroc": 0.9871,
+      "support": 406
     },
     "Cataract": {
-      "sensitivity": 0.935,
+      "sensitivity": 0.942,
       "sensitivity_95ci": [
-        0.8919809207009312,
-        0.961623645350847
+        0.8877440502646412,
+        0.9674584982160312
       ],
-      "specificity": 0.981,
+      "specificity": 0.984,
       "specificity_95ci": [
-        0.9684110254109876,
-        0.988666786239884
+        0.9774826570293944,
+        0.9884020212687876
       ],
-      "lr_positive": 49.21,
-      "lr_negative": 0.07,
-      "diagnostic_odds_ratio": 742.7,
-      "auroc": 0.9958,
-      "support": 200
+      "lr_positive": 58.87,
+      "lr_negative": 0.06,
+      "diagnostic_odds_ratio": 998.84,
+      "auroc": 0.9962,
+      "support": 147
     },
     "Age-related Macular Degeneration": {
-      "sensitivity": 0.775,
+      "sensitivity": 0.798,
       "sensitivity_95ci": [
-        0.6249690325768998,
-        0.8768390867645927
+        0.7530890066677158,
+        0.8344590106750573
       ],
-      "specificity": 0.988,
+      "specificity": 0.989,
       "specificity_95ci": [
-        0.978199347737163,
-        0.9931465484090555
+        0.9829383300911241,
+        0.9926628795769512
       ],
-      "lr_positive": 64.58,
-      "lr_negative": 0.23,
-      "diagnostic_odds_ratio": 283.59,
-      "auroc": 0.9912,
-      "support": 40
+      "lr_positive": 72.55,
+      "lr_negative": 0.2,
+      "diagnostic_odds_ratio": 355.19,
+      "auroc": 0.9924,
+      "support": 374
     },
     "Hypertensive Retinopathy / Pathological Myopia": {
-      "sensitivity": 0.63,
+      "sensitivity": 0.712,
       "sensitivity_95ci": [
-        0.49627467352266663,
-        0.7457662480833973
+        0.6667352680144157,
+        0.7543517383860346
       ],
-      "specificity": 0.995,
+      "specificity": 0.994,
       "specificity_95ci": [
-        0.9884236474903078,
-        0.998238995143634
+        0.9893379888873185,
+        0.9966621853436773
       ],
-      "lr_positive": 126.0,
-      "lr_negative": 0.37,
-      "diagnostic_odds_ratio": 338.84,
-      "auroc": 0.9865,
-      "support": 54
+      "lr_positive": 118.67,
+      "lr_negative": 0.29,
+      "diagnostic_odds_ratio": 409.56,
+      "auroc": 0.9879,
+      "support": 407
     }
   },
   "calibration_audit": {
-    "ece_10_bins": 0.16333200175531618,
-    "ece_15_bins": 0.1633320017553162,
-    "ece_20_bins": 0.1633320017553161,
-    "mce_15_bins": 0.5606679519109905,
-    "brier_score": 0.04589816477797098,
-    "negative_log_likelihood": 0.18767290782182092
+    "ece_10_bins": 0.15896990840935182,
+    "ece_15_bins": 0.15896990840935182,
+    "ece_20_bins": 0.15896990840935188,
+    "mce_15_bins": 0.5604433557814412,
+    "brier_score": 0.04286541358465235,
+    "negative_log_likelihood": 0.18136644599405494
   },
   "decision_curve_analysis": {
     "thresholds": [
@@ -123,24 +123,24 @@
       0.5
     ],
     "net_benefit_model": [
-      0.8418247110313096,
-      0.8366500829187395,
-      0.8343158158785902,
-      0.8336886993603411,
-      0.8340440653873489,
-      0.837648492232714,
-      0.8400852878464818,
-      0.8443496801705757
+      0.8349675879338185,
+      0.8310360160071143,
+      0.829911333141527,
+      0.8303690529124055,
+      0.8340002964280421,
+      0.836244680175316,
+      0.8397806432488513,
+      0.840818141396176
     ],
     "net_benefit_all": [
-      0.8406463920996521,
-      0.8317934138829661,
-      0.8218989088172582,
-      0.8107675906183368,
-      0.7981520966595593,
-      0.7837343892780992,
-      0.7476901208244491,
-      0.6972281449893389
+      0.8338442816690459,
+      0.8246134084284373,
+      0.8142965501006983,
+      0.802690084481992,
+      0.7895360901141247,
+      0.7745029536937051,
+      0.7369201126426559,
+      0.6843041351711872
     ],
     "net_benefit_none": [
       0.0,

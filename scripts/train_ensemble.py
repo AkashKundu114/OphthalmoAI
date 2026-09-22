@@ -59,26 +59,34 @@ class RetinalMetaEnsemble(nn.Module):
         return self.meta_classifier(concat)
 
 def build_models(device):
+    hw_prefix = "gpu_" if device.type == "cuda" else "cpu_"
+
     c = models.convnext_small(weights=None)
     c.classifier[2] = nn.Linear(c.classifier[2].in_features, NUM_CLASSES)
-    ckpt_c = MODELS_DIR / "convnext_small.pth"
+    ckpt_c = MODELS_DIR / f"{hw_prefix}convnext_small.pth"
+    if not ckpt_c.exists():
+        ckpt_c = MODELS_DIR / "convnext_small.pth"
     if ckpt_c.exists():
         c.load_state_dict(torch.load(ckpt_c, map_location=device))
-        print(f"[OK] Loaded fine-tuned ConvNeXt-Small from {ckpt_c}")
+        print(f"[OK] Loaded fine-tuned ConvNeXt-Small from {ckpt_c.name}")
 
     d = models.densenet201(weights=None)
     d.classifier = nn.Linear(d.classifier.in_features, NUM_CLASSES)
-    ckpt_d = MODELS_DIR / "densenet201.pth"
+    ckpt_d = MODELS_DIR / f"{hw_prefix}densenet201.pth"
+    if not ckpt_d.exists():
+        ckpt_d = MODELS_DIR / "densenet201.pth"
     if ckpt_d.exists():
         d.load_state_dict(torch.load(ckpt_d, map_location=device))
-        print(f"[OK] Loaded fine-tuned DenseNet-201 from {ckpt_d}")
+        print(f"[OK] Loaded fine-tuned DenseNet-201 from {ckpt_d.name}")
 
     e = models.efficientnet_v2_m(weights=None)
     e.classifier[1] = nn.Linear(e.classifier[1].in_features, NUM_CLASSES)
-    ckpt_e = MODELS_DIR / "efficientnet_v2_m.pth"
+    ckpt_e = MODELS_DIR / f"{hw_prefix}efficientnet_v2_m.pth"
+    if not ckpt_e.exists():
+        ckpt_e = MODELS_DIR / "efficientnet_v2_m.pth"
     if ckpt_e.exists():
         e.load_state_dict(torch.load(ckpt_e, map_location=device))
-        print(f"[OK] Loaded fine-tuned EfficientNet-V2-M from {ckpt_e}")
+        print(f"[OK] Loaded fine-tuned EfficientNet-V2-M from {ckpt_e.name}")
 
     ensemble = RetinalMetaEnsemble(c, d, e, num_classes=NUM_CLASSES).to(device)
     return ensemble
@@ -197,7 +205,10 @@ def main():
         if val_f1 > best_f1:
             best_f1 = val_f1
             torch.save(ensemble.state_dict(), save_path)
-            print(f"  --> Saved new best ensemble checkpoint to {ckpt_name} (Val F1: {val_f1:.4f})")
+            torch.save(ensemble.state_dict(), MODELS_DIR / "meta_classifier.pth")
+            hw_tag = "gpu" if device.type == "cuda" else "cpu"
+            torch.save(ensemble.state_dict(), MODELS_DIR / f"meta_classifier_{hw_tag}.pth")
+            print(f"  --> Saved new best ensemble checkpoint to {ckpt_name}, meta_classifier.pth & meta_classifier_{hw_tag}.pth (Val F1: {val_f1:.4f})")
 
     print(f"\n[OK] Meta-Ensemble Training Completed. Checkpoint saved to: {save_path}")
     print("=" * 70)
