@@ -7,7 +7,7 @@ WORKDIR /workspace/app
 RUN pip install --no-cache-dir --pre --upgrade torch --index-url https://download.pytorch.org/whl/nightly/cu128
 RUN pip uninstall -y torchvision && pip install --no-cache-dir --pre --no-deps torchvision --index-url https://download.pytorch.org/whl/nightly/cu128
 
-# Install dependencies required for training, benchmarking, and telemetry
+# Install dependencies required for training, benchmarking, external validation, and telemetry
 RUN pip install --no-cache-dir \
     pandas \
     scikit-learn \
@@ -16,7 +16,11 @@ RUN pip install --no-cache-dir \
     scipy \
     tabulate \
     pynvml \
-    psutil
+    psutil \
+    timm \
+    datasets \
+    huggingface_hub \
+    opencv-python-headless
 
 # Copy code scripts
 COPY scripts/ ./scripts/
