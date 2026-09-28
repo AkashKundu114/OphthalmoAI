@@ -1,7 +1,7 @@
 {
-  "efficientnet_b4": 1.0,
-  "convnext_small": 1.4311,
-  "densenet201": 1.1424,
+  "efficientnet_b4": 1.2099,
+  "convnext_small": 1.2073,
+  "densenet201": 1.1799,
   "resnet50": 1.1707,
-  "efficientnet_v2_m": 1.328
+  "efficientnet_v2_m": 1.2097
 }

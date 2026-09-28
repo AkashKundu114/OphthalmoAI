@@ -1,12 +1,12 @@
 {
   "model": "tri_backbone_ensemble",
-  "mode": "meta_classifier",
+  "mode": "soft_voting",
   "test_samples": 2249,
-  "accuracy": 0.8982,
-  "macro_auroc": 0.9914,
-  "macro_f1": 0.9038,
-  "weighted_f1": 0.8984,
-  "ece": 0.0233,
+  "accuracy": 0.8951,
+  "macro_auroc": 0.9919,
+  "macro_f1": 0.9001,
+  "weighted_f1": 0.8948,
+  "ece": 0.0763,
   "temperatures_applied": {
     "efficientnet_b4": 1.2099,
     "convnext_small": 1.2073,

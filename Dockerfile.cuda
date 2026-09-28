@@ -1,0 +1,50 @@
+FROM nvidia/cuda:12.8.0-runtime-ubuntu24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV CUDA_FORCE_PTX_JIT=1
+
+WORKDIR /workspace/app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-setuptools \
+    python-is-python3 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir --break-system-packages \
+    numpy \
+    pandas \
+    scipy \
+    scikit-learn \
+    tqdm \
+    pillow \
+    huggingface_hub \
+    opencv-python-headless \
+    matplotlib \
+    pyarrow \
+    fsspec \
+    dill \
+    multiprocess \
+    xxhash \
+    pyyaml
+
+RUN pip3 install --no-cache-dir --break-system-packages \
+    safetensors \
+    "https://download-r2.pytorch.org/whl/cu130/torch-2.9.1%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl"
+
+RUN pip3 install --no-cache-dir --break-system-packages \
+    requests \
+    httpx \
+    "https://download-r2.pytorch.org/whl/cu130/torchvision-0.24.1%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl"
+
+RUN pip3 install --no-cache-dir --break-system-packages --no-deps \
+    timm datasets
+
+RUN python3 -c "import site; p = site.getsitepackages()[0] + '/sitecustomize.py'; open(p, 'w').write('''import torch\nimport torch.nn.functional as F\ntorch.backends.cudnn.enabled = False\n_orig_conv2d = F.conv2d\ndef safe_conv2d(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):\n    is_1x1 = (weight.shape[2:] == (1, 1))\n    stride_1 = (stride == 1 or stride == (1, 1))\n    pad_0 = (padding == 0 or padding == (0, 0))\n    dil_1 = (dilation == 1 or dilation == (1, 1))\n    if groups == 1 and is_1x1 and stride_1 and pad_0 and dil_1:\n        B, C_in, H, W = input.shape\n        C_out = weight.shape[0]\n        x_flat = input.permute(0, 2, 3, 1).reshape(-1, C_in)\n        w_flat = weight.view(C_out, C_in).t()\n        out = x_flat @ w_flat\n        if bias is not None:\n            out = out + bias\n        return out.view(B, H, W, C_out).permute(0, 3, 1, 2).contiguous()\n    return _orig_conv2d(input, weight, bias, stride, padding, dilation, groups)\nF.conv2d = safe_conv2d\n''')"
+
+COPY scripts/ ./scripts/
+
+CMD ["python3", "-c", "import torch; print('CUDA Ready:', torch.cuda.is_available(), torch.cuda.get_device_name(0))"]

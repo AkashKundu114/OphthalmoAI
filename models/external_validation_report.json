@@ -1,0 +1,290 @@
+[
+  {
+    "dataset": "IDRiD",
+    "cohort_size": 413,
+    "camera_hardware": "Kowa VX-10 alpha",
+    "geographic_origin": "India",
+    "disease": "DR",
+    "results_ben_graham": {
+      "metrics": {
+        "accuracy": {
+          "value": 0.7263922518159807,
+          "ci_lower": 0.6851694915254237,
+          "ci_upper": 0.7675544794188862
+        },
+        "sensitivity": {
+          "value": 0.996415770609319,
+          "ci_lower": 0.9890510948905109,
+          "ci_upper": 1.0
+        },
+        "specificity": {
+          "value": 0.16417910447761194,
+          "ci_lower": 0.1039925925925926,
+          "ci_upper": 0.22628450045620435
+        },
+        "precision": {
+          "value": 0.7128205128205128,
+          "ci_lower": 0.6700565790174765,
+          "ci_upper": 0.7576530612244898
+        },
+        "f1": {
+          "value": 0.8310911808669657,
+          "ci_lower": 0.8006042296072508,
+          "ci_upper": 0.860879617994471
+        },
+        "auroc": {
+          "value": 0.8004868132455999,
+          "ci_lower": 0.7406225122824588,
+          "ci_upper": 0.8549104023865767
+        }
+      },
+      "ece": {
+        "value": 0.4403687528273673,
+        "ci_lower": 0.3955506613942598,
+        "ci_upper": 0.4809977038053131
+      },
+      "conformal_coverage": 0.0,
+      "human_review_trigger_rate": 1.0,
+      "mcnemar_p_value": 4.865007418510362e-05,
+      "confusion_matrix": [
+        [
+          22,
+          112
+        ],
+        [
+          1,
+          278
+        ]
+      ],
+      "subgroup_breakdown": {
+        "Grade 0": {
+          "accuracy": 0.16417910447761194,
+          "count": 134
+        },
+        "Grade 1": {
+          "accuracy": 0.95,
+          "count": 20
+        },
+        "Grade 2": {
+          "accuracy": 1.0,
+          "count": 136
+        },
+        "Grade 3": {
+          "accuracy": 1.0,
+          "count": 74
+        },
+        "Grade 4": {
+          "accuracy": 1.0,
+          "count": 49
+        }
+      }
+    },
+    "results_reinhard": {
+      "metrics": {
+        "accuracy": {
+          "value": 0.6852300242130751,
+          "ci_lower": 0.6416464891041163,
+          "ci_upper": 0.7288135593220338
+        },
+        "sensitivity": {
+          "value": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0
+        },
+        "specificity": {
+          "value": 0.029850746268656716,
+          "ci_lower": 0.006943247126436782,
+          "ci_upper": 0.06153846153846154
+        },
+        "precision": {
+          "value": 0.6821515892420538,
+          "ci_lower": 0.6390243902439025,
+          "ci_upper": 0.7257281553398058
+        },
+        "f1": {
+          "value": 0.811046511627907,
+          "ci_lower": 0.7797619047619048,
+          "ci_upper": 0.8410689170182841
+        },
+        "auroc": {
+          "value": 0.7230246616380462,
+          "ci_lower": 0.6615233556807362,
+          "ci_upper": 0.7805609270609963
+        }
+      },
+      "ece": {
+        "value": 0.26856229694212896,
+        "ci_lower": 0.2222432662658484,
+        "ci_upper": 0.3164751204141115
+      },
+      "conformal_coverage": 0.0,
+      "human_review_trigger_rate": 1.0,
+      "mcnemar_p_value": 0.004527290656379296,
+      "confusion_matrix": [
+        [
+          4,
+          130
+        ],
+        [
+          0,
+          279
+        ]
+      ],
+      "subgroup_breakdown": {
+        "Grade 0": {
+          "accuracy": 0.029850746268656716,
+          "count": 134
+        },
+        "Grade 1": {
+          "accuracy": 1.0,
+          "count": 20
+        },
+        "Grade 2": {
+          "accuracy": 1.0,
+          "count": 136
+        },
+        "Grade 3": {
+          "accuracy": 1.0,
+          "count": 74
+        },
+        "Grade 4": {
+          "accuracy": 1.0,
+          "count": 49
+        }
+      }
+    },
+    "domain_adaptation_auroc_delta": -0.07746215160755365
+  },
+  {
+    "dataset": "RIM-ONE DL",
+    "cohort_size": 485,
+    "camera_hardware": "Nidek AFC-210, Topcon TRC-NW400",
+    "geographic_origin": "Spain",
+    "disease": "Glaucoma",
+    "results_ben_graham": {
+      "metrics": {
+        "accuracy": {
+          "value": 0.3691275167785235,
+          "ci_lower": 0.3243847874720358,
+          "ci_upper": 0.41387024608501116
+        },
+        "sensitivity": {
+          "value": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0
+        },
+        "specificity": {
+          "value": 0.010526315789473684,
+          "ci_lower": 0.0,
+          "ci_upper": 0.024054982817869417
+        },
+        "precision": {
+          "value": 0.36486486486486486,
+          "ci_lower": 0.32052597956782364,
+          "ci_upper": 0.4103168247867159
+        },
+        "f1": {
+          "value": 0.5346534653465347,
+          "ci_lower": 0.48545197740112994,
+          "ci_upper": 0.5818789330279779
+        },
+        "auroc": {
+          "value": 0.6175222005631363,
+          "ci_lower": 0.5599997310950483,
+          "ci_upper": 0.6726844516165352
+        }
+      },
+      "ece": {
+        "value": 0.26092138226400285,
+        "ci_lower": 0.2519382061590951,
+        "ci_upper": 0.2679847076401881
+      },
+      "conformal_coverage": 0.0,
+      "human_review_trigger_rate": 1.0,
+      "mcnemar_p_value": 0.24821307898992026,
+      "confusion_matrix": [
+        [
+          3,
+          282
+        ],
+        [
+          0,
+          162
+        ]
+      ],
+      "subgroup_breakdown": {
+        "glaucoma": {
+          "accuracy": 1.0,
+          "count": 162
+        },
+        "normal": {
+          "accuracy": 0.010526315789473684,
+          "count": 285
+        }
+      }
+    },
+    "results_reinhard": {
+      "metrics": {
+        "accuracy": {
+          "value": 0.378076062639821,
+          "ci_lower": 0.3333333333333333,
+          "ci_upper": 0.4228187919463087
+        },
+        "sensitivity": {
+          "value": 0.9938271604938271,
+          "ci_lower": 0.9801291390728477,
+          "ci_upper": 1.0
+        },
+        "specificity": {
+          "value": 0.028070175438596492,
+          "ci_lower": 0.010415765570934255,
+          "ci_upper": 0.04746166263115414
+        },
+        "precision": {
+          "value": 0.3675799086757991,
+          "ci_lower": 0.3225679308340599,
+          "ci_upper": 0.41190934774789795
+        },
+        "f1": {
+          "value": 0.5366666666666666,
+          "ci_lower": 0.48629900803023146,
+          "ci_upper": 0.5830686753528773
+        },
+        "auroc": {
+          "value": 0.6577214641542128,
+          "ci_lower": 0.6031997524362871,
+          "ci_upper": 0.7078457382529033
+        }
+      },
+      "ece": {
+        "value": 0.24245803801538696,
+        "ci_lower": 0.22870854318341952,
+        "ci_upper": 0.2541603507511568
+      },
+      "conformal_coverage": 0.0,
+      "human_review_trigger_rate": 1.0,
+      "mcnemar_p_value": 0.02334220201289086,
+      "confusion_matrix": [
+        [
+          8,
+          277
+        ],
+        [
+          1,
+          161
+        ]
+      ],
+      "subgroup_breakdown": {
+        "glaucoma": {
+          "accuracy": 0.9938271604938271,
+          "count": 162
+        },
+        "normal": {
+          "accuracy": 0.028070175438596492,
+          "count": 285
+        }
+      }
+    },
+    "domain_adaptation_auroc_delta": 0.040199263591076506
+  }
+]

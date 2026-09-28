@@ -13,6 +13,29 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+torch.backends.cudnn.enabled = False
+
+# Robust patch for 1x1 convolutions on Blackwell sm_120 cuBLAS
+_orig_conv2d = F.conv2d
+def safe_conv2d(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
+    is_1x1 = (weight.shape[2:] == (1, 1))
+    stride_1 = (stride == 1 or stride == (1, 1))
+    pad_0 = (padding == 0 or padding == (0, 0))
+    dil_1 = (dilation == 1 or dilation == (1, 1))
+    if groups == 1 and is_1x1 and stride_1 and pad_0 and dil_1:
+        B, C_in, H, W = input.shape
+        C_out = weight.shape[0]
+        x_flat = input.permute(0, 2, 3, 1).reshape(-1, C_in)
+        w_flat = weight.view(C_out, C_in).t()
+        out = x_flat @ w_flat
+        if bias is not None:
+            out = out + bias
+        return out.view(B, H, W, C_out).permute(0, 3, 1, 2).contiguous()
+    return _orig_conv2d(input, weight, bias, stride, padding, dilation, groups)
+
+F.conv2d = safe_conv2d
+
 from torchvision import models
 from sklearn.metrics import (
     accuracy_score,

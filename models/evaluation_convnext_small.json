@@ -1,0 +1,62 @@
+{
+  "architecture": "convnext_small",
+  "checkpoint": "/workspace/app/models/convnext_small.pth",
+  "test_samples": 2249,
+  "metrics": {
+    "accuracy": 0.8866,
+    "macro_f1": 0.8938,
+    "weighted_f1": 0.887,
+    "ece": 0.0498,
+    "macro_auroc": 0.987
+  },
+  "per_class": {
+    "Normal": {
+      "sensitivity": 0.8302,
+      "specificity": 0.9643,
+      "tp": 357,
+      "fn": 73,
+      "fp": 65,
+      "tn": 1754
+    },
+    "Diabetic Retinopathy": {
+      "sensitivity": 0.9134,
+      "specificity": 0.9819,
+      "tp": 443,
+      "fn": 42,
+      "fp": 32,
+      "tn": 1732
+    },
+    "Glaucoma": {
+      "sensitivity": 0.8719,
+      "specificity": 0.9555,
+      "tp": 354,
+      "fn": 52,
+      "fp": 82,
+      "tn": 1761
+    },
+    "Cataract": {
+      "sensitivity": 0.9456,
+      "specificity": 0.9976,
+      "tp": 139,
+      "fn": 8,
+      "fp": 5,
+      "tn": 2097
+    },
+    "Age-related Macular Degeneration": {
+      "sensitivity": 0.9144,
+      "specificity": 0.9803,
+      "tp": 342,
+      "fn": 32,
+      "fp": 37,
+      "tn": 1838
+    },
+    "Hypertensive Retinopathy / Pathological Myopia": {
+      "sensitivity": 0.8821,
+      "specificity": 0.9815,
+      "tp": 359,
+      "fn": 48,
+      "fp": 34,
+      "tn": 1808
+    }
+  }
+}
