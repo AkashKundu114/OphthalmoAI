@@ -1,44 +1,55 @@
 """
-OphthalmoAI - Urgency-Stratified Conformal Risk Control (US-CRC)
-================================================================
-Implements:
-1. ConformalCalibrator: Split-conformal calibration with urgency stratification.
-   - Emergency stratum (Keratitis, Uveitis, Jaundice): alpha = 0.01 (99% guaranteed coverage)
-   - Routine stratum (Cataract, Pterygium, Ptosis, etc.): alpha = 0.05 (95% guaranteed coverage)
-2. ConformalTriagePolicy: 3-tier clinical action decision engine
-   - Autonomous Clearance (single prediction, Normal)
-   - Specialist Referral (single prediction, Routine)
-   - Immediate Emergency Review (set size > 1, or contains any Emergency/Urgent condition)
-3. ConformalRegistry: Thread-safe persistent JSON loader & saver for calibrated quantiles.
+Urgency-Stratified Conformal Risk Control (US-CRC).
+
+Provides distribution-free coverage guarantees with error budget stratification:
+- Emergency stratum (sight-threatening): alpha = 0.01 (99% guaranteed coverage)
+- Routine stratum (elective/adnexal): alpha = 0.05 (95% guaranteed coverage)
+Includes Admissibility-Weighted Conformal Risk Control (AW-CRC) for degraded scans.
 """
 
 from __future__ import annotations
+
 import json
 import math
 import os
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
-import torch
 
 from .evidential import CLASS_NAMES, URGENCY_TIERS, URGENCY_RANKS
+
+
+DEFAULT_ALPHA_EMERGENCY: float = 0.01
+DEFAULT_ALPHA_ROUTINE: float = 0.05
+
+
+def validate_alpha(alpha: float, name: str = "alpha") -> float:
+    """Validates that significance level alpha lies strictly within (0.0, 1.0)."""
+    try:
+        val = float(alpha)
+        if not math.isfinite(val) or not (0.0 < val < 1.0):
+            raise ValueError(f"{name} must be a finite float in (0.0, 1.0), got {alpha}.")
+        return val
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Invalid {name}: {exc}") from exc
 
 
 class ConformalCalibrator:
     """
     Split-conformal prediction calibrator with Urgency-Stratified Risk bounds.
+    Calibrates non-conformity thresholds independently for high-urgency and routine strata.
     """
+
     def __init__(
         self,
-        alpha_emergency: float = 0.01,
-        alpha_routine: float = 0.05,
-        calibration_path: Optional[str] = None
+        alpha_emergency: float = DEFAULT_ALPHA_EMERGENCY,
+        alpha_routine: float = DEFAULT_ALPHA_ROUTINE,
+        calibration_path: Optional[str] = None,
     ):
-        self.alpha_emergency = alpha_emergency
-        self.alpha_routine = alpha_routine
+        self.alpha_emergency = validate_alpha(alpha_emergency, "alpha_emergency")
+        self.alpha_routine = validate_alpha(alpha_routine, "alpha_routine")
         self.calibration_path = calibration_path
-        
-        # Default empirical quantiles (calibrated on balanced validation holdouts)
-        # Higher non-conformity threshold (1 - q) sets lower inclusion threshold
+
+        # Baseline empirical quantiles
         self.q_emergency: float = 0.992
         self.q_routine: float = 0.948
         self.is_calibrated: bool = False
@@ -50,53 +61,66 @@ class ConformalCalibrator:
     def calibrate(
         self,
         val_probs: np.ndarray,
-        val_targets: np.ndarray
-    ) -> Dict[str, float]:
+        val_targets: np.ndarray,
+    ) -> Dict[str, Any]:
         """
-        Computes the conformal quantiles on validation holdout probabilities.
-        val_probs: (N, 12) array of predicted probabilities
-        val_targets: (N,) array of true integer labels
+        Computes conformal non-conformity quantiles on validation holdout set.
+        val_probs: (N, C) predicted probabilities
+        val_targets: (N,) true integer class labels
         """
+        if val_probs.ndim != 2:
+            raise ValueError(f"Expected 2D probability matrix, got shape {val_probs.shape}.")
+        if val_targets.ndim != 1:
+            raise ValueError(f"Expected 1D target array, got shape {val_targets.shape}.")
+
         n_samples = len(val_targets)
         if n_samples == 0:
             raise ValueError("Validation set cannot be empty for conformal calibration.")
+        if len(val_probs) != n_samples:
+            raise ValueError(f"Mismatch between probabilities ({len(val_probs)}) and targets ({n_samples}).")
 
+        num_classes = len(CLASS_NAMES)
         scores_emergency: List[float] = []
         scores_routine: List[float] = []
 
         for i in range(n_samples):
             true_idx = int(val_targets[i])
+            if not (0 <= true_idx < num_classes):
+                continue
+
             true_name = CLASS_NAMES[true_idx]
             urgency = URGENCY_TIERS.get(true_name, "Non-urgent")
             # Non-conformity score: s_i = 1 - p(y_i)
-            score = 1.0 - float(val_probs[i, true_idx])
+            p_val = float(val_probs[i, true_idx]) if i < val_probs.shape[0] else 0.0
+            p_val = max(0.0, min(1.0, p_val))
+            score = 1.0 - p_val
 
             if urgency in {"Emergency", "Urgent"}:
                 scores_emergency.append(score)
             else:
                 scores_routine.append(score)
 
-        # Compute empirical quantiles with finite-sample correction: ceil((n+1)(1-alpha)) / n
-        if len(scores_emergency) > 0:
+        # Finite-sample correction: ceil((n + 1)(1 - alpha)) / n
+        if scores_emergency:
             n_e = len(scores_emergency)
-            p_level_e = min(1.0, math.ceil((n_e + 1) * (1.0 - self.alpha_emergency)) / n_e)
+            p_level_e = max(0.0, min(1.0, math.ceil((n_e + 1) * (1.0 - self.alpha_emergency)) / n_e))
             self.q_emergency = float(np.quantile(scores_emergency, p_level_e, method="higher"))
-        
-        if len(scores_routine) > 0:
+
+        if scores_routine:
             n_r = len(scores_routine)
-            p_level_r = min(1.0, math.ceil((n_r + 1) * (1.0 - self.alpha_routine)) / n_r)
+            p_level_r = max(0.0, min(1.0, math.ceil((n_r + 1) * (1.0 - self.alpha_routine)) / n_r))
             self.q_routine = float(np.quantile(scores_routine, p_level_r, method="higher"))
 
         self.is_calibrated = True
         self.num_samples_calibrated = n_samples
 
         summary = {
-            "q_emergency": self.q_emergency,
-            "q_routine": self.q_routine,
+            "q_emergency": round(self.q_emergency, 4),
+            "q_routine": round(self.q_routine, 4),
             "alpha_emergency": self.alpha_emergency,
             "alpha_routine": self.alpha_routine,
             "num_samples": n_samples,
-            "is_calibrated": True
+            "is_calibrated": True,
         }
 
         if self.calibration_path:
@@ -104,53 +128,68 @@ class ConformalCalibrator:
 
         return summary
 
+    def _ensure_non_empty_fallback(
+        self,
+        prediction_set: List[str],
+        set_probs: Dict[str, float],
+        probs: np.ndarray,
+        top_diagnosis: str,
+    ) -> None:
+        """Guarantees that conformal prediction set contains at least one candidate."""
+        if prediction_set:
+            return
+
+        if probs.size > 0 and np.all(np.isfinite(probs)):
+            argmax_idx = int(np.argmax(probs))
+            if 0 <= argmax_idx < len(CLASS_NAMES):
+                fallback_name = CLASS_NAMES[argmax_idx]
+                fallback_prob = round(float(probs[argmax_idx]) * 100.0, 2)
+            else:
+                fallback_name = top_diagnosis or CLASS_NAMES[0]
+                fallback_prob = 100.0
+        else:
+            fallback_name = top_diagnosis or CLASS_NAMES[0]
+            fallback_prob = 100.0
+
+        prediction_set.append(fallback_name)
+        set_probs[fallback_name] = fallback_prob
+
     def predict_set(
         self,
         probs: np.ndarray,
-        top_diagnosis: str
+        top_diagnosis: str,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
         """
         Constructs the conformal prediction set for a single sample.
-        Args:
-            probs: Probability array of shape (12,)
-            top_diagnosis: Top-1 predicted diagnosis string
-        Returns:
-            prediction_set: List of class names included in conformal set
-            set_probabilities: Dict mapping candidate classes to their probabilities
-            stratum: "Emergency-Stratum" or "Routine-Stratum"
-            coverage_guarantee: Targeted statistical coverage percentage (e.g. 99.0%)
+        Guarantees non-empty prediction set return.
         """
+        probs = np.asarray(probs, dtype=np.float64)
+        if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
+            probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
+
         top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
         is_emergency = top_urgency in {"Emergency", "Urgent"}
 
         if is_emergency:
-            cutoff = 1.0 - self.q_emergency
+            cutoff = max(0.0, 1.0 - self.q_emergency)
             stratum = "Emergency-Stratified (Sight-Threatening)"
             guarantee = (1.0 - self.alpha_emergency) * 100.0
         else:
-            cutoff = 1.0 - self.q_routine
+            cutoff = max(0.0, 1.0 - self.q_routine)
             stratum = "Routine-Stratified (Elective/Adnexal)"
             guarantee = (1.0 - self.alpha_routine) * 100.0
 
-        # Include classes whose probability exceeds (1 - q_hat)
         prediction_set: List[str] = []
         set_probs: Dict[str, float] = {}
 
         for idx, name in enumerate(CLASS_NAMES):
             p = float(probs[idx])
-            if p >= cutoff:
+            if math.isfinite(p) and p >= cutoff:
                 prediction_set.append(name)
                 set_probs[name] = round(p * 100.0, 2)
 
-        # Guarantees at least the argmax prediction is present
-        if not prediction_set:
-            argmax_idx = int(np.argmax(probs))
-            fallback_name = CLASS_NAMES[argmax_idx]
-            prediction_set.append(fallback_name)
-            set_probs[fallback_name] = round(float(probs[argmax_idx]) * 100.0, 2)
-
-        # Sort candidate set by probability descending
-        prediction_set.sort(key=lambda c: set_probs[c], reverse=True)
+        self._ensure_non_empty_fallback(prediction_set, set_probs, probs, top_diagnosis)
+        prediction_set.sort(key=lambda c: set_probs.get(c, 0.0), reverse=True)
 
         return prediction_set, set_probs, stratum, guarantee
 
@@ -159,23 +198,27 @@ class ConformalCalibrator:
         probs: np.ndarray,
         top_diagnosis: str,
         admissibility_score: float = 0.95,
-        gamma: float = 1.0
+        gamma: float = 1.0,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
         """
         Admissibility-Weighted Conformal Risk Control (AW-CRC):
-        Dynamically adjusts inclusion threshold based on optical admissibility score S(X):
-          cutoff = max(0.01, 1 - (q_hat / S(X)^gamma))
-        Under optical degradation (e.g. S(X) -> 0.50), prediction sets expand adaptively
-        to prevent under-coverage on borderline scans.
+        Dynamically adjusts inclusion cutoff based on optical admissibility score S(X):
+          cutoff = max(0.005, 1 - (q_base / S(X)^gamma))
+        Under optical blur/degradation (S(X) -> 0.50), prediction sets expand adaptively.
         """
+        probs = np.asarray(probs, dtype=np.float64)
+        if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
+            probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
+
         top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
         is_emergency = top_urgency in {"Emergency", "Urgent"}
 
         q_base = self.q_emergency if is_emergency else self.q_routine
-        eff_s = float(np.clip(admissibility_score, 0.50, 1.0))
-        # Scaled quantile
-        dyn_q = q_base / (eff_s ** gamma)
-        cutoff = max(0.01, 1.0 - dyn_q)
+        eff_s = float(np.clip(admissibility_score, 0.10, 1.0))
+        gamma_safe = max(0.1, min(float(gamma), 3.0))
+
+        dyn_q = q_base / (eff_s ** gamma_safe)
+        cutoff = max(0.005, 1.0 - dyn_q)
 
         if is_emergency:
             stratum = f"AW-CRC Emergency-Stratified (S={eff_s:.2f})"
@@ -189,20 +232,17 @@ class ConformalCalibrator:
 
         for idx, name in enumerate(CLASS_NAMES):
             p = float(probs[idx])
-            if p >= cutoff:
+            if math.isfinite(p) and p >= cutoff:
                 prediction_set.append(name)
                 set_probs[name] = round(p * 100.0, 2)
 
-        if not prediction_set:
-            argmax_idx = int(np.argmax(probs))
-            fallback_name = CLASS_NAMES[argmax_idx]
-            prediction_set.append(fallback_name)
-            set_probs[fallback_name] = round(float(probs[argmax_idx]) * 100.0, 2)
+        self._ensure_non_empty_fallback(prediction_set, set_probs, probs, top_diagnosis)
+        prediction_set.sort(key=lambda c: set_probs.get(c, 0.0), reverse=True)
 
-        prediction_set.sort(key=lambda c: set_probs[c], reverse=True)
         return prediction_set, set_probs, stratum, guarantee
 
     def save(self, path: str) -> None:
+        """Persists calibrated quantiles atomically to disk."""
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         data = {
             "q_emergency": self.q_emergency,
@@ -210,19 +250,29 @@ class ConformalCalibrator:
             "alpha_emergency": self.alpha_emergency,
             "alpha_routine": self.alpha_routine,
             "is_calibrated": self.is_calibrated,
-            "num_samples_calibrated": self.num_samples_calibrated
+            "num_samples_calibrated": self.num_samples_calibrated,
         }
-        with open(path, "w", encoding="utf-8") as f:
+        tmp_path = f"{path}.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+        os.replace(tmp_path, path)
 
     def load(self, path: str) -> None:
+        """Loads and validates calibrated quantiles from JSON."""
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.q_emergency = float(data.get("q_emergency", self.q_emergency))
             self.q_routine = float(data.get("q_routine", self.q_routine))
-            self.alpha_emergency = float(data.get("alpha_emergency", self.alpha_emergency))
-            self.alpha_routine = float(data.get("alpha_routine", self.alpha_routine))
+
+            loaded_alpha_e = data.get("alpha_emergency")
+            if loaded_alpha_e is not None:
+                self.alpha_emergency = validate_alpha(loaded_alpha_e, "loaded alpha_emergency")
+
+            loaded_alpha_r = data.get("alpha_routine")
+            if loaded_alpha_r is not None:
+                self.alpha_routine = validate_alpha(loaded_alpha_r, "loaded alpha_routine")
+
             self.is_calibrated = bool(data.get("is_calibrated", True))
             self.num_samples_calibrated = int(data.get("num_samples_calibrated", 0))
         except Exception:
@@ -234,14 +284,22 @@ class ConformalTriagePolicy:
     Evaluates conformal prediction set cardinality and severity to produce an
     actionable clinical triage recommendation.
     """
+
     @staticmethod
     def evaluate(
         prediction_set: List[str],
         top_diagnosis: str,
         epistemic_vacuity: float,
-        requires_human_review_flag: bool
+        requires_human_review_flag: bool,
     ) -> Dict[str, Any]:
+        """Evaluates prediction set and returns stratified clinical action code."""
+        if not prediction_set:
+            fallback = top_diagnosis or CLASS_NAMES[0]
+            prediction_set = [fallback]
+
+        safe_vacuity = max(0.0, min(1.0, float(epistemic_vacuity))) if math.isfinite(epistemic_vacuity) else 1.0
         set_size = len(prediction_set)
+
         contains_emergency = any(URGENCY_TIERS.get(c) == "Emergency" for c in prediction_set)
         contains_urgent = any(URGENCY_TIERS.get(c) == "Urgent" for c in prediction_set)
 
@@ -249,26 +307,26 @@ class ConformalTriagePolicy:
             tier = "Immediate Emergency Review"
             urgency_level = "Emergency"
             action_code = "RED_FLAG"
+            emergency_classes = [c for c in prediction_set if URGENCY_TIERS.get(c) == "Emergency"]
             guidance = (
-                f"Conformal set includes sight-threatening or systemic emergency condition(s) "
-                f"({', '.join([c for c in prediction_set if URGENCY_TIERS.get(c) == 'Emergency'])}). "
-                f"Requires immediate clinical escalation."
+                f"Conformal set includes sight-threatening condition(s) ({', '.join(emergency_classes)}). "
+                "Requires immediate emergency clinical escalation."
             )
         elif contains_urgent:
             tier = "Urgent Specialist Review"
             urgency_level = "Urgent"
             action_code = "ORANGE_ALERT"
             guidance = (
-                f"Conformal set contains urgent inflammatory condition(s) (e.g., Uveitis). "
-                f"Same-day specialist evaluation recommended."
+                "Conformal set contains urgent inflammatory condition(s). "
+                "Same-day specialist evaluation recommended."
             )
-        elif set_size > 2 or epistemic_vacuity > 0.40 or requires_human_review_flag:
+        elif set_size > 2 or safe_vacuity > 0.40 or requires_human_review_flag:
             tier = "Ambiguous Case - Clinician Review"
             urgency_level = "Elevated Uncertainty"
             action_code = "YELLOW_REVIEW"
             guidance = (
-                f"High diagnostic ambiguity: prediction set cardinality is {set_size} "
-                f"with epistemic vacuity {epistemic_vacuity:.3f}. Second opinion recommended."
+                f"Diagnostic ambiguity: prediction set cardinality is {set_size} "
+                f"with epistemic vacuity {safe_vacuity:.3f}. Secondary clinician review recommended."
             )
         elif set_size == 1 and prediction_set[0] == "Normal":
             tier = "Autonomous Clearance"
@@ -287,5 +345,5 @@ class ConformalTriagePolicy:
             "action_code": action_code,
             "guidance": guidance,
             "set_size": set_size,
-            "candidates": prediction_set
+            "candidates": prediction_set,
         }

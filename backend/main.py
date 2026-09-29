@@ -1775,9 +1775,7 @@ def get_appointments_history(db: Session = Depends(get_db), current_user: Option
     }
 
 
-# ==============================================================================
-# UPGRADE 1: High-Throughput / Low-Latency ONNX Benchmarking Endpoints
-# ==============================================================================
+# High-Throughput & Low-Latency ONNX Benchmarking Endpoints
 
 @app.get("/api/v1/benchmarks/inference")
 async def get_inference_benchmarks():
@@ -1791,9 +1789,7 @@ async def run_live_inference_benchmark(iterations: int = 15):
     return LatencyBenchmarkSuite.run_comprehensive_benchmark(iterations=max(3, min(100, iterations)))
 
 
-# ==============================================================================
-# UPGRADE 2: Asynchronous Screening Task Queue & WebSocket Streaming
-# ==============================================================================
+# Asynchronous Screening Task Queue & WebSocket Streaming
 
 @app.post("/api/v1/screen/async", status_code=status.HTTP_202_ACCEPTED)
 async def screen_async(
@@ -1943,9 +1939,7 @@ async def websocket_job_stream(websocket: WebSocket, job_id: str):
         await screening_queue.notifier.disconnect(job_id, websocket)
 
 
-# =============================================================================
-# Dual-Track Endpoints: AI Engineering (CBMIR, Fairness) & SWE (Metrics, Tracing, Tenancy)
-# =============================================================================
+# Advanced Analytics: CBMIR, Fairness Auditing, Metrics & Tenancy
 
 class SimilarCasesRequest(BaseModel):
     probabilities: Optional[Dict[str, float]] = None

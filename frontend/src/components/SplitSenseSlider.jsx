@@ -1,10 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Eye, Flame, MoveHorizontal, Maximize2 } from 'lucide-react'
+import { Eye, Flame, MoveHorizontal } from 'lucide-react'
 import { playClickSound } from '../utils/soundEffects'
 
 /**
- * SplitSenseSlider - Interactive before/after split comparison slider inspired by splitsense.ai
- * Allows seamless side-by-side or sliding comparison of original retinal scan vs AI Grad-CAM lesion heatmap.
+ * Interactive before/after split comparison slider.
+ * Allows sliding comparison of original retinal scan vs AI Grad-CAM lesion heatmap.
  */
 export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'Retinal Scan Comparison' }) {
   const [sliderPos, setSliderPos] = useState(50)
@@ -14,10 +14,19 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
   const handleMove = useCallback((clientX) => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
+    if (rect.width <= 0) return
     const x = clientX - rect.left
     const percent = Math.max(0, Math.min(100, (x / rect.width) * 100))
     setSliderPos(percent)
   }, [])
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      setSliderPos(prev => Math.max(0, prev - 5))
+    } else if (e.key === 'ArrowRight') {
+      setSliderPos(prev => Math.min(100, prev + 5))
+    }
+  }
 
   const onMouseDown = () => {
     setIsDragging(true)
@@ -67,7 +76,11 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
   if (!heatmapImage) {
     return (
       <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900 aspect-square max-w-md mx-auto flex items-center justify-center">
-        <img src={originalImage} alt={alt} className="w-full h-full object-contain" />
+        {originalImage ? (
+          <img src={originalImage} alt={alt} className="w-full h-full object-contain" />
+        ) : (
+          <span className="text-xs text-slate-400">No scan image available</span>
+        )}
       </div>
     )
   }
@@ -95,9 +108,16 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
       {/* Interactive Split Frame */}
       <div
         ref={containerRef}
+        role="slider"
+        tabIndex={0}
+        aria-valuenow={Math.round(sliderPos)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Image split comparison percentage"
+        onKeyDown={handleKeyDown}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
-        className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-950 select-none cursor-ew-resize group"
+        className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-950 select-none cursor-ew-resize group focus:outline-none focus:ring-2 focus:ring-cyan-500"
       >
         {/* Heatmap Layer (Full Background) */}
         <img
@@ -106,20 +126,22 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
           className="absolute inset-0 w-full h-full object-contain pointer-events-none"
         />
 
-        {/* Original Image Layer (Clipped to Slider Percentage via clip-path) */}
-        <img
-          src={originalImage}
-          alt="Original Retinal Scan"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-          style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
-        />
+        {/* Original Image Layer (Clipped to Slider Percentage) */}
+        {originalImage && (
+          <img
+            src={originalImage}
+            alt="Original Retinal Scan"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+          />
+        )}
 
-        {/* Vertical Divider Line with Specular Highlight */}
+        {/* Vertical Divider Line */}
         <div
           className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_rgba(0,173,181,0.8)] pointer-events-none"
           style={{ left: `${sliderPos}%` }}
         >
-          {/* Circular Tactile Thumb (inspired by dialkit/evilbuttons) */}
+          {/* Circular Tactile Thumb */}
           <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white border-2 border-cyan-500 shadow-lg flex items-center justify-center text-cyan-600 transition-transform group-hover:scale-110">
             <MoveHorizontal className="w-4 h-4" />
           </div>
@@ -127,7 +149,7 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
       </div>
 
       <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 text-center">
-        <span>Drag the slider handle to inspect where the AI detected pathological features</span>
+        <span>Drag the slider or use Left/Right arrows to inspect AI detected pathological features</span>
       </div>
     </div>
   )

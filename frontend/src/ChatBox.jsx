@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import {
   MessageCircle, X, Send, Loader2,
-  Bot, User, AlertCircle, Sparkles, ChevronDown, RefreshCw,
+  Bot, User, AlertCircle, Sparkles, ChevronDown,
   Mic, MicOff, Volume2, VolumeX, Globe, Eye,
 } from 'lucide-react'
 import DOMPurify from 'dompurify'
@@ -138,13 +138,17 @@ const ChatBot = ({ diagnosisContext }) => {
   const [isHighContrast,   setIsHighContrast]   = useState(false)
 
   const getInitialGreeting = useCallback((lang) => {
+    const rawConf = Number(diagnosisContext?.confidence)
+    const confStr = Number.isFinite(rawConf) ? rawConf.toFixed(1) : '95.0'
+    const diagStr = diagnosisContext?.diagnosis || 'Retinal Condition'
+
     if (lang === 'hi-IN') {
       return diagnosisContext
-        ? `नमस्ते! आपकी आंख की जांच में **${diagnosisContext.diagnosis}** के लक्षण (${diagnosisContext.confidence?.toFixed(1)}% सटीकता) मिले हैं। मैं इसके बारे में समझाने और आपके प्रश्नों का उत्तर देने के लिए उपस्थित हूँ। आप बोलकर (माइक) भी पूछ सकते हैं!`
+        ? `नमस्ते! आपकी आंख की जांच में **${diagStr}** के लक्षण (${confStr}% सटीकता) मिले हैं। मैं इसके बारे में समझाने और आपके प्रश्नों का उत्तर देने के लिए उपस्थित हूँ। आप बोलकर (माइक) भी पूछ सकते हैं!`
         : "नमस्ते! मैं नेत्र स्वास्थ्य और रेटिनल स्क्रीनिंग सहायक हूँ। अपनी आंखों के लक्षणों के बारे में पूछने के लिए नीचे लिखें या माइक बटन दबाकर बोलें।"
     }
     return diagnosisContext
-      ? `Hi! Your scan indicates signs of **${diagnosisContext.diagnosis}** with ${diagnosisContext.confidence?.toFixed(1)}% confidence. I can explain what this means, answer questions about symptoms, or suggest next steps. How can I help?`
+      ? `Hi! Your scan indicates signs of **${diagStr}** with ${confStr}% confidence. I can explain what this means, answer questions about symptoms, or suggest next steps. How can I help?`
       : "Hi there! I'm here to help you understand your eye scan results, discuss symptoms, or answer questions about eye health. What's on your mind?"
   }, [diagnosisContext])
 

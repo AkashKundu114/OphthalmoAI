@@ -178,12 +178,23 @@ static/uploads/
 !run_docker_train.ps1
 
 
-# ========================
 # Research Paper Drafts & Submission Materials
 # ========================
 research/
 research_paper/
 GEMINI.md
+tools/
+*.exe
+*.zip
+*.tar
+*.gz
+
+# Scratch scripts & temporary runs
+scripts/scratch_*
+scripts/test_*
+scripts/watch_*
+scripts/run_overnight_*
+scripts/run_missing_*
 
 # Synthetic test images generated at runtime
 static/synthetic-*.*

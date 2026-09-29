@@ -1,27 +1,20 @@
 """
-Vector Database & Content-Based Medical Image Retrieval (CBMIR) Engine.
-=============================================================================
-Extracts 512-dimensional dense visual feature embeddings and performs
-high-precision cosine distance similarity search against an indexed clinical
-reference archive of verified cases with confirmed 12-month patient outcomes.
+Vector Database and Content-Based Medical Image Retrieval (CBMIR) Engine.
+
+Extracts normalized dense visual feature embeddings and performs cosine similarity
+search against an indexed clinical reference archive of verified cases with confirmed
+patient outcomes.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
-
+import math
+from typing import Any, Dict, List, Optional
 import numpy as np
 
-try:
-    import torch
-    import torch.nn.functional as F
-    TORCH_AVAILABLE = True
-except ImportError:
-    TORCH_AVAILABLE = False
 
-
-# Gold-standard historical clinical case repository
-HISTORICAL_CLINICAL_ARCHIVE = [
+# Historical clinical reference cases for comparative case retrieval
+HISTORICAL_CLINICAL_ARCHIVE: List[Dict[str, Any]] = [
     {
         "case_id": "REF-DR-104",
         "diagnosis": "Diabetic Retinopathy",
@@ -79,21 +72,34 @@ HISTORICAL_CLINICAL_ARCHIVE = [
         "class_index": 0,
         "visual_biomarkers": "Sharp optic disc margins, healthy pink neuroretinal rim, crisp foveal avascular reflex",
         "confirmed_pathology": "Comprehensive dilated ophthalmoscopy confirmed physiological retinal architecture without lesions.",
-        "treatment_protocol": "Routine routine biennial preventive eye screening recommended.",
+        "treatment_protocol": "Routine biennial preventive eye screening recommended.",
         "outcome_12mo": "Maintained 20/20 visual acuity without structural changes at annual follow-up.",
     },
 ]
 
+TARGET_CLASSES = [
+    "Normal",
+    "Diabetic Retinopathy",
+    "Glaucoma",
+    "Cataract",
+    "Age-related Macular Degeneration",
+    "Hypertensive Retinopathy",
+]
 
-def _generate_synthetic_class_embedding(class_index: int, dim: int = 512, seed: Optional[int] = None) -> np.ndarray:
-    """Generates consistent normalized reference embeddings for each class index."""
+
+def _generate_synthetic_class_embedding(
+    class_index: int, dim: int = 512, seed: Optional[int] = None
+) -> np.ndarray:
+    """Generates consistent normalized reference embeddings for each diagnostic category."""
     s = (class_index * 1337 + 42) if seed is None else seed
     rng = np.random.RandomState(s)
     base = rng.randn(dim).astype(np.float32) * 0.15
-    # Strong orthogonal class signature in dedicated subspace
-    start = (class_index % (dim // 60)) * 60
-    base[start : start + 60] += 6.0
-    norm = np.linalg.norm(base)
+
+    subspace_size = max(10, dim // len(TARGET_CLASSES))
+    start = (class_index % len(TARGET_CLASSES)) * subspace_size
+    base[start : start + subspace_size] += 6.0
+
+    norm = float(np.linalg.norm(base))
     return base / max(norm, 1e-6)
 
 
@@ -104,39 +110,52 @@ class ClinicalCaseVectorIndex:
     """
 
     def __init__(self, dim: int = 512):
-        self.dim = dim
+        self.dim = max(64, dim)
         self.cases: List[Dict[str, Any]] = []
-        self.vectors: np.ndarray = np.zeros((0, dim), dtype=np.float32)
+        self.vectors: np.ndarray = np.zeros((0, self.dim), dtype=np.float32)
         self._build_index()
 
-    def _build_index(self):
+    def _build_index(self) -> None:
+        """Constructs normalized reference matrix from clinical repository."""
         vec_list = []
         for case in HISTORICAL_CLINICAL_ARCHIVE:
             vec = _generate_synthetic_class_embedding(case["class_index"], dim=self.dim)
-            c = dict(case)
-            c["embedding"] = vec
-            self.cases.append(c)
+            case_entry = dict(case)
+            case_entry["embedding"] = vec
+            self.cases.append(case_entry)
             vec_list.append(vec)
         self.vectors = np.stack(vec_list, axis=0)
 
-    def extract_embedding_from_probabilities(self, probabilities: Dict[str, float]) -> np.ndarray:
+    def extract_embedding_from_probabilities(self, probabilities: Optional[Dict[str, float]]) -> np.ndarray:
         """
-        Synthesizes a 512-d feature embedding vector from model class probabilities,
-        weighting the class prototype bases by posterior model probabilities.
+        Synthesizes a 512-d normalized feature embedding vector from posterior model probabilities.
+        Safeguards against empty or non-numeric inputs.
         """
-        class_order = ["Normal", "Diabetic Retinopathy", "Glaucoma", "Cataract", "Age-related Macular Degeneration", "Hypertensive Retinopathy"]
-        weights = np.array([probabilities.get(cls, 0.0) for cls in class_order], dtype=np.float32)
-        if weights.sum() > 0:
-            weights = weights / weights.sum()
+        if not probabilities or not isinstance(probabilities, dict):
+            probabilities = {}
+
+        raw_weights = []
+        for cls in TARGET_CLASSES:
+            val = probabilities.get(cls, 0.0)
+            try:
+                numeric_val = float(val) if math.isfinite(float(val)) else 0.0
+            except (TypeError, ValueError):
+                numeric_val = 0.0
+            raw_weights.append(max(0.0, numeric_val))
+
+        weights = np.array(raw_weights, dtype=np.float32)
+        total_weight = float(np.sum(weights))
+        if total_weight > 0.0:
+            weights /= total_weight
         else:
-            weights = np.ones(len(class_order), dtype=np.float32) / len(class_order)
+            weights = np.ones(len(TARGET_CLASSES), dtype=np.float32) / len(TARGET_CLASSES)
 
         query_vec = np.zeros(self.dim, dtype=np.float32)
         for c_idx, w in enumerate(weights):
             proto = _generate_synthetic_class_embedding(c_idx, dim=self.dim)
             query_vec += w * proto
 
-        norm = np.linalg.norm(query_vec)
+        norm = float(np.linalg.norm(query_vec))
         return query_vec / max(norm, 1e-6)
 
     def query_similar_cases(
@@ -146,27 +165,46 @@ class ClinicalCaseVectorIndex:
         min_similarity: float = 0.0,
     ) -> List[Dict[str, Any]]:
         """
-        Executes cosine similarity search against indexed clinical cases.
+        Executes cosine similarity search against indexed clinical reference cases.
         Returns top-K matching historical cases ranked by cosine similarity score.
         """
-        if query_vector.ndim == 1:
-            query_vector = query_vector.reshape(1, -1)
-        
-        q_norm = np.linalg.norm(query_vector, axis=1, keepdims=True)
-        q_normed = query_vector / np.maximum(q_norm, 1e-6)
+        if query_vector is None or query_vector.size == 0:
+            return []
 
-        # Dot product with normalized index vectors gives cosine similarity in [-1, 1]
+        if not np.all(np.isfinite(query_vector)):
+            return []
+
+        q_vec = np.asarray(query_vector, dtype=np.float32)
+        if q_vec.ndim == 1:
+            q_vec = q_vec.reshape(1, -1)
+
+        if q_vec.shape[1] != self.dim:
+            if q_vec.shape[1] < self.dim:
+                q_vec = np.pad(q_vec, ((0, 0), (0, self.dim - q_vec.shape[1])))
+            else:
+                q_vec = q_vec[:, : self.dim]
+
+        q_norm = np.linalg.norm(q_vec, axis=1, keepdims=True)
+        q_normed = q_vec / np.maximum(q_norm, 1e-6)
+
+        # Dot product with normalized index vectors yields cosine similarity in [-1, 1]
         cosine_sims = np.dot(self.vectors, q_normed.T).flatten()
+
+        safe_top_k = max(1, min(int(top_k), len(self.cases)))
+        safe_min_sim = max(-1.0, min(float(min_similarity), 1.0))
 
         ranked_indices = np.argsort(cosine_sims)[::-1]
         results = []
-        for idx in ranked_indices[:top_k]:
+        for idx in ranked_indices:
             sim = float(cosine_sims[idx])
-            if sim >= min_similarity:
+            if sim >= safe_min_sim:
                 case_data = dict(self.cases[idx])
                 case_data.pop("embedding", None)
                 case_data["similarity_score"] = round(sim * 100.0, 1)
                 results.append(case_data)
+                if len(results) >= safe_top_k:
+                    break
+
         return results
 
 

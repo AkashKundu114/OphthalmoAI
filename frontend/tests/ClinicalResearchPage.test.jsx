@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import ClinicalResearchPage, { PAPERS_DATABASE } from '../src/ClinicalResearchPage'
+import ClinicalResearchPage from '../src/ClinicalResearchPage'
 import App from '../src/App'
 
 describe('Clinical Research & Preprints Page', () => {

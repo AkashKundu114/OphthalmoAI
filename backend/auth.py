@@ -47,14 +47,8 @@ ROLE_HIERARCHY = {"patient": 0, "technician": 1, "clinician": 2, "admin": 3}
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
-
-
-
-
-
-
 def hash_password(plain: str) -> str:
-    
+    """Hashes a plaintext password using bcrypt (or PBKDF2 fallback with 100k rounds)."""
     if BCRYPT_AVAILABLE:
         pwd_bytes = plain.encode("utf-8")
         salt = bcrypt.gensalt(rounds=12)
@@ -65,7 +59,7 @@ def hash_password(plain: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    
+    """Verifies a plaintext password against its bcrypt or PBKDF2 hash using constant-time comparison."""
     try:
         if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
             if BCRYPT_AVAILABLE:
@@ -202,7 +196,7 @@ def require_role(*roles: str):
 
 
 def revoke_token(token: str) -> None:
-    
+    """Extracts token JTI claim and adds it to the revocation blacklist until expiration."""
     try:
         payload = jwt.decode(
             token, SECRET_KEY, algorithms=[ALGORITHM],

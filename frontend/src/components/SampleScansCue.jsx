@@ -1,5 +1,5 @@
 import React from 'react'
-import { Sparkles, CheckCircle2, XCircle, Info, ScanEye } from 'lucide-react'
+import { CheckCircle2, XCircle, Info, ScanEye } from 'lucide-react'
 import { playClickSound } from '../utils/soundEffects'
 
 const FUNDUS_SAMPLES = [
@@ -54,18 +54,28 @@ const FUNDUS_SAMPLES = [
 ]
 
 /**
- * SampleScansCue - Interactive cue cards and sample fundus photograph loader inspired by cuedesign.space & shotbase.com
+ * Interactive clinical fundus reference loader and photography quality guide.
  */
 export default function SampleScansCue({ onSelectSample }) {
   const handleSelect = async (sample) => {
     playClickSound()
     try {
       const res = await fetch(sample.path)
+      if (!res.ok) {
+        throw new Error(`Failed to load sample: HTTP ${res.status}`)
+      }
       const blob = await res.blob()
-      const file = new File([blob], `${sample.id}_fundus.jpg`, { type: 'image/jpeg' })
-      onSelectSample(file, sample.path)
+      if (blob.size === 0) {
+        throw new Error('Retrieved sample image is empty')
+      }
+      const file = new File([blob], `${sample.id}_fundus.jpg`, { type: blob.type || 'image/jpeg' })
+      if (typeof onSelectSample === 'function') {
+        onSelectSample(file, sample.path)
+      }
     } catch {
-      onSelectSample(null, sample.path)
+      if (typeof onSelectSample === 'function') {
+        onSelectSample(null, sample.path)
+      }
     }
   }
 
@@ -85,6 +95,7 @@ export default function SampleScansCue({ onSelectSample }) {
           {FUNDUS_SAMPLES.map((sample) => (
             <button
               key={sample.id}
+              type="button"
               onClick={() => handleSelect(sample)}
               className="group relative p-2 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer"
             >
@@ -112,7 +123,7 @@ export default function SampleScansCue({ onSelectSample }) {
         </div>
       </div>
 
-      {/* Visual Quality Cue Cards (cuedesign.space) */}
+      {/* Visual Quality Cue Cards */}
       <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
         <div className="flex items-center gap-1.5 font-bold text-slate-800 mb-2">
           <Info className="w-3.5 h-3.5 text-cyan-600" />

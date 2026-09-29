@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Scan, Eye, Activity } from 'lucide-react'
+import { Activity } from 'lucide-react'
 
 /**
- * RetinaScanShader - Cyber-medical laser scan overlay inspired by shaders.com & bookofshapes.com
- * Renders during inference with a sweeping laser line, target reticle crosshairs, and live coordinate HUD.
+ * Optical laser scan simulation overlay for fundus image processing.
+ * Renders during neural inference with a sweeping laser line and live coordinate HUD.
  */
 export default function RetinaScanShader({ stage = 'Analyzing Fundus Biomarkers...' }) {
   const [scanCoord, setScanCoord] = useState({ x: 142, y: 218 })
@@ -31,15 +31,15 @@ export default function RetinaScanShader({ stage = 'Analyzing Fundus Biomarkers.
         </span>
       </div>
 
-      {/* Sweeping Laser Beam (shaders.com simulation via CSS animation) */}
+      {/* Sweeping Laser Beam */}
       <div 
-        className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_16px_#00ADB5,0_0_32px_#00ADB5] animate-laser-sweep"
+        className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_16px_#00ADB5,0_0_32px_#00ADB5]"
         style={{
           animation: 'laserSweep 2.2s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Center Target Reticle (bookofshapes.com) */}
+      {/* Center Target Reticle */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         <div className="relative w-24 h-24 rounded-full border border-cyan-400/40 flex items-center justify-center animate-pulse">
           <div className="w-12 h-12 rounded-full border border-cyan-300/60 flex items-center justify-center">

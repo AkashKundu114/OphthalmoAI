@@ -1,4 +1,4 @@
-﻿"""
+"""
 Integration tests for Dual-Track Upgrade Endpoints in FastAPI main application:
 - CBMIR Similar Cases Retrieval
 - Demographic Fairness Audit
@@ -9,8 +9,10 @@ Integration tests for Dual-Track Upgrade Endpoints in FastAPI main application:
 
 import pytest
 from fastapi.testclient import TestClient
+from backend.db import Base, engine
 from backend.main import app
 
+Base.metadata.create_all(bind=engine)
 client = TestClient(app)
 
 

@@ -11,7 +11,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://reactjs.org/)
-[![Tests Passing](https://img.shields.io/badge/Tests-212%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-253%20Passed%20(100%25)-brightgreen.svg)](tests/)
 [![Internal Test Accuracy](https://img.shields.io/badge/Internal%20Accuracy-85.18%25-brightgreen.svg)](docs/PERFORMANCE_METRICS.md)
 [![Macro AUROC](https://img.shields.io/badge/Macro%20AUROC-0.9818-blue.svg)](docs/PERFORMANCE_METRICS.md)
 [![External Test (IDRiD)](https://img.shields.io/badge/External%20DR%20Sensitivity-91.30%25-brightgreen.svg)](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)
@@ -79,7 +79,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 - **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India).
 - **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain).
 - **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence.
-- **212 / 212 Pytest Tests Passing (100%):** Exhaustive test coverage across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, and multi-tenant RLS isolation.
+- **253 / 253 Automated Tests Passing (100%):** Exhaustive test coverage (232 Pytest backend tests + 21 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, and multi-tenant RLS isolation.
 - **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput.
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
 - **29 Publication-Grade Figures:** Comprehensive high-resolution publication-standard evaluation visual suite in `docs/images/`.
@@ -88,7 +88,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 
 ## Executive Summary & Key Technical Innovations
 
-> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 212 passing automated tests, **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and multi-tenant Row-Level Security.
+> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 253 passing automated tests (232 backend + 21 frontend), **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and multi-tenant Row-Level Security.
 
 ---
 

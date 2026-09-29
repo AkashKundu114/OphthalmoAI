@@ -62,12 +62,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if self._is_production:
             response.headers["Strict-Transport-Security"] = _HSTS
 
-
-
-
-
-
-
         for h in _HEADERS_TO_REMOVE:
             if h in response.headers:
                 del response.headers[h]

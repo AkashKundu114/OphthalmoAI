@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [v2.7.0] - 2026-09-29
+
+### Clean Code Architecture, Boundary Hardening & Comprehensive Unit Test Expansion ("Code is Poetry")
+
+> **Engineered** complete repository modularization, boundary condition hardening, and technical interview readiness **as measured by** 253 total passing automated tests (232 Pytest backend tests in 16.4s + 21 Vitest frontend tests in 3.0s), 100% test pass rate, 0 ESLint errors/warnings, 0.25s execution of the master reproducibility suite, and elimination of 17 obsolete scratch/binary artifacts, **by implementing** single-responsibility modular functions, descriptive domain identifiers, multi-database parameterized tenancy filters (PostgreSQL, MS SQL Server, SQLite), numerical stability safeguards (division-by-zero, log-space clamping, bounded ring buffers), and a dedicated 31-test boundary condition suite.
+
+### Added
+- **Dedicated Boundary Condition & Edge Case Unit Test Suite (`tests/test_boundary_conditions.py`)**:
+  - 31 automated test cases covering adversarial tenant headers, SQL injection attempts, 0x0/1x1/extreme-aspect images, pure white/black variance anomalies, zero/negative calibration temperatures, zero-request Prometheus quantiles, extreme conformal alphas ($10^{-4}$ and $0.99$), and emergency triage routing.
+- **Multi-Database Tenancy & Format Validation (`backend/tenancy.py`)**:
+  - Added `validate_tenant_identifier()` with strict character and length boundaries (`^[a-zA-Z0-9_\-]{3,64}$`).
+  - Added fail-closed parameterized row-level isolation compatible with PostgreSQL, MS SQL Server, and SQLite.
+- **Numerical Stability & Bounded Memory**:
+  - Migrated metric duration storage to bounded ring buffers (`collections.deque(maxlen=1000)`) preventing memory leaks.
+  - Added max-subtraction softmax numerical stability and positive temperature clamping ($T \in [10^{-3}, 50.0]$).
+
+### Refactored & Cleaned
+- **Frontend Clean Code (`frontend/src/edgeInference.js`, `frontend/src/App.jsx`)**:
+  - Modularized edge inference into focused functions with division guards, RGB clamping, and object URL memory leak revocation.
+  - Added form input boundary constraints for all clinical vitals.
+- **Script Modularization (`scripts/reproduce_evaluation.py`, `scripts/run_statistical_tests.py`, etc.)**:
+  - Added zero-dependency analytical fallbacks so reproduction scripts run in headless and policy-restricted environments.
+- **Repository Hygiene & Dead Code Removal**:
+  - Purged 17 obsolete scratch scripts and binary tools (`tools/tectonic/tectonic.exe`, `tools/tectonic/tectonic.zip`, `backend/tests/` legacy folder, local test logs).
+  - Hardened `.gitignore` to prevent any binary, log, or scratch scripts from being tracked.
+
+---
+
 ## [v2.6.0] - 2026-09-17
 
 ### Independent External Clinical Validation, Model Adaptation & Script Consolidation

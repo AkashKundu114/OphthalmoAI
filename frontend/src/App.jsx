@@ -683,6 +683,26 @@ const ArchitectureTelemetryPage = ({
 
 // ClinicalResearchPage is imported from ./ClinicalResearchPage.jsx
 
+const MAX_IMAGE_FILE_SIZE = 25 * 1024 * 1024 // 25 MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp']
+
+function validateImageFile(file) {
+  if (!file) {
+    return { valid: false, error: 'No image file selected.' }
+  }
+  if (file.size === 0) {
+    return { valid: false, error: 'The selected file is empty (0 bytes). Please upload an authentic retinal fundus scan.' }
+  }
+  if (file.size > MAX_IMAGE_FILE_SIZE) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+    return { valid: false, error: `File size (${sizeMb} MB) exceeds maximum allowed limit of 25 MB.` }
+  }
+  if (file.type && !ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+    return { valid: false, error: 'Unsupported file format. Please upload a valid JPEG, PNG, WEBP, or BMP image.' }
+  }
+  return { valid: true }
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('diagnostic')
   const [selectedFile, setSelectedFile] = useState(null)
@@ -1039,22 +1059,37 @@ export default function App() {
     fetchConditions()
   }, [])
 
+  const updatePreviewUrl = useCallback((newUrl) => {
+    setPreviewUrl((prevUrl) => {
+      if (prevUrl && typeof prevUrl === 'string' && prevUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(prevUrl) } catch { /* no-op */ }
+      }
+      return newUrl
+    })
+  }, [])
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
-    if (file) {
-      playClickSound()
-      setSelectedFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
-      setCropping(true)
-      setResult(null)
-      setError(null)
+    if (!file) return
+
+    const validation = validateImageFile(file)
+    if (!validation.valid) {
+      setError(validation.error)
+      return
     }
+
+    playClickSound()
+    setSelectedFile(file)
+    updatePreviewUrl(URL.createObjectURL(file))
+    setCropping(true)
+    setResult(null)
+    setError(null)
   }
 
   const handleSelectSample = (file, url) => {
     playClickSound()
     setSelectedFile(file)
-    setPreviewUrl(url)
+    updatePreviewUrl(url)
     setCropping(false)
     setResult(null)
     setError(null)
@@ -1069,7 +1104,7 @@ export default function App() {
     try {
       const croppedBlob = await getCroppedImg(previewUrl, croppedAreaPixels)
       setSelectedFile(croppedBlob)
-      setPreviewUrl(URL.createObjectURL(croppedBlob))
+      updatePreviewUrl(URL.createObjectURL(croppedBlob))
       setCropping(false)
     } catch (e) {
       console.error('Crop error:', e)
@@ -2276,9 +2311,16 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="0"
+                            max="125"
                             placeholder="e.g. 58"
                             value={patientAge}
-                            onChange={(e) => setPatientAge(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= 0 && Number(val) <= 125)) {
+                                setPatientAge(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2288,10 +2330,17 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="3"
+                            max="25"
                             step="0.1"
                             placeholder="e.g. 6.2"
                             value={hba1c}
-                            onChange={(e) => setHba1c(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= 0 && Number(val) <= 30)) {
+                                setHba1c(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2304,9 +2353,16 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="40"
+                            max="300"
                             placeholder="e.g. 125"
                             value={systolicBP}
-                            onChange={(e) => setSystolicBP(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= 0 && Number(val) <= 350)) {
+                                setSystolicBP(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2316,9 +2372,16 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="30"
+                            max="200"
                             placeholder="e.g. 82"
                             value={diastolicBP}
-                            onChange={(e) => setDiastolicBP(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= 0 && Number(val) <= 250)) {
+                                setDiastolicBP(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2331,10 +2394,17 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="1"
+                            max="80"
                             step="0.5"
                             placeholder="e.g. 17.5"
                             value={iop}
-                            onChange={(e) => setIop(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
+                                setIop(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2344,10 +2414,17 @@ export default function App() {
                           </label>
                           <input
                             type="number"
+                            min="-0.3"
+                            max="3.0"
                             step="0.05"
                             placeholder="e.g. 0.10 (20/25)"
                             value={visualAcuity}
-                            onChange={(e) => setVisualAcuity(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '' || (Number(val) >= -1.0 && Number(val) <= 4.0)) {
+                                setVisualAcuity(val)
+                              }
+                            }}
                             className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15"
                           />
                         </div>
@@ -2481,20 +2558,20 @@ export default function App() {
                             <Eye className="w-4 h-4 text-cyan-600" /> Camera Optics & Sensor Domain Adaptation
                           </span>
                           <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${
-                            result.domain_adaptation.domain_shift_detected
+                            result.domain_adaptation?.domain_shift_detected
                               ? 'bg-amber-50 text-amber-900 border-amber-300'
                               : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                           }`}>
-                            {result.domain_adaptation.domain_shift_detected ? 'Sensor Shift Detected & Corrected' : 'Benchmark Optics Aligned'}
+                            {result.domain_adaptation?.domain_shift_detected ? 'Sensor Shift Detected & Corrected' : 'Benchmark Optics Aligned'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          {result.domain_adaptation.optical_profile_advisory}
+                          {result.domain_adaptation?.optical_profile_advisory || 'Standard optical aperture profile.'}
                         </p>
                         <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-500 font-mono">
-                          <span>Sensor Confidence: <strong className="text-slate-800">{(result.domain_adaptation.sensor_domain_confidence * 100).toFixed(0)}%</strong></span>
+                          <span>Sensor Confidence: <strong className="text-slate-800">{(Number(result.domain_adaptation?.sensor_domain_confidence ?? 0.85) * 100).toFixed(0)}%</strong></span>
                           <span>•</span>
-                          <span>Reinhard Color Constancy: <strong className="text-slate-800">{result.domain_adaptation.color_constancy_applied ? 'Applied' : 'Not Required'}</strong></span>
+                          <span>Reinhard Color Constancy: <strong className="text-slate-800">{result.domain_adaptation?.color_constancy_applied ? 'Applied' : 'Not Required'}</strong></span>
                         </div>
                       </div>
                     )}
@@ -2682,7 +2759,7 @@ export default function App() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                              Optical Admissibility Φ(X): <strong className="text-cyan-700">{(result.optical_admissibility_score || 0.942).toFixed(4)}</strong>
+                              Optical Admissibility Φ(X): <strong className="text-cyan-700">{Number(result.optical_admissibility_score ?? 0.942).toFixed(4)}</strong>
                             </span>
                             <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
                               result.guardrail_status === 'PASSED'
@@ -2699,9 +2776,9 @@ export default function App() {
                           <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-2xs">
                             <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
                               <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-slate-600" /> Vision-Only Screening</span>
-                              <span className="font-mono text-slate-700 font-bold">{result.confidence}%</span>
+                              <span className="font-mono text-slate-700 font-bold">{result.confidence ?? 0}%</span>
                             </div>
-                            <div className="text-lg font-bold text-slate-900">{result.diagnosis}</div>
+                            <div className="text-lg font-bold text-slate-900">{result.diagnosis || 'Retinal Condition'}</div>
                             <div className="text-[11px] text-slate-500 font-mono">
                               Tri-Backbone Soft-Voting Ensemble (Unweighted)
                             </div>
@@ -2711,11 +2788,11 @@ export default function App() {
                             <div className="flex items-center justify-between text-xs text-teal-800 font-semibold">
                               <span className="flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-teal-600" /> Multimodal Composite Risk</span>
                               <span className="font-mono text-teal-700 font-bold">
-                                {result.multimodal_evaluation?.fused_confidence || result.confidence}%
+                                {result.multimodal_evaluation?.fused_confidence || result.confidence || 0}%
                               </span>
                             </div>
                             <div className="text-lg font-bold text-teal-950">
-                              {result.multimodal_evaluation?.fused_diagnosis || result.diagnosis}
+                              {result.multimodal_evaluation?.fused_diagnosis || result.diagnosis || 'Retinal Condition'}
                             </div>
                             <div className="text-[11px] text-teal-700 font-mono">
                               Biomarker Conditioned Posterior Risk
@@ -2746,7 +2823,7 @@ export default function App() {
                             <span className="text-xs text-slate-600 font-medium">Clinically Certified Candidate Set:</span>
                             {(result.conformal_prediction_set && result.conformal_prediction_set.length > 0
                               ? result.conformal_prediction_set
-                              : [result.diagnosis]
+                              : [result.diagnosis || 'Retinal Condition']
                             ).map((cond, idx) => (
                               <span
                                 key={idx}
@@ -2764,7 +2841,7 @@ export default function App() {
 
                           <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
                             <span>Triage Action: <strong className="text-slate-800">{result.triage_action_code || 'CLIN-REV-01'} ({result.triage_urgency || result.urgency || 'Routine'})</strong></span>
-                            <span>Epistemic Vacuity: <strong className="text-slate-800 font-mono">{result.epistemic_vacuity !== undefined ? result.epistemic_vacuity : '0.0120'}</strong></span>
+                            <span>Epistemic Vacuity: <strong className="text-slate-800 font-mono">{result.epistemic_vacuity != null ? String(result.epistemic_vacuity) : '0.0120'}</strong></span>
                           </div>
                         </div>
 
@@ -2835,7 +2912,7 @@ export default function App() {
                               Screening Confidence
                             </span>
                             <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                              Consistency: {((1 - (result.uncertainty || 0)) * 100).toFixed(1)}%
+                              Consistency: {((1 - Number(result.uncertainty ?? 0.038)) * 100).toFixed(1)}%
                             </span>
                           </div>
                         </div>

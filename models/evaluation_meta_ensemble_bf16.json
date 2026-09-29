@@ -1,0 +1,18 @@
+{
+  "model": "tri_backbone_ensemble_bf16",
+  "mode": "meta_classifier",
+  "precision": "BF16",
+  "test_samples": 2249,
+  "accuracy": 0.8102,
+  "macro_auroc": 0.9725,
+  "macro_f1": 0.7814,
+  "weighted_f1": 0.8095,
+  "ece": 0.0410,
+  "temperatures_applied": {
+    "efficientnet_v2_m": 1.10,
+    "densenet201": 1.12,
+    "convnext_small": 1.15,
+    "efficientnet_b4": 1.14,
+    "resnet50": 1.05
+  }
+}

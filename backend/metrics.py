@@ -1,27 +1,41 @@
-﻿"""
-Prometheus Metrics Engine & Health Telemetry Exporter.
-=============================================================================
-Tracks live model inference latencies, throughput, GPU VRAM allocations,
-and sensor domain shift frequency in standard Prometheus Exposition Format.
+"""
+Prometheus Metrics Engine and Telemetry Exporter.
+
+Tracks inference latencies, request throughput, GPU allocations, and domain shift
+events in Prometheus exposition format (text/plain; version=0.0.4).
 """
 
 from __future__ import annotations
 
+import collections
+import math
 import os
+import re
 import threading
-import time
-from typing import Dict, List, Tuple
+from typing import Deque, Dict, List, Optional, Tuple
 import numpy as np
+
+
+MAX_RING_BUFFER_SAMPLES = 1000
+_LABEL_SANITIZE_PATTERN = re.compile(r"[^a-zA-Z0-9_\-]")
+
+
+def _sanitize_metric_label(label: str) -> str:
+    """Sanitizes prometheus metric label values to prevent metric injection."""
+    cleaned = _LABEL_SANITIZE_PATTERN.sub("_", label.strip())
+    return cleaned[:64] or "unknown"
 
 
 class PrometheusMetricsCollector:
     """
-    Thread-safe Prometheus telemetry collector.
-    Exposes metrics compatible with Prometheus server scraping and Grafana dashboards.
+    Thread-safe Prometheus telemetry collector utilizing bounded ring buffers
+    to guarantee fixed memory bounds and prevent leakage.
     """
 
-    def __init__(self):
+    def __init__(self, max_samples: int = MAX_RING_BUFFER_SAMPLES):
         self._lock = threading.Lock()
+        self._max_samples = max(10, max_samples)
+
         # Counters: (model, status) -> count
         self._inference_requests: Dict[Tuple[str, str], int] = {
             ("resnet50_fp32", "success"): 1420,
@@ -29,96 +43,130 @@ class PrometheusMetricsCollector:
             ("resnet50_fp32", "error"): 12,
             ("resnet50_onnx", "error"): 4,
         }
-        # Latency samples: model -> list of latency seconds
-        self._inference_durations: Dict[str, List[float]] = {
-            "resnet50_fp32": [0.045, 0.052, 0.048, 0.051, 0.063, 0.047, 0.049],
-            "resnet50_onnx": [0.012, 0.015, 0.013, 0.014, 0.018, 0.013, 0.014],
+
+        # Bounded ring buffers for latencies: model -> deque(maxlen=max_samples)
+        self._inference_durations: Dict[str, Deque[float]] = {
+            "resnet50_fp32": collections.deque(
+                [0.045, 0.052, 0.048, 0.051, 0.063, 0.047, 0.049],
+                maxlen=self._max_samples,
+            ),
+            "resnet50_onnx": collections.deque(
+                [0.012, 0.015, 0.013, 0.014, 0.018, 0.013, 0.014],
+                maxlen=self._max_samples,
+            ),
         }
-        # Counters for domain shifts: sensor -> count
+
+        # Counters for optical domain shifts
         self._domain_shifts: Dict[str, int] = {
             "reinhard_corrected": 184,
             "out_of_distribution": 19,
         }
-        # Active clinics/tenants
-        self._active_tenants: int = 4
 
-    def record_inference(self, model: str, duration_s: float, success: bool = True):
+        self._active_tenants: int = 1
+
+    def record_inference(self, model: str, duration_s: float, success: bool = True) -> None:
+        """
+        Records latency and completion status for an inference request.
+        Safeguards against negative or non-finite duration measurements.
+        """
+        clean_model = _sanitize_metric_label(model)
         status = "success" if success else "error"
-        with self._lock:
-            key = (model, status)
-            self._inference_requests[key] = self._inference_requests.get(key, 0) + 1
-            if model not in self._inference_durations:
-                self._inference_durations[model] = []
-            self._inference_durations[model].append(duration_s)
-            # Keep last 1000 samples to prevent unbounded memory
-            if len(self._inference_durations[model]) > 1000:
-                self._inference_durations[model] = self._inference_durations[model][-1000:]
 
-    def record_domain_shift(self, shift_type: str = "reinhard_corrected"):
-        with self._lock:
-            self._domain_shifts[shift_type] = self._domain_shifts.get(shift_type, 0) + 1
+        if not math.isfinite(duration_s) or duration_s < 0.0:
+            duration_s = 0.0
+        duration_s = min(duration_s, 3600.0)
 
-    def set_active_tenants(self, count: int):
         with self._lock:
-            self._active_tenants = count
+            req_key = (clean_model, status)
+            self._inference_requests[req_key] = self._inference_requests.get(req_key, 0) + 1
+
+            if clean_model not in self._inference_durations:
+                self._inference_durations[clean_model] = collections.deque(maxlen=self._max_samples)
+            self._inference_durations[clean_model].append(duration_s)
+
+    def record_domain_shift(self, shift_type: str = "reinhard_corrected") -> None:
+        """Increments optical domain adaptation counters."""
+        clean_shift = _sanitize_metric_label(shift_type)
+        with self._lock:
+            self._domain_shifts[clean_shift] = self._domain_shifts.get(clean_shift, 0) + 1
+
+    def set_active_tenants(self, count: int) -> None:
+        """Sets gauge for active hospital tenants."""
+        safe_count = max(0, int(count))
+        with self._lock:
+            self._active_tenants = safe_count
 
     def get_gpu_memory_bytes(self) -> int:
-        """Returns GPU VRAM allocated in bytes (or simulated baseline if CPU-only)."""
+        """Returns active GPU VRAM allocation in bytes or baseline fallback."""
         try:
             import torch
             if torch.cuda.is_available():
-                return torch.cuda.memory_allocated(0)
+                return int(torch.cuda.memory_allocated(0))
         except Exception:
             pass
-        return 1024 * 1024 * 480  # Default ~480 MB
+        return 1024 * 1024 * 480
 
     def generate_prometheus_text(self) -> str:
-        """Renders metrics in official Prometheus plaintext exposition format (text/plain; version=0.0.4)."""
-        lines = []
-
+        """
+        Renders telemetry metrics in Prometheus exposition format.
+        Gracefully handles zero-request states without NaN/Inf outputs.
+        """
         with self._lock:
-            # 1. Requests Total (Counter)
-            lines.append("# HELP ophthalmoai_inference_requests_total Total number of clinical screening inferences.")
-            lines.append("# TYPE ophthalmoai_inference_requests_total counter")
-            for (model, status), val in sorted(self._inference_requests.items()):
-                lines.append(f'ophthalmoai_inference_requests_total{{model="{model}",status="{status}"}} {val}')
+            requests_snapshot = dict(self._inference_requests)
+            durations_snapshot = {k: list(v) for k, v in self._inference_durations.items()}
+            shifts_snapshot = dict(self._domain_shifts)
+            active_tenants = self._active_tenants
 
-            # 2. Duration Quantiles (Summary)
-            lines.append("# HELP ophthalmoai_inference_duration_seconds Latency of model inferences across percentiles.")
-            lines.append("# TYPE ophthalmoai_inference_duration_seconds summary")
-            for model, samples in sorted(self._inference_durations.items()):
-                if samples:
-                    arr = np.array(samples)
-                    p50 = float(np.percentile(arr, 50))
-                    p90 = float(np.percentile(arr, 90))
-                    p99 = float(np.percentile(arr, 99))
-                    total_sum = float(np.sum(arr))
-                    count = len(arr)
-                    lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.5"}} {p50:.4f}')
-                    lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.9"}} {p90:.4f}')
-                    lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.99"}} {p99:.4f}')
-                    lines.append(f'ophthalmoai_inference_duration_seconds_sum{{model="{model}"}} {total_sum:.4f}')
-                    lines.append(f'ophthalmoai_inference_duration_seconds_count{{model="{model}"}} {count}')
+        lines: List[str] = [
+            "# HELP ophthalmoai_inference_requests_total Total number of clinical screening inferences.",
+            "# TYPE ophthalmoai_inference_requests_total counter",
+        ]
+        for (model, status), val in sorted(requests_snapshot.items()):
+            lines.append(f'ophthalmoai_inference_requests_total{{model="{model}",status="{status}"}} {val}')
 
-            # 3. GPU Memory
-            gpu_bytes = self.get_gpu_memory_bytes()
-            lines.append("# HELP ophthalmoai_gpu_memory_bytes Current GPU VRAM memory allocated for inference tensors.")
-            lines.append("# TYPE ophthalmoai_gpu_memory_bytes gauge")
-            lines.append(f"ophthalmoai_gpu_memory_bytes {gpu_bytes}")
+        lines.extend([
+            "# HELP ophthalmoai_inference_duration_seconds Latency of model inferences across percentiles.",
+            "# TYPE ophthalmoai_inference_duration_seconds summary",
+        ])
 
-            # 4. Domain Shifts
-            lines.append("# HELP ophthalmoai_domain_shift_detections_total Optical domain shifts and color constancy triggers.")
-            lines.append("# TYPE ophthalmoai_domain_shift_detections_total counter")
-            for shift_type, val in sorted(self._domain_shifts.items()):
-                lines.append(f'ophthalmoai_domain_shift_detections_total{{type="{shift_type}"}} {val}')
+        all_models = sorted(set(list(durations_snapshot.keys()) + [m for m, _ in requests_snapshot.keys()]))
+        for model in all_models:
+            samples = durations_snapshot.get(model, [])
+            if samples:
+                arr = np.array(samples, dtype=np.float64)
+                p50 = float(np.percentile(arr, 50))
+                p90 = float(np.percentile(arr, 90))
+                p99 = float(np.percentile(arr, 99))
+                total_sum = float(np.sum(arr))
+                count = len(arr)
+            else:
+                p50, p90, p99, total_sum, count = 0.0, 0.0, 0.0, 0.0, 0
 
-            # 5. Multi-Tenant Count
-            lines.append("# HELP ophthalmoai_active_tenants_total Total active clinical enterprise tenants.")
-            lines.append("# TYPE ophthalmoai_active_tenants_total gauge")
-            lines.append(f"ophthalmoai_active_tenants_total {self._active_tenants}")
+            lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.5"}} {p50:.4f}')
+            lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.9"}} {p90:.4f}')
+            lines.append(f'ophthalmoai_inference_duration_seconds{{model="{model}",quantile="0.99"}} {p99:.4f}')
+            lines.append(f'ophthalmoai_inference_duration_seconds_sum{{model="{model}"}} {total_sum:.4f}')
+            lines.append(f'ophthalmoai_inference_duration_seconds_count{{model="{model}"}} {count}')
+
+        gpu_bytes = self.get_gpu_memory_bytes()
+        lines.extend([
+            "# HELP ophthalmoai_gpu_memory_bytes Current GPU VRAM memory allocated for inference tensors.",
+            "# TYPE ophthalmoai_gpu_memory_bytes gauge",
+            f"ophthalmoai_gpu_memory_bytes {gpu_bytes}",
+            "# HELP ophthalmoai_domain_shift_detections_total Optical domain shifts and color constancy triggers.",
+            "# TYPE ophthalmoai_domain_shift_detections_total counter",
+        ])
+        for shift_type, val in sorted(shifts_snapshot.items()):
+            lines.append(f'ophthalmoai_domain_shift_detections_total{{type="{shift_type}"}} {val}')
+
+        lines.extend([
+            "# HELP ophthalmoai_active_tenants_total Total active clinical enterprise tenants.",
+            "# TYPE ophthalmoai_active_tenants_total gauge",
+            f"ophthalmoai_active_tenants_total {active_tenants}",
+        ])
 
         return "\n".join(lines) + "\n"
 
 
-# Global singleton
+# Global singleton instance
 metrics_collector = PrometheusMetricsCollector()

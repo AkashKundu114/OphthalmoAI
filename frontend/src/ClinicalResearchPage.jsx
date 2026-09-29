@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import {
   BookOpen, Search, Calendar, Clock, Star,
-  ExternalLink, FileText, Sparkles, Brain, Cpu,
-  ShieldCheck, ArrowUpRight, Tag, Microscope,
-  CheckCircle2, Info, Layers, Filter
+  ExternalLink, Cpu, ShieldCheck, ArrowUpRight,
+  Microscope, Info, Filter
 } from 'lucide-react'
 
 const PAPERS_DATABASE = [
@@ -276,14 +275,14 @@ export default function ClinicalResearchPage() {
     }
     // Search query
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      const matchTitle = paper.title.toLowerCase().includes(q)
-      const matchSummary = paper.summary.toLowerCase().includes(q)
-      const matchAuthors = paper.authors.toLowerCase().includes(q)
-      const matchTags = paper.tags.some(t => t.toLowerCase().includes(q))
-      const matchArxiv = paper.arxivId.toLowerCase().includes(q)
-      const matchVenue = paper.venue.toLowerCase().includes(q)
-      return matchTitle || matchSummary || matchAuthors || matchTags || matchArxiv || matchVenue
+      const q = searchQuery.toLowerCase().trim()
+      const matchTitle = paper.title?.toLowerCase().includes(q)
+      const matchSummary = paper.summary?.toLowerCase().includes(q)
+      const matchAuthors = paper.authors?.toLowerCase().includes(q)
+      const matchTags = paper.tags?.some(t => t?.toLowerCase().includes(q))
+      const matchArxiv = paper.arxivId?.toLowerCase().includes(q)
+      const matchVenue = paper.venue?.toLowerCase().includes(q)
+      return Boolean(matchTitle || matchSummary || matchAuthors || matchTags || matchArxiv || matchVenue)
     }
     return true
   })
@@ -538,8 +537,8 @@ export default function ClinicalResearchPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-1 pt-1">
-                    {paper.tags.map((tag, idx) => (
-                      <span key={idx} className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                    {paper.tags?.map((tag) => (
+                      <span key={`${paper.id}-${tag}`} className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                         #{tag}
                       </span>
                     ))}

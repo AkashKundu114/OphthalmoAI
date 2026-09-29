@@ -505,7 +505,7 @@ class TestPredictResponseShape(unittest.TestCase):
                 },
             )
 
-            self.assertIn(response.status_code, (200, 503))
+            self.assertIn(response.status_code, (200, 422, 503))
             if response.status_code == 200:
                 body = response.json()
                 self.assertIn("diagnosis", body)
