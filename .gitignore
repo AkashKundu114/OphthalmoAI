@@ -22,6 +22,7 @@ $RECYCLE.BIN/
 .project
 .settings/
 .agents/
+.archify/
 .claude/
 .gemini/
 .antigravity/

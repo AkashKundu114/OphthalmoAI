@@ -41,6 +41,7 @@ OphthalmoAI is a clinical decision-support and retinal disease screening platfor
   - **Content-Based Medical Image Retrieval (CBMIR)**: 512-dim visual embedding cosine vector search retrieving multimodal ophthalmic & OCT-confirmed reference cases.
   - **Demographic Fairness Audit**: EEOC 4/5ths compliant slice auditor across age cohorts and optical quality grades.
   - **Multi-Tenant Clinic RLS Isolation**: Cryptographic tenant boundaries with automated SQL row-level filters.
+- **Interactive Architecture Map**: An interactive, standalone system architecture diagram generated via Archify is available at [`docs/architecture.html`](architecture.html) (featuring pan/zoom, node/route inspection, search (`/`), trace (`R`), presentation mode (`F`), and theme toggle (`T`)).
 
 ---
 
@@ -53,5 +54,6 @@ OphthalmoAI is a clinical decision-support and retinal disease screening platfor
 - [x] Red-Team audited chatbot defenses against jailbreaks and off-topic prompts.
 - [x] Low-latency ONNX Runtime engine (2.15x speedup) and client-side offline edge screening (<50ms).
 - [x] Zero console warnings and passing production builds (`npm run build`).
-- [x] Comprehensive automated test suite with **212 passing tests (100% pass rate)**.
+- [x] Comprehensive automated test suite with **253 passing tests (100% pass rate)** (232 backend unit/integration tests + 21 frontend Vitest tests).
+- [x] Interactive Archify architecture validation map verified at `docs/architecture.html`.
 

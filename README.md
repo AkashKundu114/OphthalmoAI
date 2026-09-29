@@ -163,6 +163,9 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 
 ## System Architecture
 
+> 🗺️ **Interactive Architecture Map:** Explore the interactive, standalone architecture diagram generated with Archify at [`docs/architecture.html`](docs/architecture.html).
+> - **Interactive Capabilities**: Pan & zoom canvas, click nodes to inspect runtime responsibilities, trace directional data flows (`R`), step through the multi-stage clinical lifecycle via story playback (`P`), toggle fullscreen presentation mode (`F`), search components (`/`), and switch between Dark/Light themes (`T`).
+
 <p align="center">
   <img src="docs/images/end_to_end_pipeline_architecture.png" alt="Figure 1: End-to-End Trustworthy Point-of-Care Retinal Disease Screening Pipeline Architecture" width="96%" />
   <br />
@@ -432,6 +435,7 @@ OphthalmoAI/
 │   ├── generate_external_figures.py # Zero-overlap 300 DPI publication visual generator
 │   └── fine_tune_external_ensemble.py # Layer-selective fine-tuning with AMP FP16
 ├── docs/                          # Comprehensive technical and clinical documentation suite
+│   ├── architecture.html          # Interactive Archify SVG architecture map (pan/zoom, keyboard nav)
 │   ├── images/                    # 29 publication-grade academic figures
 │   ├── clinical/                  # Clinical safety, intended use, and external validation reports
 │   │   ├── CLINICAL_EVALUATION_AND_SAFETY.md # Intended use & risk mitigation
@@ -441,13 +445,14 @@ OphthalmoAI/
 │   └── technical/                 # System architecture, schemas, and security audits
 ├── deploy/                        # Production deployment manifests (Hugging Face, Docker)
 ├── k8s/                           # Production Kubernetes manifests and ingress configs
-└── tests/                         # 201 Pytest unit, integration, and external validation tests
+└── tests/                         # 253 automated tests (232 backend pytest + 21 frontend vitest)
 ```
 
 ---
 
 ## Documentation Suite
 
+- **[Interactive Architecture Map](docs/architecture.html)**: Interactive Archify SVG system architecture map with keyboard shortcuts and flow inspection.
 - **[System Specification](docs/SYSTEM_SPECIFICATION.md)**: Technical architecture, pipeline stages, and QA checklist.
 - **[Performance & Telemetry](docs/PERFORMANCE_METRICS.md)**: Comprehensive empirical metrics, ROC curves, calibration charts, and GPU profiling.
 - **[External Clinical Validation Report](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)**: Independent multi-cohort validation on IDRiD ($n=103$) and RIM-ONE DL ($n=447$).

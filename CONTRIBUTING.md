@@ -85,7 +85,7 @@ cd ..
 Before opening a pull request, you **MUST** pass all quality gates locally:
 
 ```bash
-# Gate 1: Full Pytest Test Suite (All 212 tests must pass with 100% pass rate)
+# Gate 1: Full Pytest Backend Test Suite (All 232 tests must pass with 100% pass rate)
 pytest tests -q
 
 # Gate 2: ONNX Runtime & Asynchronous Serving Verification
@@ -94,8 +94,11 @@ pytest tests/backend/test_onnx_inference.py tests/backend/test_async_screening.p
 # Gate 3: Domain Guardrails & Security Testing
 pytest tests/backend/test_domain_guardrail.py tests/backend/test_security_and_auth.py -v
 
-# Gate 4: Frontend Production Build & Type Checking
-cd frontend && npm run build && cd ..
+# Gate 4: Boundary Condition Edge-Case Hardening
+pytest tests/test_boundary_conditions.py -v
+
+# Gate 5: Frontend Unit & Edge Inference Test Suite (All 21 Vitest tests must pass)
+cd frontend && npm test -- --run && npm run build && cd ..
 ```
 
 ---

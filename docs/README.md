@@ -43,6 +43,7 @@ All benchmark figures and architecture diagrams are rendered in **300+ DPI publi
 ```
 docs/
 ├── README.md                                  # Master documentation index and visual gallery
+├── architecture.html                          # Interactive Archify SVG architecture map (pan/zoom, keyboard nav)
 ├── SYSTEM_SPECIFICATION.md                    # Core technical architecture, pipeline stages & QA checklist
 ├── PERFORMANCE_METRICS.md                     # Comprehensive empirical evaluation, ROC, and GPU profiling
 ├── OphthalmoAI_Technical_White_Paper.md       # Formal algorithmic white paper & mathematical formulations
@@ -72,6 +73,7 @@ research/                                      # Master Academic Publication Wor
 
 ## Key Document Links
 
+- **[Interactive Architecture Map](architecture.html)**: Interactive, standalone Archify SVG architecture diagram (featuring keyboard navigation: `/` search, `R` route trace, `P` story playback, `F` presentation mode, `T` theme toggle).
 - **[System Specification](SYSTEM_SPECIFICATION.md)**: Exhaustive pipeline breakdown from raw fundus ingestion to PDF attestation.
 - **[Performance & Telemetry](PERFORMANCE_METRICS.md)**: Deep dive into the 85.18% test accuracy, 0.9818 AUROC, and Platt scaling.
 - **[External Clinical Validation Report](clinical/EXTERNAL_VALIDATION_REPORT.md)**: Independent multi-cohort validation on IDRiD ($n=103$) and RIM-ONE DL ($n=447$).
