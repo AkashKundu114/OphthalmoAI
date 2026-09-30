@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 import os
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON,
@@ -10,26 +12,91 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
+from sqlalchemy.pool import NullPool, StaticPool
+
+from .db_utils import get_database_type
+
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "sqlite:///./ophthalmoai.db",
 )
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
-    echo=False,
-)
 
-if DATABASE_URL.startswith("sqlite"):
-    @event.listens_for(engine, "connect")
-    def _set_sqlite_pragmas(dbapi_conn, _):
-        cursor = dbapi_conn.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+def create_db_engine(database_url: Optional[str] = None, **kwargs):
+    raw_url = database_url or os.getenv("DATABASE_URL", "sqlite:///./ophthalmoai.db")
+    db_type = get_database_type(raw_url)
 
+    if db_type == "sqlite":
+        logger.warning("WARNING: Using SQLite for development. Set DATABASE_URL for production.")
+        connect_args = kwargs.pop("connect_args", {})
+        connect_args.setdefault("check_same_thread", False)
+        pool_cls = StaticPool if ":memory:" in raw_url else NullPool
+        eng = create_engine(
+            raw_url,
+            connect_args=connect_args,
+            poolclass=kwargs.pop("poolclass", pool_cls),
+            echo=kwargs.pop("echo", False),
+            **kwargs,
+        )
+
+        @event.listens_for(eng, "connect")
+        def _set_sqlite_pragmas(dbapi_conn, _):
+            try:
+                cursor = dbapi_conn.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL")
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.close()
+            except Exception:
+                pass
+
+        return eng
+
+    elif db_type == "postgresql":
+        resolved_url = raw_url
+        if resolved_url.startswith("postgresql://") or resolved_url.startswith("postgres://"):
+            try:
+                import psycopg  # noqa: F401
+                try:
+                    import psycopg2  # noqa: F401
+                except ImportError:
+                    resolved_url = resolved_url.replace("postgresql://", "postgresql+psycopg://", 1)
+                    resolved_url = resolved_url.replace("postgres://", "postgresql+psycopg://", 1)
+            except ImportError:
+                pass
+
+        pool_size = kwargs.pop("pool_size", 10)
+        max_overflow = kwargs.pop("max_overflow", 20)
+        pool_pre_ping = kwargs.pop("pool_pre_ping", True)
+
+        return create_engine(
+            resolved_url,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_pre_ping=pool_pre_ping,
+            echo=kwargs.pop("echo", False),
+            **kwargs,
+        )
+
+    elif db_type == "mssql":
+        pool_size = kwargs.pop("pool_size", 10)
+        max_overflow = kwargs.pop("max_overflow", 20)
+        pool_pre_ping = kwargs.pop("pool_pre_ping", True)
+
+        return create_engine(
+            raw_url,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_pre_ping=pool_pre_ping,
+            echo=kwargs.pop("echo", False),
+            **kwargs,
+        )
+
+    return create_engine(raw_url, **kwargs)
+
+
+engine = create_db_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -268,8 +335,12 @@ class PatientAppointment(Base):
 
 
 def create_tables() -> None:
+    try:
+        from .analytics import TenantDailyMetric  # noqa: F401
+    except ImportError:
+        pass
     Base.metadata.create_all(bind=engine)
-    if DATABASE_URL.startswith("sqlite"):
+    if get_database_type(str(engine.url)) == "sqlite":
         try:
             with engine.connect() as conn:
                 for table in ("users", "scan_results"):

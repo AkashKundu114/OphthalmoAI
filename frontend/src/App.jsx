@@ -22,6 +22,7 @@ import ChatBot from './ChatBox'
 import TermsPage from './TermsPage'
 import PrivacyPolicyPage from './PrivacyPolicyPage'
 import ClinicalResearchPage from './ClinicalResearchPage'
+import AnalyticsDashboard from './components/AnalyticsDashboard'
 import { runEdgeInference } from './edgeInference'
 import AmbientOrbs from './components/AmbientOrbs'
 import ComputeTelemetryHud from './components/ComputeTelemetryHud'
@@ -1948,6 +1949,7 @@ export default function App() {
                 <TabButton active={activeTab === 'diagnostic'} onClick={() => setActiveTab('diagnostic')} icon={<ScanEye className="w-4 h-4" />} label="Eye Screening" />
                 <TabButton active={activeTab === 'conditions'} onClick={() => setActiveTab('conditions')} icon={<BookOpen className="w-4 h-4" />} label="Conditions Guide" />
                 <TabButton active={activeTab === 'workflow'} onClick={() => setActiveTab('workflow')} icon={<BarChart2 className="w-4 h-4" />} label="Architecture & Specs" />
+                <TabButton active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} icon={<Activity className="w-4 h-4" />} label="Analytics" />
                 <TabButton active={activeTab === 'news'} onClick={() => setActiveTab('news')} icon={<Newspaper className="w-4 h-4" />} label="Eye Health News" />
               </nav>
 
@@ -1993,6 +1995,7 @@ export default function App() {
               { id: 'diagnostic', label: 'Eye Health Screening', icon: <ScanEye className="w-4 h-4" /> },
               { id: 'conditions', label: '6 Conditions Guide', icon: <BookOpen className="w-4 h-4" /> },
               { id: 'workflow', label: 'Architecture & Specs', icon: <BarChart2 className="w-4 h-4" /> },
+              { id: 'analytics', label: 'Tenant Analytics & Alerts', icon: <Activity className="w-4 h-4" /> },
               { id: 'news', label: 'Eye Health News & Literature', icon: <Newspaper className="w-4 h-4" /> },
             ].map((tab) => (
               <button
@@ -3306,6 +3309,8 @@ export default function App() {
             fetchAndShowFairness={fetchAndShowFairness}
           />
         )}
+
+        {activeTab === 'analytics' && <AnalyticsDashboard viewMode={viewMode} />}
 
         {activeTab === 'news' && <ClinicalResearchPage />}
 

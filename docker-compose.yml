@@ -8,7 +8,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-production}"
       FORCE_CPU: "${FORCE_CPU:-false}"
       MODELS_DIR: "${MODELS_DIR:-/app/models}"
-      DATABASE_URL: "${DATABASE_URL:-sqlite:////app/data/ophthalmoai.db}"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://ophthalmo:password@db:5432/ophthalmoai}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY:?Set JWT_SECRET_KEY to a random production secret. Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\"}"
       JWT_ALGORITHM: "${JWT_ALGORITHM:-HS256}"
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-480}"
@@ -34,6 +34,9 @@ services:
       AWS_REGION: "${AWS_REGION:-us-east-1}"
     ports:
       - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - backend-data:/app/data
       - ./models:/app/models:ro
@@ -47,6 +50,26 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
+
+  db:
+    image: postgres:16-alpine
+    container_name: ophthalmoai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-ophthalmo}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password}"
+      POSTGRES_DB: "${POSTGRES_DB:-ophthalmoai}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ophthalmo} -d ${POSTGRES_DB:-ophthalmoai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   frontend:
     build:
@@ -69,3 +92,4 @@ services:
 
 volumes:
   backend-data:
+  postgres-data:

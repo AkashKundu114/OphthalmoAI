@@ -13,8 +13,14 @@ def _to_async_url(sync_url: str) -> str:
         return sync_url.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
     if sync_url.startswith("postgresql://"):
         return sync_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if sync_url.startswith("postgresql+psycopg://"):
+        return sync_url.replace("postgresql+psycopg://", "postgresql+asyncpg://", 1)
     if sync_url.startswith("postgresql+psycopg2://"):
         return sync_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    if sync_url.startswith("postgres://"):
+        return sync_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if sync_url.startswith("mssql+pyodbc://"):
+        return sync_url.replace("mssql+pyodbc://", "mssql+aioodbc://", 1)
 
     return sync_url
 

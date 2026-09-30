@@ -56,6 +56,7 @@ import base64
 from .audit import log_event
 from .db_async import get_async_db
 from .routes_admin import OverrideRequest, router as admin_router
+from .analytics_routes import router as analytics_router
 from .mongodb_client import mongo_store
 from .auth import (
     ROLE_HIERARCHY, JWT_SECRET_KEY,
@@ -406,6 +407,7 @@ _chat_limit    = make_rate_limit_decorator(CHAT_RATE_LIMIT)
 _auth_limit    = make_rate_limit_decorator(AUTH_RATE_LIMIT)
 
 app.include_router(admin_router)  
+app.include_router(analytics_router)  
 
 
 
@@ -2028,11 +2030,10 @@ async def create_tenant_endpoint(
 async def get_current_tenant_info(
     request: Request,
     db: Session = Depends(get_db),
-    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     """Returns organizational context and active tier for current tenant."""
-    t_id = get_current_tenant_id(x_tenant_id=x_tenant_id)
-    tenant = db.query(Tenant).filter((Tenant.id == t_id) | (Tenant.slug == t_id)).first()
+    tenant = db.query(Tenant).filter((Tenant.id == tenant_id) | (Tenant.slug == tenant_id)).first()
     if not tenant:
         tenant = ensure_default_tenant(db)
     return {

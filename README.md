@@ -1,7 +1,7 @@
 # OphthalmoAI
 
 **Point-of-Care Retinal Disease Screening & Clinical Decision-Support Platform**  
-*A calibrated tri-backbone vision ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM explainability, pre-inference optical domain guardrails, offline edge telemedicine, and multi-tenant clinic architecture.*
+*A calibrated tri-backbone vision ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM explainability, pre-inference optical domain guardrails, client-side pre-screening heuristics, and multi-tenant clinic architecture.*
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Author: Akash Kundu](https://img.shields.io/badge/Author-Akash%20Kundu-blue.svg)](https://github.com/AkashKundu114)
@@ -11,11 +11,11 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://reactjs.org/)
-[![Tests Passing](https://img.shields.io/badge/Tests-253%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-283%20Passed%20(100%25)-brightgreen.svg)](tests/)
 [![Internal Test Accuracy](https://img.shields.io/badge/Internal%20Accuracy-85.18%25-brightgreen.svg)](docs/PERFORMANCE_METRICS.md)
 [![Macro AUROC](https://img.shields.io/badge/Macro%20AUROC-0.9818-blue.svg)](docs/PERFORMANCE_METRICS.md)
 [![External Test (IDRiD)](https://img.shields.io/badge/External%20DR%20Sensitivity-91.30%25-brightgreen.svg)](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)
-[![ONNX Serving](https://img.shields.io/badge/ONNX%20p50-84.2ms%20(2.15x%20Speedup)-blueviolet.svg)](backend/onnx_inference.py)
+[![ONNX Serving](https://img.shields.io/badge/ONNX%20p50-84.2ms%20(2.15x%20Speedup)-blueviolet.svg)](docs/benchmarks/onnx_benchmark_results.json)
 [![Security](https://img.shields.io/badge/CodeQL-Advanced%20Security%20Scanning-purple.svg)](.github/workflows/codeql.yml)
 
 ---
@@ -58,9 +58,11 @@ For detailed suite-by-suite instructions, see the complete [Reproducibility Guid
 - [Hardware Telemetry & Dual-Memory Profile](#hardware-telemetry--dual-memory-profile)
 - [Precision Benchmarks: FP16 (Production) vs. BF16 (Research)](#precision-benchmarks-fp16-production-vs-bf16-research)
 - [Production Systems Engineering & Enterprise Upgrades (v2.5)](#production-systems-engineering--enterprise-upgrades-v25)
+- [Multi-Tenant Analytics & Monitoring Dashboard](#multi-tenant-analytics--monitoring-dashboard)
 - [Quick Start (Local Setup)](#quick-start-local-setup)
 - [Repository Directory Structure](#repository-directory-structure)
 - [Documentation Suite](#documentation-suite)
+- [Limitations and Known Issues](#limitations-and-known-issues)
 - [Author, Intellectual Property & License](#author-intellectual-property--license)
 - [Security & Community Governance](#security--community-governance)
 
@@ -72,15 +74,15 @@ For detailed suite-by-suite instructions, see the complete [Reproducibility Guid
 
 Automated fundus screening is vital for addressing global specialist deficits and arresting preventable vision loss from Diabetic Retinopathy, Glaucoma, and Age-related Macular Degeneration. However, three critical failure modes have historically hindered clinical deployment: uncalibrated overconfidence, domain hallucination on non-medical photos, and black-box opacity.
 
-OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, an **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)** that deterministically rejects non-fundus imagery, a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine, and an **offline-first edge telemedicine runtime** providing zero-latency point-of-care screening with complete HIPAA biometric privacy.
+OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, an **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)** that deterministically rejects non-fundus imagery, a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine, and **client-side image pre-screening heuristics for bandwidth optimization** (with full ML inference handled by the server-side ensemble pipeline).
 
 ### By the Numbers:
-- **85.18% Empirical Test Accuracy / 0.9818 Macro AUROC:** Evaluated over 938 strictly held-out clinical fundus images across 6 target classes.
-- **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India).
-- **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain).
-- **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence.
-- **253 / 253 Automated Tests Passing (100%):** Exhaustive test coverage (232 Pytest backend tests + 21 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, and multi-tenant RLS isolation.
-- **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput.
+- **85.18% Empirical Test Accuracy / 0.9818 Macro AUROC:** Evaluated over 938 strictly held-out clinical fundus images across 6 target classes [1].
+- **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India) [2].
+- **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain) [3].
+- **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence [1].
+- **283 / 283 Automated Tests Passing (100%):** Exhaustive test coverage (262 Pytest backend tests + 21 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, and application-level tenant isolation [4].
+- **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput [5] (benchmarks measured on AMD64 32-core CPU execution provider; see `docs/benchmarks/onnx_benchmark_results.json`).
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
 - **29 Publication-Grade Figures:** Comprehensive high-resolution publication-standard evaluation visual suite in `docs/images/`.
 
@@ -88,7 +90,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 
 ## Executive Summary & Key Technical Innovations
 
-> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 253 passing automated tests (232 backend + 21 frontend), **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and multi-tenant Row-Level Security.
+> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 283 passing automated tests (262 backend + 21 frontend), **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and application-level tenant isolation.
 
 ---
 
@@ -147,8 +149,8 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 4. **US-CRC (Urgency-Stratified Conformal Risk Control):**
    Constructs prediction sets $\mathcal{C}(X)$ providing provable finite-sample coverage guarantees ($\alpha = 0.01$ for sight-threatening emergencies such as DR, Glaucoma, and AMD).
 
-5. **Low-Latency ONNX Serving & Offline Edge Screening:**
-   Compiled graph execution with FP16 quantization reducing p50 serving latency to 84.2ms at 17.3 QPS (`backend/onnx_inference.py`), alongside an in-browser HTML5 Canvas tensor pipeline (`frontend/src/edgeInference.js`) operating with <50ms turnaround and zero cloud egress.
+5. **Low-Latency ONNX Serving & Client-Side Pre-Screening Heuristic:**
+   Compiled graph execution with FP16 quantization reducing p50 serving latency to 84.2ms at 17.3 QPS (`backend/onnx_inference.py`). On the frontend, client-side image pre-screening heuristics (`frontend/src/edgeInference.js`) validate optical chromophore ratios and spatial autocorrelation in-browser (<50ms) to reject non-fundus uploads and optimize bandwidth before transmission. *Note: Full multi-class ML inference requires the server-side ensemble pipeline.*
 
 6. **Cross-Dataset Sensor Domain Adaptation:**
    Reinhard $L\alpha\beta$ color constancy mapping matches chromatic distribution moments across disparate camera vendors (Zeiss, Topcon, Canon, handheld lenses), neutralizing optical sensor drift.
@@ -156,8 +158,8 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 7. **CBMIR Vector Engine & Demographic Fairness Auditing:**
    512-dimensional visual embedding cosine search retrieving verified historical reference cases (`POST /api/v1/cases/similar`), verified balanced across standard demographic parity benchmarks ($0.982 \ge 0.80$) across age cohorts and optical quality grades.
 
-8. **Multi-Tenant Clinic RLS Isolation:**
-   Cryptographic tenant boundaries via database Row-Level Security (`backend/tenancy.py`) ensuring complete isolation across healthcare providers with hierarchical RBAC (Technician $\rightarrow$ Clinician $\rightarrow$ Admin).
+8. **Multi-Tenant Clinic Application-Level Isolation:**
+   Application-level tenant isolation via SQLAlchemy query filtering with X-Tenant-ID header validation (`backend/tenancy.py`) ensuring strict data isolation across healthcare providers with hierarchical RBAC (Technician $\rightarrow$ Clinician $\rightarrow$ Admin).
 
 ---
 
@@ -190,8 +192,8 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 │ FASTAPI BACKEND (Python 3.10+ / 3.14 / PyTorch CUDA 12.x / ONNX Runtime)                    │
 │                                                                                             │
 │  ┌─────────────────────────┐     ┌────────────────────────┐     ┌────────────────────────┐  │
-│  │ Optical Domain Filter   │ ──> │ Tenancy & RLS Guard    │ ──> │ Reinhard Color Normal. │  │
-│  │ (Aperture + Chromophore)│     │ (Row-Level Security)   │     │ (Lαβ Sensor Transfer)  │  │
+│  │ Optical Domain Filter   │ ──> │ Tenancy Isolation Guard│ ──> │ Reinhard Color Normal. │  │
+│  │ (Aperture + Chromophore)│     │ (ORM-Level Filtering)  │     │ (Lαβ Sensor Transfer)  │  │
 │  └────────────┬────────────┘     └────────────────────────┘     └───────────┬────────────┘  │
 │               │                                                             │               │
 │               └──────────────────────────────┬──────────────────────────────┘               │
@@ -296,10 +298,12 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 
 - **Low-Latency ONNX Runtime Serving & Quantization**:
   - Implements graph compilation, operator fusion, and FP16 quantization (`backend/onnx_inference.py`).
-  - Achieves a **2.15x serving speedup** (reducing p50 latency from 181.0ms to 84.2ms) and increases throughput from 5.4 to 17.3 QPS on multi-core GPU/CPU architectures.
-- **Offline-First On-Device Edge Screening**:
-  - 100% in-browser client-side inference via HTML5 Canvas pixel tensor processing (`frontend/src/edgeInference.js`).
-  - Turnaround time <50ms with zero cloud egress bandwidth, providing complete HIPAA biometric privacy for disconnected rural point-of-care clinics.
+  - Achieves a **2.15x serving speedup** (reducing p50 latency from 181.0ms to 84.2ms) and increases throughput from 5.4 to 17.3 QPS on multi-core architectures [5].
+  - Benchmarks measured on AMD64 (32-core CPU execution provider, Windows 11). See `docs/benchmarks/` for reproducible benchmark scripts (`scripts/benchmark_onnx.py`) and persistent JSON output (`docs/benchmarks/onnx_benchmark_results.json`). *Note: When compiled ONNX model weights are not locally present, scripts output clearly flagged synthetic reference projections.*
+- **Client-Side Image Pre-Screening Heuristics for Bandwidth Optimization**:
+  - In-browser client-side optical verification via HTML5 Canvas pixel extraction (`frontend/src/edgeInference.js`).
+  - Turnaround time <50ms with zero cloud bandwidth consumed on invalid uploads, deterministically verifying chromophore ratios ($R/B \ge 1.05$) and spatial autocorrelation ($r_{\text{spatial}} \ge 0.30$) before network transmission.
+  - *Note: Full multi-class ML inference requires the server-side ensemble pipeline.*
 
 <p align="center">
   <img src="docs/images/async_task_architecture.png" alt="Asynchronous Task Queue & WebSocket Streaming" width="96%" />
@@ -336,16 +340,40 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 
 <p align="center">
   <img src="docs/images/observability_opentelemetry.png" alt="Prometheus & OpenTelemetry Observability" width="48%" />
-  <img src="docs/images/multitenant_clinic_isolation.png" alt="Multi-Tenant Clinic RLS Isolation" width="48%" />
+  <img src="docs/images/multitenant_clinic_isolation.png" alt="Multi-Tenant Clinic Application-Level Isolation" width="48%" />
 </p>
 
 - **Prometheus Telemetry & OpenTelemetry Distributed Tracing**:
   - Standard Prometheus exposition exporter (`GET /metrics`, `backend/metrics.py`) tracking inference requests, latency quantiles (p50/p90/p99), GPU VRAM memory gauges, and optical domain shift counters.
   - Microsecond-precision distributed span tracing (`backend/tracing.py`, `GET /api/v1/traces/recent`) providing end-to-end latency waterfall visibility across ingestion, preprocessing, inference, and serialization.
-- **Multi-Tenant Clinic Architecture & Row-Level Security (RLS)**:
-  - Cryptographic and organizational tenancy isolation (`backend/tenancy.py`, `backend/db.py`).
-  - Resolves clinic context via `X-Tenant-ID` or JWT claims, automatically applying row-level SQL filters across scans, users, and audit trails to guarantee zero cross-hospital data leakage.
+- **Multi-Tenant Clinic Architecture & Application-Level Isolation**:
+  - Application-level tenant isolation via SQLAlchemy query filtering with X-Tenant-ID header validation (`backend/tenancy.py`, `backend/db.py`).
+  - Resolves clinic context via `X-Tenant-ID` header or authenticated JWT claims, automatically binding tenant query filtering (`WHERE tenant_id = :tenant_id`) across scans, users, and audit trails to guarantee zero cross-hospital data leakage without requiring PostgreSQL-native `CREATE POLICY` database engine configuration.
   - Hierarchical Role-Based Access Control (`ROLE_HIERARCHY`: Technician $\rightarrow$ Clinician $\rightarrow$ Admin).
+
+---
+
+## Multi-Tenant Analytics & Monitoring Dashboard
+OphthalmoAI includes a production-grade analytics module with:
+- **Tenant-Level KPIs**: Screening volumes, confidence trends,
+  inference performance, and diagnosis distribution — isolated per tenant
+- **Anomaly Detection**: Z-score, moving average, SLA breach, and
+  distribution shift detection on screening time-series data
+- **Real-Time Alerts**: Automated anomaly notifications with severity
+  classification and actionable clinical recommendations
+
+### Ad-Tech Engineering Patterns
+The analytics module intentionally demonstrates patterns used in
+advertising technology platforms:
+| Screening Metric | Ad-Tech Equivalent |
+|-----------------|-------------------|
+| Screening volume anomaly | Impression volume anomaly |
+| Confidence score decline | CTR/conversion rate decline |
+| Inference SLA breach | Bid response latency in RTB |
+| Diagnosis distribution shift | Audience composition drift |
+
+These patterns are directly transferable to campaign monitoring,
+performance analytics, and automated optimization systems.
 
 ---
 
@@ -402,12 +430,39 @@ npm run dev
 
 #### 3. Run Quality Gates & Tests
 ```bash
-# Run all 201 Pytest unit and integration tests
+# Run all 262 automated Pytest unit and integration tests
 pytest tests -q
+
+# Run all 21 frontend Vitest unit tests
+cd frontend && npm test -- --run
 
 # Run frontend build verification
 cd frontend && npm run build
 ```
+
+#### 4. Database Architecture & Multi-Backend Configuration
+Supports PostgreSQL (production), MS SQL Server (enterprise), and SQLite (development). Configure via `DATABASE_URL` environment variable.
+
+| Backend | Driver / Dialect | Intended Environment | Connection String Example |
+| :--- | :--- | :--- | :--- |
+| **SQLite** | `sqlite` | **Local Development & Testing (Default)** | `DATABASE_URL=sqlite:///./ophthalmoai.db` |
+| **PostgreSQL** | `postgresql+psycopg` / `postgresql` | **Production & Multi-Instance Clusters** | `DATABASE_URL=postgresql://ophthalmo:password@localhost:5432/ophthalmoai` |
+| **MS SQL Server** | `mssql+pyodbc` | **Enterprise Hospital Networks & EHR Integration** | `DATABASE_URL=mssql+pyodbc://sa:password@localhost/ophthalmoai?driver=ODBC+Driver+18+for+SQL+Server` |
+
+- **Development vs. Production**: The platform defaults to SQLite for zero-config local development, issuing a clear runtime log warning (`WARNING: Using SQLite for development. Set DATABASE_URL for production.`). For production deployments, PostgreSQL or MS SQL Server is required with production connection pooling (`pool_size=10`, `max_overflow=20`, `pool_pre_ping=True`).
+- **PostgreSQL via Docker Compose**: Launch production PostgreSQL with automated health checks and initialization extensions (`scripts/init_db.sql`):
+  ```bash
+  docker compose up -d db
+  ```
+- **Alembic Database Migrations**: Run migrations across any supported backend with automatic batch mode for SQLite:
+  ```bash
+  alembic upgrade head
+  ```
+- **Database Connection Verification**: Diagnostic utility in `backend/db_utils.py` validates connectivity and logs database engine metadata:
+  ```python
+  from backend.db_utils import verify_database_connection
+  verify_database_connection()
+  ```
 
 ---
 
@@ -422,12 +477,12 @@ OphthalmoAI/
 │   ├── domain_adaptation.py       # Reinhard Lαβ color constancy transfer
 │   ├── vector_search.py           # 512-dim CBMIR normalized cosine embedding index
 │   ├── fairness_audit.py          # EEOC Four-Fifths demographic slice disparity auditor
-│   ├── tenancy.py                 # Multi-tenant clinic Row-Level Security & RBAC
+│   ├── tenancy.py                 # Multi-tenant clinic application-level isolation & RBAC
 │   ├── tracing.py                 # OpenTelemetry microsecond span tracing
 │   └── routes_admin.py            # HITL overrides, active learning, and audit logs
 ├── frontend/                      # Standalone React 19 SPA (Tailwind CSS + Vite 7)
 │   ├── src/                       # React components, clinical persona switcher, PDF export
-│   └── src/edgeInference.js       # In-browser HTML5 Canvas offline edge screening engine
+│   └── src/edgeInference.js       # Client-side image pre-screening heuristic for bandwidth optimization
 ├── models/                        # Trained PyTorch weights & Platt calibration JSONs
 ├── scripts/                       # Standardized 5-pillar operational & automation scripts
 │   ├── README.md                  # Complete operational scripts catalog & usage reference
@@ -437,6 +492,7 @@ OphthalmoAI/
 ├── docs/                          # Comprehensive technical and clinical documentation suite
 │   ├── architecture.html          # Interactive Archify SVG architecture map (pan/zoom, keyboard nav)
 │   ├── images/                    # 29 publication-grade academic figures
+│   ├── benchmarks/                # Benchmark result JSONs (onnx_benchmark_results.json)
 │   ├── clinical/                  # Clinical safety, intended use, and external validation reports
 │   │   ├── CLINICAL_EVALUATION_AND_SAFETY.md # Intended use & risk mitigation
 │   │   └── EXTERNAL_VALIDATION_REPORT.md     # Multi-cohort external validation & generalization study
@@ -445,7 +501,7 @@ OphthalmoAI/
 │   └── technical/                 # System architecture, schemas, and security audits
 ├── deploy/                        # Production deployment manifests (Hugging Face, Docker)
 ├── k8s/                           # Production Kubernetes manifests and ingress configs
-└── tests/                         # 253 automated tests (232 backend pytest + 21 frontend vitest)
+└── tests/                         # 283 automated tests (262 backend pytest + 21 frontend vitest)
 ```
 
 ---
@@ -461,6 +517,41 @@ OphthalmoAI/
 - **[Technical White Paper](docs/OphthalmoAI_Technical_White_Paper.md)**: Engineering methodology, ensemble formulations, and explainability.
 - **[Production Guide](PRODUCTION.md)**: Deployment guidelines for Docker, Kubernetes, and cloud environments.
 - **[Roadmap](ROADMAP.md)**: Product roadmap, completed milestones, and upcoming v2.6 / v3.0 horizons.
+
+---
+
+## Benchmark Methodology & Metric Sources
+
+1. **Internal Test Metrics (85.18% Accuracy, 0.9818 Macro AUROC, 0.0381 ECE):** Evaluated over strictly held-out clinical fundus test scans ($n=938$) across 6 target classes. Calibrated via Platt temperature scaling ($T \in [1.06, 1.34]$). Detailed in `docs/PERFORMANCE_METRICS.md` and `REPRODUCIBILITY.md`.
+2. **External Clinical Validation (IDRiD):** 91.30% sensitivity across $n=103$ test scans acquired on a Kowa VX-10 $\alpha$ digital fundus camera in Nanded, India. Detailed in `docs/clinical/EXTERNAL_VALIDATION_REPORT.md`.
+3. **Autonomous Escalation Net (RIM-ONE DL):** 100% fail-safe escalation rate (`requires_human_review: true`) triggered across $n=447$ localized optic disc crops from Hospital Universitario de Canarias, Spain. Detailed in `docs/clinical/EXTERNAL_VALIDATION_REPORT.md`.
+4. **Automated Test Suite Verification:** 283 passed tests (100% pass rate) verified live: 262 backend Pytest tests (216 in `tests/backend/` + 46 in `tests/test_analytics.py` and `tests/test_boundary_conditions.py`) and 21 frontend Vitest unit tests (5 test suites in `frontend/tests/`).
+5. **ONNX Runtime Serving & Latency:** Measured on AMD64 (32-core CPU execution provider, Windows 11). Reproducible via `scripts/benchmark_onnx.py`; persistent benchmark telemetry logged in `docs/benchmarks/onnx_benchmark_results.json`. Note: When compiled ONNX weights are not locally present, benchmark scripts output clearly flagged synthetic reference projections.
+
+---
+
+## Limitations and Known Issues
+
+To ensure full technical defensibility under source-code audit and interview scrutiny, the following engineering boundaries and active constraints are documented:
+
+1. **Client-Side Screening vs. Full ML Inference:**
+   - The in-browser screening module (`frontend/src/edgeInference.js`) provides lightweight optical pre-screening heuristics (chromophore ratios and spatial autocorrelation) designed for client-side bandwidth optimization and instant non-fundus rejection.
+   - Full diagnostic multi-class classification, conformal prediction sets, and Grad-CAM saliency generation require the server-side PyTorch / ONNX ensemble pipeline.
+
+2. **Field-of-View (FOV) Sensor Shift:**
+   - As documented in the external clinical validation study (`docs/clinical/EXTERNAL_VALIDATION_REPORT.md`), localized optic disc crops (e.g., RIM-ONE DL, 292×292 px) lacking the macula and temporal arcade trigger the clinical uncertainty gate (`requires_human_review: true`), as the ensemble requires canonical 45° posterior pole fundus photographs.
+
+3. **Application-Level Multi-Tenancy:**
+   - Multi-tenant clinic data isolation is implemented at the application/ORM layer via SQLAlchemy query filtering and JWT/header validation (`backend/tenancy.py`), rather than through PostgreSQL-native database `CREATE POLICY` (Row-Level Security) rules. Direct database queries bypassing the application layer do not enforce tenant filtering.
+
+4. **ONNX Weights & Benchmark Fallback:**
+   - In environments where large compiled ONNX weight files (~500 MB+) are not downloaded, the benchmarking utility (`scripts/benchmark_onnx.py`) outputs synthetic reference estimates clearly flagged as `is_synthetic: true` (`docs/benchmarks/onnx_benchmark_results.json`).
+
+5. **Database Concurrency in Development:**
+   - SQLite is configured with WAL mode for local zero-config testing but is limited to a single concurrent writer; multi-user clinical production deployments require PostgreSQL or MS SQL Server via `DATABASE_URL`.
+
+6. **Regulatory Status:**
+   - OphthalmoAI is a clinical decision-support and screening-aid research platform (academic research manuscript in preparation). It is not FDA 510(k) cleared or CE-marked as a primary diagnostic medical device. All findings must be corroborated by licensed clinicians.
 
 ---
 

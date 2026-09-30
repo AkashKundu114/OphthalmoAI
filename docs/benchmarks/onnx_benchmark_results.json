@@ -1,0 +1,86 @@
+{
+  "timestamp": 1790738112.2464058,
+  "timestamp_iso": "2026-09-30T03:15:12.246408+00:00",
+  "input_shape": [
+    1,
+    3,
+    380,
+    380
+  ],
+  "iterations": 5,
+  "ort_available": true,
+  "torch_available": true,
+  "is_synthetic": true,
+  "synthetic": true,
+  "mode": "SYNTHETIC MODE",
+  "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks.",
+  "hardware_info": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "system": "Windows",
+    "processor": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD",
+    "cpu_count": 32,
+    "python_version": "3.14.6",
+    "execution_provider": "CPUExecutionProvider",
+    "cuda_available": false,
+    "gpu_device_name": null,
+    "torch_version": "2.14.0+cpu",
+    "ort_version": "1.28.0",
+    "ort_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider"
+    ]
+  },
+  "model_path": null,
+  "pytorch_eager": {
+    "mean_latency_ms": 184.5,
+    "std_latency_ms": 12.3,
+    "p50_latency_ms": 181.0,
+    "p95_latency_ms": 204.8,
+    "p99_latency_ms": 218.4,
+    "min_latency_ms": 172.1,
+    "max_latency_ms": 224.6,
+    "throughput_qps": 5.4,
+    "is_synthetic": true,
+    "synthetic": true,
+    "mode": "SYNTHETIC REFERENCE",
+    "warning": "PyTorch model not supplied; using standard reference baseline."
+  },
+  "onnx_runtime": {
+    "mean_latency_ms": 85.81,
+    "std_latency_ms": 6.83,
+    "p50_latency_ms": 84.19,
+    "p95_latency_ms": 95.26,
+    "p99_latency_ms": 101.58,
+    "min_latency_ms": 80.05,
+    "max_latency_ms": 104.47,
+    "throughput_qps": 11.6,
+    "is_synthetic": true,
+    "synthetic": true,
+    "mode": "SYNTHETIC MODE",
+    "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
+  },
+  "onnx_quantized_fp16": {
+    "mean_latency_ms": 57.66,
+    "std_latency_ms": 5.59,
+    "p50_latency_ms": 56.56,
+    "p95_latency_ms": 64.0,
+    "p99_latency_ms": 68.25,
+    "min_latency_ms": 53.78,
+    "max_latency_ms": 70.19,
+    "throughput_qps": 17.3,
+    "is_synthetic": true,
+    "synthetic": true,
+    "mode": "SYNTHETIC ESTIMATE",
+    "warning": "FP16 quantization profile is an analytical projection."
+  },
+  "summary": {
+    "onnx_speedup_factor": 2.15,
+    "quantized_speedup_factor": 3.2,
+    "latency_reduction_percent": 53.5,
+    "recommended_production_engine": "ONNX Runtime (FP16 Graph Optimized)",
+    "is_synthetic": true,
+    "synthetic": true,
+    "mode": "SYNTHETIC MODE",
+    "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
+  }
+}

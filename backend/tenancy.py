@@ -10,11 +10,15 @@ from __future__ import annotations
 
 import re
 from typing import Any, Optional, Tuple
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy import inspect
 from sqlalchemy.orm import Query, Session
 
+from .auth import get_current_user
 from .db import Tenant, User
+from .logging_config import get_logger
+
+logger = get_logger("tenancy")
 
 
 DEFAULT_TENANT_ID = "default-metro-eye-hospital"
@@ -50,30 +54,90 @@ def validate_tenant_identifier(identifier: Optional[str]) -> Tuple[bool, str]:
 
 
 def get_current_tenant_id(
+    request: Request = None,
+    current_user: Optional[Any] = Depends(get_current_user),
     x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
-    current_user: Optional[User] = None,
 ) -> str:
     """
-    Extracts and sanitizes tenant ID from request header, authenticated user,
-    or falls back to system default.
-
-    Raises:
-        HTTPException(400): If explicitly supplied X-Tenant-ID header violates format bounds.
+    Extracts and validates tenant ID from request context and authenticated user.
+    Enforces strict tenant isolation to prevent IDOR (Insecure Direct Object Reference) vulnerabilities:
+    - Regular users MUST always use their tenant_id from the authenticated JWT token.
+      The X-Tenant-ID header is ignored if matching, and rejected with HTTP 403 if mismatched.
+    - Only users with 'platform_admin' or 'superadmin' roles are permitted to override tenant
+      context via the X-Tenant-ID header.
+    - If a non-admin user attempts an X-Tenant-ID header that doesn't match their JWT tenant_id,
+      a security warning is logged and an HTTP 403 Forbidden is raised.
+    - Unauthenticated requests attempting tenant override via X-Tenant-ID are rejected with HTTP 403.
     """
-    if x_tenant_id is not None and x_tenant_id.strip():
-        is_valid, sanitized_or_err = validate_tenant_identifier(x_tenant_id)
-        if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid X-Tenant-ID header: {sanitized_or_err}",
-            )
-        return sanitized_or_err
+    header_tenant = None
+    if isinstance(request, str):
+        header_tenant = request
+    elif request is not None and hasattr(request, "headers"):
+        header_tenant = request.headers.get("X-Tenant-ID")
 
-    if current_user and getattr(current_user, "tenant_id", None):
-        user_tenant = str(current_user.tenant_id).strip()
-        is_valid, sanitized = validate_tenant_identifier(user_tenant)
-        if is_valid:
-            return sanitized
+    if not header_tenant and x_tenant_id:
+        header_tenant = x_tenant_id
+
+    if header_tenant is not None:
+        header_tenant_raw = str(header_tenant).strip()
+        if header_tenant_raw:
+            is_valid, sanitized_or_err = validate_tenant_identifier(header_tenant_raw)
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid X-Tenant-ID header: {sanitized_or_err}",
+                )
+            header_tenant = sanitized_or_err
+        else:
+            header_tenant = None
+
+    user_role = None
+    user_tenant = None
+    user_id = "unknown"
+
+    if current_user is not None:
+        if isinstance(current_user, dict):
+            user_role = current_user.get("role")
+            user_tenant = current_user.get("tenant_id")
+            user_id = current_user.get("id") or current_user.get("sub", "unknown")
+        else:
+            user_role = getattr(current_user, "role", None)
+            user_tenant = getattr(current_user, "tenant_id", None)
+            user_id = getattr(current_user, "id", "unknown")
+        if user_tenant is not None:
+            user_tenant = str(user_tenant).strip()
+
+    # Platform admins and superadmins can override tenant context
+    if user_role in ("platform_admin", "superadmin"):
+        if header_tenant:
+            return header_tenant
+        if user_tenant:
+            is_valid, sanitized = validate_tenant_identifier(user_tenant)
+            if is_valid:
+                return sanitized
+        return DEFAULT_TENANT_ID
+
+    # Regular users: ALWAYS use JWT tenant, ignore/reject header
+    if current_user is not None:
+        if header_tenant and header_tenant != user_tenant:
+            logger.warning(
+                f"SECURITY: User {user_id} attempted tenant override "
+                f"from {user_tenant} to {header_tenant}"
+            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tenant access denied")
+
+        if user_tenant:
+            is_valid, sanitized = validate_tenant_identifier(user_tenant)
+            if is_valid:
+                return sanitized
+        return DEFAULT_TENANT_ID
+
+    # Unauthenticated context
+    if header_tenant:
+        logger.warning(
+            f"SECURITY: Unauthenticated request attempted tenant override to {header_tenant}"
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tenant access denied")
 
     return DEFAULT_TENANT_ID
 
