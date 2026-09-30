@@ -1,8 +1,8 @@
-fastapi==0.115.6
+fastapi>=0.115.8
 uvicorn[standard]==0.32.1
-python-multipart==0.0.18
+python-multipart>=0.0.31
 pydantic==2.10.4
-starlette==0.41.3
+starlette>=0.45.3
 
 pillow
 numpy
@@ -12,12 +12,12 @@ grad-cam
 google-generativeai==0.8.3
 httpx==0.28.1
 
-python-dotenv==1.0.1
+python-dotenv>=1.2.2
 
 slowapi==0.1.9
 
 bcrypt==4.0.1
-pyjwt==2.10.1
+pyjwt>=2.14.0
 python-jose[cryptography]==3.3.0
 
 sqlalchemy==2.0.36
