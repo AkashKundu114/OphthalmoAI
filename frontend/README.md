@@ -16,7 +16,8 @@ Modern React 19 single-page application built with Vite 7 and Tailwind CSS for p
 
 - **Light Clinical Design**: Accessible, high-contrast, WCAG AAA-compliant responsive medical UI.
 - **Dual Audience Personas**: Switch between **Public View** (lay explanations, action plans, questions for your doctor) and **Academic / Clinical View** (Macro AUROC, F1, calibration $T$, tensor exports, 1-click BibTeX).
-- **Offline Edge Screening**: 100% in-browser HTML5 Canvas tensor processing (`src/edgeInference.js`) delivering < 50ms results with zero cloud egress.
+- **Offline Edge Screening**: Real client-side ML neural inference running a quantized MobileNetV3-Small INT8 ONNX model (<2MB) via **ONNX Runtime Web (WASM backend)** (`src/edgeInference.js`), with Ben Graham image preprocessing and automatic fallback to legacy heuristics (`src/edgeHeuristic.js`).
+  > *Edge inference uses a quantized MobileNet/EfficientNet ONNX model running via ONNX Runtime Web (WASM backend). Edge model is a lightweight screening tool — full diagnostic accuracy requires the server-side tri-backbone ensemble. This is NOT a diagnosis.*
 - **Asynchronous Task Queue & WebSockets**: Connects to backend `/ws/jobs/{id}` to display real-time 5-stage progress bars without browser blocking.
 - **Interactive Crop & Quality Check**: Guided 1:1 image positioning and pre-inference Image Quality Assessment (IQA).
 - **Side-by-Side Saliency Visualisation**: Color fundus scan displayed alongside high-resolution Grad-CAM heatmaps with macular/optic disc grounding.

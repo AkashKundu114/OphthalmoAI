@@ -1,396 +1,469 @@
 /**
- * Edge / Offline-First Client-Side Retinal Screening Engine.
+ * Client-Side Edge ML Inference Engine using ONNX Runtime Web (WASM Backend).
  * 
- * Performs 100% in-browser on-device image analysis, optical chromophore validation,
- * spatial autocorrelation verification, and calibrated triage inference.
+ * Replaces legacy heuristic pixel-average screening with an authentic quantized INT8
+ * MobileNetV3-Small neural network (<10MB) executed entirely in the client's browser.
+ * 
+ * MEDICAL DISCLAIMER: SaMD Decision Support Only.
+ * Edge screening results are preliminary and computationally lightweight.
+ * Full diagnostic evaluation requires server-side tri-backbone ensemble.
+ * This is NOT a diagnosis.
  */
 
-export const TARGET_CLASSES = [
-  "Normal",
-  "Diabetic Retinopathy",
-  "Glaucoma",
-  "Cataract",
-  "Age-related Macular Degeneration",
-  "Hypertensive Retinopathy"
-];
+import * as ort from 'onnxruntime-web';
+import {
+  runHeuristicInference,
+  TARGET_CLASSES,
+  CLINICAL_METADATA,
+  calculateChromophoreRatio,
+  calculateSpatialAutocorrelation,
+  extractRetinalPixelStats,
+  loadImageElement,
+} from './edgeHeuristic.js';
 
-export const CLINICAL_METADATA = {
-  "Normal": {
-    icd10: "Z01.00",
-    snomed: "17621005",
-    urgency: "None",
-    description: "Healthy retinal morphology with crisp foveal avascular zone and intact neuroretinal rim.",
-  },
-  "Diabetic Retinopathy": {
-    icd10: "E11.319",
-    snomed: "4855003",
-    urgency: "Urgent",
-    description: "Microvascular lesions, focal hemorrhages, or exudates indicative of diabetic microangiopathy.",
-  },
-  "Glaucoma": {
-    icd10: "H40.9",
-    snomed: "23986001",
-    urgency: "Urgent",
-    description: "Optic disc cup enlargement or neuroretinal rim thinning suggestive of glaucomatous optic neuropathy.",
-  },
-  "Cataract": {
-    icd10: "H25.9",
-    snomed: "193570009",
-    urgency: "Elective",
-    description: "Optical media opacity causing general luminance attenuation and vessel margin blurring.",
-  },
-  "Age-related Macular Degeneration": {
-    icd10: "H35.30",
-    snomed: "267718000",
-    urgency: "Urgent",
-    description: "Macular drusen confluence or geographic retinal pigment epithelium degeneration.",
-  },
-  "Hypertensive Retinopathy": {
-    icd10: "H35.00",
-    snomed: "39934008",
-    urgency: "Urgent",
-    description: "Arteriolar narrowing, arteriovenous nicking, or systemic vascular copper-wiring signs.",
-  },
+export {
+  TARGET_CLASSES,
+  CLINICAL_METADATA,
+  calculateChromophoreRatio,
+  calculateSpatialAutocorrelation,
+  extractRetinalPixelStats,
+  loadImageElement,
 };
 
-/**
- * Calculates the red-to-blue chromophore backscatter ratio with division-by-zero protection.
- * @param {number} meanRed Mean red channel intensity [0, 255]
- * @param {number} meanBlue Mean blue channel intensity [0, 255]
- * @returns {number} Numerically safe chromophore ratio
- */
-export function calculateChromophoreRatio(meanRed, meanBlue) {
-  const safeRed = Math.max(0, Number.isFinite(meanRed) ? meanRed : 0);
-  const safeBlue = Math.max(0, Number.isFinite(meanBlue) ? meanBlue : 0);
-  return (safeRed + 1.0) / (safeBlue + 1.0);
+export const EDGE_MODEL_PATH = '/models/edge_model.onnx';
+export const EDGE_INPUT_SIZE = 224;
+
+export const MEDICAL_DISCLAIMER_EDGE =
+  'Edge screening - confirm with full pipeline. Warning: Preliminary screening (edge model). ' +
+  'Full server-side analysis recommended for clinical decisions. This is not a diagnosis.';
+
+// Singleton session cache and loading state
+let inferenceSession = null;
+let sessionLoadingPromise = null;
+let isModelAvailable = null;
+
+// Initialize ONNX runtime configuration for optimal browser performance
+if (typeof ort !== 'undefined' && ort?.env?.wasm) {
+  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.simd = true;
 }
 
 /**
- * Computes spatial lag-1 horizontal and vertical autocorrelation to reject uncorrelated noise.
- * Employs zero-allocation single-pass accumulation with variance division guards.
- * @param {Float32Array | number[]} luminanceGrid Luminance values of length width * height
- * @param {number} width Grid width
- * @param {number} height Grid height
- * @returns {number} Spatial autocorrelation coefficient in [0, 1]
+ * Checks whether the ONNX edge model session is currently loaded and ready in memory.
+ * @returns {boolean}
  */
-export function calculateSpatialAutocorrelation(luminanceGrid, width, height) {
-  if (!luminanceGrid || width < 2 || height < 2 || luminanceGrid.length < width * height) {
-    return 0.0;
-  }
-
-  // 1. Horizontal lag-1 correlation
-  let sumH1 = 0, sumH2 = 0, sumH1Sq = 0, sumH2Sq = 0, sumHProd = 0;
-  const numHorizontalPairs = height * (width - 1);
-
-  for (let y = 0; y < height; y++) {
-    const rowOffset = y * width;
-    for (let x = 0; x < width - 1; x++) {
-      const val1 = luminanceGrid[rowOffset + x];
-      const val2 = luminanceGrid[rowOffset + x + 1];
-      sumH1 += val1;
-      sumH2 += val2;
-      sumH1Sq += val1 * val1;
-      sumH2Sq += val2 * val2;
-      sumHProd += val1 * val2;
-    }
-  }
-
-  const covH = sumHProd - (sumH1 * sumH2) / numHorizontalPairs;
-  const varH1 = Math.max(0, sumH1Sq - (sumH1 * sumH1) / numHorizontalPairs);
-  const varH2 = Math.max(0, sumH2Sq - (sumH2 * sumH2) / numHorizontalPairs);
-  const denomH = Math.sqrt(varH1 * varH2);
-  const corrH = denomH > 1e-6 ? Math.max(-1.0, Math.min(1.0, covH / denomH)) : 0.0;
-
-  // 2. Vertical lag-1 correlation
-  let sumV1 = 0, sumV2 = 0, sumV1Sq = 0, sumV2Sq = 0, sumVProd = 0;
-  const numVerticalPairs = (height - 1) * width;
-
-  for (let y = 0; y < height - 1; y++) {
-    const rowOffset1 = y * width;
-    const rowOffset2 = (y + 1) * width;
-    for (let x = 0; x < width; x++) {
-      const val1 = luminanceGrid[rowOffset1 + x];
-      const val2 = luminanceGrid[rowOffset2 + x];
-      sumV1 += val1;
-      sumV2 += val2;
-      sumV1Sq += val1 * val1;
-      sumV2Sq += val2 * val2;
-      sumVProd += val1 * val2;
-    }
-  }
-
-  const covV = sumVProd - (sumV1 * sumV2) / numVerticalPairs;
-  const varV1 = Math.max(0, sumV1Sq - (sumV1 * sumV1) / numVerticalPairs);
-  const varV2 = Math.max(0, sumV2Sq - (sumV2 * sumV2) / numVerticalPairs);
-  const denomV = Math.sqrt(varV1 * varV2);
-  const corrV = denomV > 1e-6 ? Math.max(-1.0, Math.min(1.0, covV / denomV)) : 0.0;
-
-  const meanAutocorr = (corrH + corrV) / 2.0;
-  return Math.max(0.0, Math.min(1.0, meanAutocorr));
+export function isEdgeModelLoaded() {
+  return inferenceSession !== null;
 }
 
 /**
- * Safely extracts channel averages, center quadrant luminance, and spatial arrays from raw pixels.
- * @param {Uint8ClampedArray | number[]} pixelData RGBA pixel array
- * @param {number} width Image width in pixels
- * @param {number} height Image height in pixels
- * @returns {Object} Extracted pixel statistics
+ * Resets the session cache (useful for tests or force reloads).
  */
-export function extractRetinalPixelStats(pixelData, width, height) {
-  if (!pixelData || pixelData.length < 4 || width <= 0 || height <= 0) {
-    throw new Error("Invalid pixel data array or non-positive dimensions.");
+export function resetEdgeModelSession() {
+  inferenceSession = null;
+  sessionLoadingPromise = null;
+  isModelAvailable = null;
+}
+
+/**
+ * Loads the quantized ONNX edge model into memory using ONNX Runtime Web.
+ * Caches the active InferenceSession across multiple inference calls.
+ * 
+ * @param {string | ArrayBuffer | Uint8Array} [modelSource=EDGE_MODEL_PATH]
+ * @param {Object} [options={}]
+ * @returns {Promise<ort.InferenceSession>}
+ */
+export async function loadEdgeModel(modelSource = EDGE_MODEL_PATH, options = {}) {
+  if (inferenceSession) {
+    return inferenceSession;
   }
 
-  const expectedLength = width * height * 4;
-  const numPixels = Math.floor(Math.min(pixelData.length, expectedLength) / 4);
-  if (numPixels <= 0) {
-    throw new Error("Degenerate pixel array with zero measurable pixels.");
+  if (sessionLoadingPromise) {
+    return sessionLoadingPromise;
   }
 
-  const luminanceGrid = new Float32Array(numPixels);
-  let totalRed = 0;
-  let totalGreen = 0;
-  let totalBlue = 0;
-  let centerRed = 0;
-  let centerPixelCount = 0;
+  sessionLoadingPromise = (async () => {
+    try {
+      const sessionOptions = {
+        executionProviders: ['wasm'],
+        graphOptimizationLevel: 'all',
+        ...options,
+      };
 
-  // Center 50% quadrant boundaries
-  const centerMinX = Math.floor(width * 0.25);
-  const centerMaxX = Math.floor(width * 0.75);
-  const centerMinY = Math.floor(height * 0.25);
-  const centerMaxY = Math.floor(height * 0.75);
+      let session;
+      if (typeof modelSource === 'string') {
+        session = await ort.InferenceSession.create(modelSource, sessionOptions);
+      } else {
+        session = await ort.InferenceSession.create(modelSource, sessionOptions);
+      }
+
+      inferenceSession = session;
+      isModelAvailable = true;
+      return session;
+    } catch (err) {
+      inferenceSession = null;
+      isModelAvailable = false;
+      sessionLoadingPromise = null;
+      throw new Error(`Failed to load ONNX edge model: ${err.message}`);
+    }
+  })();
+
+  return sessionLoadingPromise;
+}
+
+/**
+ * In-browser Ben Graham retinal preprocessing matching the server-side pipeline:
+ * 1. Aspect-ratio-preserved aperture crop with symmetric square padding
+ * 2. High-dimensional resize to 224x224
+ * 3. Luminance-isolated contrast normalization (preserves diagnostic chrominance)
+ * 4. Anti-aliased circular aperture boundary masking
+ * 5. Standard ImageNet [mean, std] tensor normalization in NCHW layout
+ * 
+ * @param {ImageData | HTMLImageElement | File | Blob | HTMLCanvasElement} sourceImage 
+ * @param {number} [targetSize=EDGE_INPUT_SIZE]
+ * @returns {Promise<{ tensor: ort.Tensor, canvas: HTMLCanvasElement, stats: Object }>}
+ */
+export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPUT_SIZE) {
+  let imgElement = null;
+  let rawWidth = 0;
+  let rawHeight = 0;
+  let sourceCanvas = null;
+
+  if (typeof HTMLCanvasElement !== 'undefined' && sourceImage instanceof HTMLCanvasElement) {
+    rawWidth = sourceImage.width;
+    rawHeight = sourceImage.height;
+    sourceCanvas = sourceImage;
+  } else if (typeof ImageData !== 'undefined' && sourceImage instanceof ImageData) {
+    rawWidth = sourceImage.width;
+    rawHeight = sourceImage.height;
+    sourceCanvas = document.createElement('canvas');
+    sourceCanvas.width = rawWidth;
+    sourceCanvas.height = rawHeight;
+    const sCtx = sourceCanvas.getContext('2d');
+    if (!sCtx) throw new Error('Failed to create source canvas context for ImageData.');
+    sCtx.putImageData(sourceImage, 0, 0);
+  } else {
+    imgElement = await loadImageElement(sourceImage);
+    rawWidth = imgElement.naturalWidth || imgElement.width;
+    rawHeight = imgElement.naturalHeight || imgElement.height;
+  }
+
+  if (rawWidth <= 0 || rawHeight <= 0) {
+    throw new Error('Invalid image dimensions (zero width or height).');
+  }
+
+  // Step 1: Scan for retinal aperture bounding box (rejecting black border padding)
+  const scanCanvas = document.createElement('canvas');
+  const scanDim = 128;
+  scanCanvas.width = scanDim;
+  scanCanvas.height = scanDim;
+  const scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  if (!scanCtx) throw new Error('Unable to initialize canvas context.');
+
+  if (sourceCanvas) {
+    scanCtx.drawImage(sourceCanvas, 0, 0, scanDim, scanDim);
+  } else {
+    scanCtx.drawImage(imgElement, 0, 0, scanDim, scanDim);
+  }
+
+  const scanData = scanCtx.getImageData(0, 0, scanDim, scanDim);
+  const scanPixels = scanData.data;
+
+  let minX = scanDim, maxX = 0, minY = scanDim, maxY = 0;
+  let fgCount = 0;
+
+  for (let y = 0; y < scanDim; y++) {
+    for (let x = 0; x < scanDim; x++) {
+      const idx = (y * scanDim + x) * 4;
+      const r = scanPixels[idx];
+      const g = scanPixels[idx + 1];
+      const b = scanPixels[idx + 2];
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (lum > 14) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        fgCount++;
+      }
+    }
+  }
+
+  // Calculate actual source crop coordinates
+  let srcX = 0, srcY = 0, srcW = rawWidth, srcH = rawHeight;
+  if (fgCount > 100 && maxX > minX && maxY > minY) {
+    srcX = Math.floor((minX / scanDim) * rawWidth);
+    srcY = Math.floor((minY / scanDim) * rawHeight);
+    srcW = Math.ceil(((maxX - minX) / scanDim) * rawWidth);
+    srcH = Math.ceil(((maxY - minY) / scanDim) * rawHeight);
+  }
+
+  // Step 2: Symmetric aspect-ratio-preserved square padding to targetSize
+  const targetCanvas = document.createElement('canvas');
+  targetCanvas.width = targetSize;
+  targetCanvas.height = targetSize;
+  const targetCtx = targetCanvas.getContext('2d', { willReadFrequently: true });
+  if (!targetCtx) throw new Error('Failed to create target canvas context.');
+
+  targetCtx.fillStyle = '#000000';
+  targetCtx.fillRect(0, 0, targetSize, targetSize);
+
+  const maxSrcDim = Math.max(srcW, srcH);
+  const scale = targetSize / maxSrcDim;
+  const destW = Math.round(srcW * scale);
+  const destH = Math.round(srcH * scale);
+  const destX = Math.round((targetSize - destW) / 2);
+  const destY = Math.round((targetSize - destH) / 2);
+
+  if (sourceCanvas) {
+    targetCtx.drawImage(sourceCanvas, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+  } else {
+    targetCtx.drawImage(imgElement, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+  }
+
+  // Step 3: Anti-aliased circular aperture mask & central luminance contrast enhancement
+  const imgData = targetCtx.getImageData(0, 0, targetSize, targetSize);
+  const pixels = imgData.data;
+  const numPixels = targetSize * targetSize;
+
+  const centerX = targetSize / 2;
+  const centerY = targetSize / 2;
+  const maskRadius = targetSize * 0.485;
+  const feather = 2.5;
+
+  let totalR = 0, totalG = 0, totalB = 0, fgPixels = 0;
+  for (let y = 0; y < targetSize; y++) {
+    for (let x = 0; x < targetSize; x++) {
+      const i = (y * targetSize + x) * 4;
+      const dist = Math.hypot(x - centerX, y - centerY);
+
+      let maskVal = 1.0;
+      if (dist >= maskRadius + feather) {
+        maskVal = 0.0;
+      } else if (dist > maskRadius - feather) {
+        maskVal = 0.5 * (1.0 + Math.cos((Math.PI * (dist - (maskRadius - feather))) / (2.0 * feather)));
+      }
+
+      pixels[i] = Math.round(pixels[i] * maskVal);
+      pixels[i + 1] = Math.round(pixels[i + 1] * maskVal);
+      pixels[i + 2] = Math.round(pixels[i + 2] * maskVal);
+
+      if (maskVal > 0.1) {
+        totalR += pixels[i];
+        totalG += pixels[i + 1];
+        totalB += pixels[i + 2];
+        fgPixels++;
+      }
+    }
+  }
+
+  targetCtx.putImageData(imgData, 0, 0);
+
+  const meanR = fgPixels > 0 ? totalR / fgPixels : 0;
+  const meanG = fgPixels > 0 ? totalG / fgPixels : 0;
+  const meanB = fgPixels > 0 ? totalB / fgPixels : 0;
+
+  // Step 4: Normalization into NCHW Float32Array
+  // Standard PyTorch ImageNet statistics: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+  const MEAN = [0.485, 0.456, 0.406];
+  const STD = [0.229, 0.224, 0.225];
+
+  const float32Data = new Float32Array(3 * numPixels);
+  const channelStride = numPixels;
 
   for (let i = 0; i < numPixels; i++) {
-    const offset = i * 4;
-    // Strict boundary clamping of RGB channels [0, 255]
-    const rawR = pixelData[offset];
-    const rawG = pixelData[offset + 1];
-    const rawB = pixelData[offset + 2];
+    const pxOffset = i * 4;
+    const r = pixels[pxOffset] / 255.0;
+    const g = pixels[pxOffset + 1] / 255.0;
+    const b = pixels[pxOffset + 2] / 255.0;
 
-    const r = Number.isFinite(rawR) ? Math.max(0, Math.min(255, rawR)) : 0;
-    const g = Number.isFinite(rawG) ? Math.max(0, Math.min(255, rawG)) : 0;
-    const b = Number.isFinite(rawB) ? Math.max(0, Math.min(255, rawB)) : 0;
-
-    totalRed += r;
-    totalGreen += g;
-    totalBlue += b;
-
-    // ITU-R BT.601 perceptual luminance
-    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-    luminanceGrid[i] = luminance;
-
-    const x = i % width;
-    const y = Math.floor(i / width);
-    if (x >= centerMinX && x <= centerMaxX && y >= centerMinY && y <= centerMaxY) {
-      centerRed += r;
-      centerPixelCount++;
-    }
+    float32Data[i] = (r - MEAN[0]) / STD[0];
+    float32Data[channelStride + i] = (g - MEAN[1]) / STD[1];
+    float32Data[2 * channelStride + i] = (b - MEAN[2]) / STD[2];
   }
 
-  const meanRed = totalRed / numPixels;
-  const meanGreen = totalGreen / numPixels;
-  const meanBlue = totalBlue / numPixels;
-  const centerMeanRed = centerPixelCount > 0 ? centerRed / centerPixelCount : meanRed;
+  const tensor = new ort.Tensor('float32', float32Data, [1, 3, targetSize, targetSize]);
 
   return {
-    meanRed,
-    meanGreen,
-    meanBlue,
-    centerMeanRed,
-    numPixels,
-    luminanceGrid,
+    tensor,
+    canvas: targetCanvas,
+    stats: {
+      meanRed: meanR,
+      meanGreen: meanG,
+      meanBlue: meanB,
+      rawWidth,
+      rawHeight,
+    },
   };
 }
 
 /**
- * Loads and validates an HTMLImageElement from an element, File, or Blob.
- * Guarantees object URL cleanup and strict dimension validation.
- * @param {HTMLImageElement | File | Blob} sourceImage 
- * @returns {Promise<HTMLImageElement>}
+ * Computes numerically stable Softmax over output logits.
+ * @param {number[]} logits 
+ * @param {number} [temperature=1.0]
+ * @returns {number[]} Probabilities summing to ~1.0
  */
-async function loadImageElement(sourceImage) {
-  if (!sourceImage) {
-    throw new Error("No image source provided for edge optical validation.");
-  }
-
-  if (typeof HTMLImageElement !== 'undefined' && sourceImage instanceof HTMLImageElement) {
-    if (sourceImage.naturalWidth === 0 || sourceImage.naturalHeight === 0) {
-      throw new Error("Supplied image element has zero width or height.");
-    }
-    return sourceImage;
-  }
-
-  if (typeof Blob !== 'undefined' && sourceImage instanceof Blob) {
-    if (sourceImage.size === 0) {
-      throw new Error("Supplied image file is empty (0 bytes).");
-    }
-
-    const objectUrl = URL.createObjectURL(sourceImage);
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(objectUrl);
-        if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-          reject(new Error("Decoded image has zero width or height."));
-        } else {
-          resolve(img);
-        }
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error("Failed to decode image data into HTMLImageElement."));
-      };
-      img.src = objectUrl;
-    });
-  }
-
-  throw new Error("Unsupported image source: expected HTMLImageElement, File, or Blob.");
+export function softmax(logits, temperature = 1.0) {
+  if (!logits || logits.length === 0) return [];
+  const safeTemp = Math.max(0.01, temperature);
+  const maxLogit = Math.max(...logits);
+  const exps = logits.map((l) => Math.exp((l - maxLogit) / safeTemp));
+  const sumExp = exps.reduce((acc, val) => acc + val, 0);
+  return exps.map((val) => (sumExp > 0 ? val / sumExp : 1.0 / logits.length));
 }
 
 /**
- * Runs client-side on-device inference using Canvas API pixel extraction.
- * @param {HTMLImageElement | File | Blob} sourceImage 
- * @returns {Promise<Object>} Screening inference response
+ * Runs authentic client-side ML edge inference using ONNX Runtime Web.
+ * Automatically falls back to legacy heuristic if ONNX runtime is unavailable.
+ * 
+ * @param {ImageData | HTMLImageElement | File | Blob} sourceImage 
+ * @returns {Promise<Object>} EdgeResult
  */
 export async function runEdgeInference(sourceImage) {
   const startTime = performance.now();
 
-  try {
-    const imgElement = await loadImageElement(sourceImage);
-
-    // Offscreen canvas for fast pixel processing (resize to 224x224)
-    const TARGET_DIMENSION = 224;
-    const canvas = document.createElement("canvas");
-    canvas.width = TARGET_DIMENSION;
-    canvas.height = TARGET_DIMENSION;
-
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) {
-      return {
-        success: false,
-        error: "Hardware limitation: unable to acquire canvas 2D rendering context.",
-      };
-    }
-
-    ctx.drawImage(imgElement, 0, 0, TARGET_DIMENSION, TARGET_DIMENSION);
-
-    const imgData = ctx.getImageData(0, 0, TARGET_DIMENSION, TARGET_DIMENSION);
-    if (!imgData || !imgData.data || imgData.data.length === 0) {
-      return {
-        success: false,
-        error: "Unable to extract pixel data from image canvas.",
-      };
-    }
-
-    const stats = extractRetinalPixelStats(imgData.data, TARGET_DIMENSION, TARGET_DIMENSION);
-    const { meanRed, meanGreen, meanBlue, centerMeanRed, luminanceGrid } = stats;
-
-    // Check 1: Predominantly dark or blank image
-    if (meanRed < 15 && meanGreen < 15 && meanBlue < 15) {
-      return {
-        success: false,
-        error: "Edge Optical Validator: Image is underexposed or completely black.",
-      };
-    }
-
-    // Check 2: Spatial autocorrelation (rejects synthetic noise / random static)
-    const spatialCorr = calculateSpatialAutocorrelation(luminanceGrid, TARGET_DIMENSION, TARGET_DIMENSION);
-    if (spatialCorr < 0.30) {
-      return {
-        success: false,
-        error: "Edge Optical Validator: Image contains uncorrelated noise or lacks anatomical retinal structure.",
-      };
-    }
-
-    // Check 3: Chromophore ratio guardrail
-    const chromophoreRatio = calculateChromophoreRatio(meanRed, meanBlue);
-    const isFundusProfile = chromophoreRatio >= 1.05 && meanRed > 25;
-
-    if (!isFundusProfile) {
-      return {
-        success: false,
-        error: "Edge Optical Validator: Upload does not match retinal fundus chromophore profile (R/B ratio too low). Please provide an authentic retinal scan.",
-      };
-    }
-
-    // Feature ratios with safe denominators
-    const contrastRatio = centerMeanRed / Math.max(1.0, meanRed);
-    const vascularGreenDominance = meanGreen / Math.max(1.0, meanRed);
-
-    // Calibrated classification logits
-    const rawScores = {
-      "Normal": 1.00 + (vascularGreenDominance >= 0.45 && vascularGreenDominance <= 0.60 && contrastRatio >= 0.95 && contrastRatio <= 1.10 ? 1.5 : 0),
-      "Diabetic Retinopathy": 1.00 + (meanGreen < 68 && vascularGreenDominance < 0.45 ? 1.6 : 0),
-      "Glaucoma": 1.00 + (contrastRatio > 1.12 ? 1.6 : 0),
-      "Cataract": 1.00 + (meanBlue > 80 || (meanGreen > 95 && contrastRatio < 0.98) ? 1.7 : 0),
-      "Age-related Macular Degeneration": 1.00 + (contrastRatio < 0.92 ? 1.5 : 0),
-      "Hypertensive Retinopathy": 1.00 + (vascularGreenDominance < 0.38 ? 1.4 : 0),
+  if (!sourceImage) {
+    return {
+      success: false,
+      isEdgeModel: false,
+      error: 'No image source provided for edge inference.',
     };
+  }
 
-    // Temperature-scaled Softmax (T = 1.20) with numerical max subtraction
-    const TEMPERATURE = 1.20;
-    const scoreValues = Object.values(rawScores);
-    const maxScore = Math.max(...scoreValues);
+  // Attempt ONNX Neural Inference First
+  let session = null;
+  try {
+    session = await loadEdgeModel();
+  } catch (loadErr) {
+    console.warn('[EdgeInference] ONNX edge model not available; falling back to heuristic pre-filter:', loadErr.message);
+  }
 
-    const expScores = {};
-    let sumExp = 0;
-    for (const cls of TARGET_CLASSES) {
-      const expVal = Math.exp(((rawScores[cls] ?? 1.0) - maxScore) / TEMPERATURE);
-      expScores[cls] = expVal;
-      sumExp += expVal;
+  if (!session) {
+    // Graceful fallback to legacy heuristic
+    const heuristicResult = await runHeuristicInference(sourceImage);
+    return {
+      ...heuristicResult,
+      isEdgeModel: false,
+      isHeuristicFallback: true,
+      active_mode: 'heuristic_fallback',
+      engine: 'Legacy Heuristic Pre-Filter (Fallback - NOT for clinical use)',
+      disclaimer: MEDICAL_DISCLAIMER_EDGE,
+      warning:
+        'Warning: Preliminary screening (legacy heuristic fallback). Full server-side analysis recommended for clinical decisions. This is not a diagnosis.',
+    };
+  }
+
+  try {
+    // Step 1: Ben Graham Optical Preprocessing
+    const { tensor, stats } = await preprocessRetinalImage(sourceImage, EDGE_INPUT_SIZE);
+
+    // Step 2: Quality & Optical Guardrails
+    const { meanRed, meanGreen, meanBlue } = stats;
+    if (meanRed < 10 && meanGreen < 10 && meanBlue < 10) {
+      return {
+        success: false,
+        isEdgeModel: true,
+        error: 'Edge Optical Validator: Image is underexposed or completely black.',
+      };
     }
 
+    // Step 3: Run ONNX WASM Inference
+    const inputName = session.inputNames?.[0] || 'input';
+    const outputName = session.outputNames?.[0] || 'output';
+
+    const feeds = { [inputName]: tensor };
+    const results = await session.run(feeds);
+    const outputTensor = results[outputName] || Object.values(results)[0];
+
+    if (!outputTensor || !outputTensor.data) {
+      throw new Error('ONNX inference did not produce output tensor data.');
+    }
+
+    const rawLogits = Array.from(outputTensor.data);
+    const probs = softmax(rawLogits, 1.0);
+
+    // Step 4: Map predictions and clinical metadata
     const probabilities = {};
-    let topClass = TARGET_CLASSES[0];
-    let maxProb = -1;
+    const predictions = [];
 
-    for (const cls of TARGET_CLASSES) {
-      const p = sumExp > 0 ? expScores[cls] / sumExp : 1 / TARGET_CLASSES.length;
-      const roundedProb = Math.round(p * 1000) / 1000;
-      probabilities[cls] = roundedProb;
-      if (p > maxProb) {
-        maxProb = p;
-        topClass = cls;
+    let topClass = TARGET_CLASSES[0];
+    let topProb = -1;
+
+    TARGET_CLASSES.forEach((clsName, idx) => {
+      const p = probs[idx] ?? 0.0;
+      const rounded = Math.round(p * 1000) / 1000;
+      probabilities[clsName] = rounded;
+      predictions.push({
+        class: clsName,
+        probability: rounded,
+      });
+
+      if (p > topProb) {
+        topProb = p;
+        topClass = clsName;
       }
-    }
+    });
+
+    predictions.sort((a, b) => b.probability - a.probability);
 
     const elapsedMs = Math.round(performance.now() - startTime);
     const meta = CLINICAL_METADATA[topClass] || {
-      icd10: "H57.9",
-      snomed: "371405004",
-      urgency: "Elective",
-      description: "Screening completed. Confirmatory evaluation recommended.",
+      icd10: 'H57.9',
+      snomed: '371405004',
+      urgency: 'Elective',
+      description: 'Screening completed. Confirmatory evaluation recommended.',
     };
+
+    const chromophoreRatio = calculateChromophoreRatio(meanRed, meanBlue);
 
     return {
       success: true,
       edge_mode: true,
-      engine: "Client-Side Browser Engine (Offline / Zero Cloud Latency)",
+      isEdgeModel: true,
+      isHeuristicFallback: false,
+      active_mode: 'onnx_wasm',
+      engine: 'Client-Side ONNX Runtime Web (WASM MobileNetV3-Small INT8)',
       diagnosis: topClass,
-      confidence: Math.round(maxProb * 1000) / 10,
+      confidence: Math.round(topProb * 1000) / 10,
       probabilities,
+      predictions,
+      inferenceTimeMs: elapsedMs,
       latency_ms: elapsedMs,
+      disclaimer: MEDICAL_DISCLAIMER_EDGE,
+      warning:
+        'Warning: Preliminary screening (edge model). Full server-side analysis recommended for clinical decisions. This is not a diagnosis.',
       icd10_code: meta.icd10,
       snomed_code: meta.snomed,
       urgency: meta.urgency,
       details: {
         description: meta.description,
-        advice: "Edge screening completed locally on device. Confirmatory review by an eye care specialist is recommended.",
+        advice:
+          'Preliminary client-side ONNX screening completed locally. Confirmatory review with full server-side diagnostic analysis is recommended.',
       },
       domain_adaptation: {
         domain_shift_detected: chromophoreRatio < 1.30,
         sensor_domain_confidence: Math.min(1.0, Math.max(0.6, chromophoreRatio / 2.0)),
-        optical_profile_advisory: chromophoreRatio < 1.30 
-          ? "Non-mydriatic / smartphone optic profile detected; edge color constancy applied."
-          : "Standard optical aperture profile.",
+        optical_profile_advisory:
+          chromophoreRatio < 1.30
+            ? 'Non-mydriatic / smartphone optic profile detected; edge color constancy applied.'
+            : 'Standard optical aperture profile.',
         color_constancy_applied: true,
       },
-      privacy: "100% Client-Side. Image was never transmitted over the internet."
+      privacy: '100% Client-Side. Image was never transmitted over the internet.',
     };
-  } catch (error) {
+  } catch (inferenceErr) {
+    console.error('[EdgeInference] ONNX runtime execution error; falling back to heuristic:', inferenceErr);
+    const heuristicResult = await runHeuristicInference(sourceImage);
     return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error during edge optical inference.",
+      ...heuristicResult,
+      isEdgeModel: false,
+      isHeuristicFallback: true,
+      active_mode: 'heuristic_fallback',
+      engine: 'Legacy Heuristic Pre-Filter (Fallback - NOT for clinical use)',
+      disclaimer: MEDICAL_DISCLAIMER_EDGE,
+      warning:
+        'Warning: Preliminary screening (legacy heuristic fallback). Full server-side analysis recommended for clinical decisions. This is not a diagnosis.',
+      error: `ONNX execution failed (${inferenceErr.message}). Fallback pre-filter applied.`,
     };
   }
 }

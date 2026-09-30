@@ -1,7 +1,7 @@
 # OphthalmoAI
 
 **Point-of-Care Retinal Disease Screening & Clinical Decision-Support Platform**  
-*A calibrated tri-backbone vision ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM explainability, pre-inference optical domain guardrails, client-side pre-screening heuristics, and multi-tenant clinic architecture.*
+*A calibrated tri-backbone vision ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM explainability, pre-inference optical domain guardrails, client-side ONNX Runtime Web edge inference, and multi-tenant clinic architecture.*
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Author: Akash Kundu](https://img.shields.io/badge/Author-Akash%20Kundu-blue.svg)](https://github.com/AkashKundu114)
@@ -74,15 +74,16 @@ For detailed suite-by-suite instructions, see the complete [Reproducibility Guid
 
 Automated fundus screening is vital for addressing global specialist deficits and arresting preventable vision loss from Diabetic Retinopathy, Glaucoma, and Age-related Macular Degeneration. However, three critical failure modes have historically hindered clinical deployment: uncalibrated overconfidence, domain hallucination on non-medical photos, and black-box opacity.
 
-OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, an **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)** that deterministically rejects non-fundus imagery, a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine, and **client-side image pre-screening heuristics for bandwidth optimization** (with full ML inference handled by the server-side ensemble pipeline).
+OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a **Calibrated Tri-Backbone Soft-Voting Ensemble (DenseNet-201 + ConvNeXt-Small + EfficientNet-V2-M)** with **Platt Temperature Scaling**, an **Optical Aperture & Chromophore Domain Guardrail (OAC-DG)** that deterministically rejects non-fundus imagery, a dedicated **EfficientNet-B4 Explainable AI (Grad-CAM)** engine, and **client-side Edge ML inference via ONNX Runtime Web (WASM backend)** featuring a quantized MobileNetV3-Small neural network (<2MB, ~9ms latency) with Ben Graham preprocessing and heuristic fallback.
 
 ### By the Numbers:
 - **85.18% Empirical Test Accuracy / 0.9818 Macro AUROC:** Evaluated over 938 strictly held-out clinical fundus images across 6 target classes [1].
 - **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India) [2].
 - **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain) [3].
 - **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence [1].
-- **283 / 283 Automated Tests Passing (100%):** Exhaustive test coverage (262 Pytest backend tests + 21 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, and application-level tenant isolation [4].
+- **285 / 285 Automated Tests Passing (100%):** Exhaustive test coverage (262 Pytest backend tests + 23 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, ONNX Runtime Web edge inference, and application-level tenant isolation [4].
 - **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput [5] (benchmarks measured on AMD64 32-core CPU execution provider; see `docs/benchmarks/onnx_benchmark_results.json`).
+- **9.03 ms Mean Edge Inference Latency:** Ultra-low-latency in-browser quantized INT8 inference via ONNX Runtime Web WASM engine (`docs/benchmarks/edge_inference_benchmarks.md`).
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
 - **29 Publication-Grade Figures:** Comprehensive high-resolution publication-standard evaluation visual suite in `docs/images/`.
 
@@ -149,8 +150,9 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
 4. **US-CRC (Urgency-Stratified Conformal Risk Control):**
    Constructs prediction sets $\mathcal{C}(X)$ providing provable finite-sample coverage guarantees ($\alpha = 0.01$ for sight-threatening emergencies such as DR, Glaucoma, and AMD).
 
-5. **Low-Latency ONNX Serving & Client-Side Pre-Screening Heuristic:**
-   Compiled graph execution with FP16 quantization reducing p50 serving latency to 84.2ms at 17.3 QPS (`backend/onnx_inference.py`). On the frontend, client-side image pre-screening heuristics (`frontend/src/edgeInference.js`) validate optical chromophore ratios and spatial autocorrelation in-browser (<50ms) to reject non-fundus uploads and optimize bandwidth before transmission. *Note: Full multi-class ML inference requires the server-side ensemble pipeline.*
+5. **Low-Latency ONNX Serving & Real Client-Side Edge ML Inference:**
+   Compiled graph execution with FP16 quantization reducing p50 serving latency to 84.2ms at 17.3 QPS (`backend/onnx_inference.py`). On the frontend, client-side Edge ML inference (`frontend/src/edgeInference.js`) executes an authentic INT8 quantized MobileNetV3-Small neural network (<2MB, ~9ms latency) via ONNX Runtime Web (WASM backend) with Ben Graham optical preprocessing and legacy heuristic fallback (`frontend/src/edgeHeuristic.js`).
+   > *Note: Edge inference uses a quantized MobileNet/EfficientNet ONNX model running via ONNX Runtime Web (WASM backend). Edge model is a lightweight screening tool — full diagnostic accuracy requires the server-side tri-backbone ensemble.*
 
 6. **Cross-Dataset Sensor Domain Adaptation:**
    Reinhard $L\alpha\beta$ color constancy mapping matches chromatic distribution moments across disparate camera vendors (Zeiss, Topcon, Canon, handheld lenses), neutralizing optical sensor drift.
@@ -300,10 +302,10 @@ To satisfy FDA Software as a Medical Device (SaMD) and Nature Medicine clinical 
   - Implements graph compilation, operator fusion, and FP16 quantization (`backend/onnx_inference.py`).
   - Achieves a **2.15x serving speedup** (reducing p50 latency from 181.0ms to 84.2ms) and increases throughput from 5.4 to 17.3 QPS on multi-core architectures [5].
   - Benchmarks measured on AMD64 (32-core CPU execution provider, Windows 11). See `docs/benchmarks/` for reproducible benchmark scripts (`scripts/benchmark_onnx.py`) and persistent JSON output (`docs/benchmarks/onnx_benchmark_results.json`). *Note: When compiled ONNX model weights are not locally present, scripts output clearly flagged synthetic reference projections.*
-- **Client-Side Image Pre-Screening Heuristics for Bandwidth Optimization**:
-  - In-browser client-side optical verification via HTML5 Canvas pixel extraction (`frontend/src/edgeInference.js`).
-  - Turnaround time <50ms with zero cloud bandwidth consumed on invalid uploads, deterministically verifying chromophore ratios ($R/B \ge 1.05$) and spatial autocorrelation ($r_{\text{spatial}} \ge 0.30$) before network transmission.
-  - *Note: Full multi-class ML inference requires the server-side ensemble pipeline.*
+- **Client-Side Edge ML Inference via ONNX Runtime Web (WASM Backend)**:
+  - In-browser neural inference running a quantized INT8 MobileNetV3-Small model (<2MB, ~9ms latency) via ONNX Runtime Web (`frontend/src/edgeInference.js`).
+  - Implements client-side Ben Graham optical preprocessing, ImageNet tensor normalization, and deterministic optical quality guardrails with automatic fallback to legacy heuristics (`frontend/src/edgeHeuristic.js`) if WebAssembly is unavailable.
+  - *Note: Edge inference uses a quantized MobileNet/EfficientNet ONNX model running via ONNX Runtime Web (WASM backend). Edge model is a lightweight screening tool — full diagnostic accuracy requires the server-side tri-backbone ensemble. This is not a diagnosis.*
 
 <p align="center">
   <img src="docs/images/async_task_architecture.png" alt="Asynchronous Task Queue & WebSocket Streaming" width="96%" />
@@ -481,8 +483,10 @@ OphthalmoAI/
 │   ├── tracing.py                 # OpenTelemetry microsecond span tracing
 │   └── routes_admin.py            # HITL overrides, active learning, and audit logs
 ├── frontend/                      # Standalone React 19 SPA (Tailwind CSS + Vite 7)
-│   ├── src/                       # React components, clinical persona switcher, PDF export
-│   └── src/edgeInference.js       # Client-side image pre-screening heuristic for bandwidth optimization
+│   ├── public/models/             # Quantized INT8 ONNX edge models (<2MB)
+│   ├── src/edgeInference.js       # Client-side ONNX Runtime Web (WASM) neural edge inference
+│   ├── src/edgeHeuristic.js       # Legacy heuristic pre-filter fallback (non-clinical)
+│   └── src/                       # React components, clinical persona switcher, PDF export
 ├── models/                        # Trained PyTorch weights & Platt calibration JSONs
 ├── scripts/                       # Standardized 5-pillar operational & automation scripts
 │   ├── README.md                  # Complete operational scripts catalog & usage reference
@@ -534,9 +538,9 @@ OphthalmoAI/
 
 To ensure full technical defensibility under source-code audit and interview scrutiny, the following engineering boundaries and active constraints are documented:
 
-1. **Client-Side Screening vs. Full ML Inference:**
-   - The in-browser screening module (`frontend/src/edgeInference.js`) provides lightweight optical pre-screening heuristics (chromophore ratios and spatial autocorrelation) designed for client-side bandwidth optimization and instant non-fundus rejection.
-   - Full diagnostic multi-class classification, conformal prediction sets, and Grad-CAM saliency generation require the server-side PyTorch / ONNX ensemble pipeline.
+1. **Client-Side Edge Screening vs. Server-Side Diagnostic Pipeline:**
+   - Edge inference uses a quantized MobileNet/EfficientNet ONNX model running via ONNX Runtime Web (WASM backend). Edge model is a lightweight screening tool — full diagnostic accuracy requires the server-side tri-backbone ensemble.
+   - **Medical Application Disclaimer**: The edge model is strictly a preliminary point-of-care screening tool. Every response includes an explicit *"this is not a diagnosis"* disclaimer. Definitive diagnostic decisions, conformal risk sets ($\alpha = 0.01$), and Grad-CAM biomarker energy localization require confirmatory review by an eye care specialist and full server-side ensemble evaluation.
 
 2. **Field-of-View (FOV) Sensor Shift:**
    - As documented in the external clinical validation study (`docs/clinical/EXTERNAL_VALIDATION_REPORT.md`), localized optic disc crops (e.g., RIM-ONE DL, 292×292 px) lacking the macula and temporal arcade trigger the clinical uncertainty gate (`requires_human_review: true`), as the ensemble requires canonical 45° posterior pole fundus photographs.

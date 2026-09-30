@@ -111,6 +111,7 @@ models/*
 *.pth
 *.pt
 *.onnx
+!frontend/public/models/*.onnx
 *.keras
 *.h5
 *.tflite
