@@ -22,6 +22,7 @@ python-jose[cryptography]==3.3.0
 
 sqlalchemy==2.0.36
 alembic==1.14.0
+psycopg[binary]>=3.2.3
 
 # Added for backend/db_async.py (real async DB access for auth.py + routes_admin.py -
 # see that module's docstring for why a sync engine wasn't sufficient). aiosqlite covers

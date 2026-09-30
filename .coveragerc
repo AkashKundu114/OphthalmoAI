@@ -1,0 +1,14 @@
+[run]
+branch = True
+source = backend
+omit =
+    backend/migrations/*
+    backend/*/__main__.py
+    backend/scripts/*
+    backend/db_async.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    raise NotImplementedError
