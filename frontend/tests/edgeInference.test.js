@@ -11,7 +11,6 @@ import {
   CLINICAL_METADATA,
   calculateChromophoreRatio,
   calculateSpatialAutocorrelation,
-  extractRetinalPixelStats,
 } from '../src/edgeInference';
 import { runHeuristicInference } from '../src/edgeHeuristic';
 

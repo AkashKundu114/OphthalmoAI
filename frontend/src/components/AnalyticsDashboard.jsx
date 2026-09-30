@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import axios from 'axios'
 import {
   Activity,
@@ -26,7 +26,11 @@ const BASE_API_URL = getActiveApiUrl().endsWith('/api')
   ? getActiveApiUrl()
   : `${getActiveApiUrl()}/api`
 
-export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
+const CHART_HEIGHT = 220
+const CHART_WIDTH = 720
+const CHART_PADDING = { top: 20, right: 30, bottom: 40, left: 50 }
+
+export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState('30d')
   const [selectedMetric, setSelectedMetric] = useState('screenings')
   const [dashboardData, setDashboardData] = useState(null)
@@ -34,7 +38,6 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
   const [anomaliesData, setAnomaliesData] = useState([])
   const [comparisonData, setComparisonData] = useState(null)
   const [showComparison, setShowComparison] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [reportStatus, setReportStatus] = useState(null)
   const [selectedTenant, setSelectedTenant] = useState('default-metro-eye-hospital')
@@ -46,15 +49,15 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
     { id: 'st-jude-eye', name: 'St. Jude Eye Clinic', tier: 'Community Hospital' },
   ]
 
-  const getHeaders = () => {
-    const token = window.localStorage?.getItem('ophthalmo_token')
+  const getHeaders = useCallback(() => {
+    const token = typeof window !== 'undefined' ? window.localStorage?.getItem('ophthalmo_token') : null
     const headers = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
     if (selectedTenant) headers['X-Tenant-ID'] = selectedTenant
     return headers
-  }
+  }, [selectedTenant])
 
-  const fetchAllAnalytics = async () => {
+  const fetchAllAnalytics = useCallback(async () => {
     try {
       setRefreshing(true)
       const headers = getHeaders()
@@ -89,14 +92,13 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
     } catch (err) {
       console.error('Failed to load analytics data:', err)
     } finally {
-      setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [getHeaders, period, selectedMetric])
 
   useEffect(() => {
     fetchAllAnalytics()
-  }, [period, selectedMetric, selectedTenant])
+  }, [fetchAllAnalytics])
 
   const handleGenerateReport = async () => {
     try {
@@ -153,11 +155,6 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
     ? anomaliesData
     : (dashboardData?.active_anomalies || [])
 
-  // Calculate SVG dimensions for trends line chart
-  const chartHeight = 220
-  const chartWidth = 720
-  const padding = { top: 20, right: 30, bottom: 40, left: 50 }
-
   const { pointsStr, baselineStr, minVal, maxVal, mappedPoints } = useMemo(() => {
     if (!trendData || trendData.length === 0) {
       return { pointsStr: '', baselineStr: '', minVal: 0, maxVal: 100, mappedPoints: [] }
@@ -169,13 +166,13 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
     let max = Math.max(...allVals) * 1.1
     if (min === max) { min -= 10; max += 10 }
 
-    const innerW = chartWidth - padding.left - padding.right
-    const innerH = chartHeight - padding.top - padding.bottom
+    const innerW = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
+    const innerH = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
 
     const mapped = trendData.map((d, i) => {
-      const x = padding.left + (i / Math.max(1, trendData.length - 1)) * innerW
-      const y = padding.top + innerH - ((d.value - min) / (max - min)) * innerH
-      const by = padding.top + innerH - ((d.baseline - min) / (max - min)) * innerH
+      const x = CHART_PADDING.left + (i / Math.max(1, trendData.length - 1)) * innerW
+      const y = CHART_PADDING.top + innerH - ((d.value - min) / (max - min)) * innerH
+      const by = CHART_PADDING.top + innerH - ((d.baseline - min) / (max - min)) * innerH
       return { ...d, x, y, by }
     })
 
@@ -188,23 +185,23 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
   // Latency SLA chart computation
   const latencyPoints = useMemo(() => {
     if (!trendData || trendData.length === 0) return []
-    const innerW = chartWidth - padding.left - padding.right
-    const innerH = chartHeight - padding.top - padding.bottom
+    const innerW = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
+    const innerH = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
     const minL = 0
     const maxL = 320 // SLA is 200ms
 
     return trendData.map((d, i) => {
-      const x = padding.left + (i / Math.max(1, trendData.length - 1)) * innerW
+      const x = CHART_PADDING.left + (i / Math.max(1, trendData.length - 1)) * innerW
       // Simulate p50 and p95
       const p50 = d.value ? (selectedMetric === 'inference_time' ? d.value * 0.85 : 75 + (i % 7) * 3) : 80
       const p95 = d.value ? (selectedMetric === 'inference_time' ? d.value : 98 + (i % 5) * 6) : 110
-      const y50 = padding.top + innerH - ((p50 - minL) / (maxL - minL)) * innerH
-      const y95 = padding.top + innerH - ((p95 - minL) / (maxL - minL)) * innerH
+      const y50 = CHART_PADDING.top + innerH - ((p50 - minL) / (maxL - minL)) * innerH
+      const y95 = CHART_PADDING.top + innerH - ((p95 - minL) / (maxL - minL)) * innerH
       return { date: d.date, x, y50, y95, p50, p95 }
     })
   }, [trendData, selectedMetric])
 
-  const slaY = padding.top + (chartHeight - padding.top - padding.bottom) - ((200 - 0) / (320 - 0)) * (chartHeight - padding.top - padding.bottom)
+  const slaY = CHART_PADDING.top + (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) - ((200 - 0) / (320 - 0)) * (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom)
 
   return (
     <div className="space-y-6">
@@ -457,25 +454,25 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
           {/* Interactive SVG Chart */}
           <div className="relative w-full overflow-x-auto">
             <svg
-              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
               className="w-full h-auto min-w-[500px] select-none"
             >
               {/* Grid Lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
-                const y = padding.top + (chartHeight - padding.top - padding.bottom) * pct
+                const y = CHART_PADDING.top + (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) * pct
                 const val = maxVal - (pct * (maxVal - minVal))
                 return (
                   <g key={idx}>
                     <line
-                      x1={padding.left}
+                      x1={CHART_PADDING.left}
                       y1={y}
-                      x2={chartWidth - padding.right}
+                      x2={CHART_WIDTH - CHART_PADDING.right}
                       y2={y}
                       stroke="#E2E8F0"
                       strokeDasharray="4 4"
                     />
                     <text
-                      x={padding.left - 8}
+                      x={CHART_PADDING.left - 8}
                       y={y + 4}
                       textAnchor="end"
                       fontSize="10"
@@ -559,7 +556,7 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
                 <text
                   key={idx}
                   x={p.x}
-                  y={chartHeight - 12}
+                  y={CHART_HEIGHT - 12}
                   textAnchor="middle"
                   fontSize="10"
                   fill="#64748B"
@@ -575,8 +572,8 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
               <div
                 className="absolute z-20 pointer-events-none bg-slate-900 text-white rounded-xl px-3 py-2 text-xs shadow-lg border border-slate-700 -translate-x-1/2 -translate-y-full"
                 style={{
-                  left: `${(hoveredPoint.x / chartWidth) * 100}%`,
-                  top: `${(hoveredPoint.y / chartHeight) * 100}%`,
+                  left: `${(hoveredPoint.x / CHART_WIDTH) * 100}%`,
+                  top: `${(hoveredPoint.y / CHART_HEIGHT) * 100}%`,
                 }}
               >
                 <div className="font-bold text-cyan-300">{hoveredPoint.date}</div>
@@ -672,20 +669,20 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
 
         {/* Latency Chart */}
         <div className="relative w-full overflow-x-auto">
-          <svg viewBox={`0 0 ${chartWidth} 160`} className="w-full h-auto min-w-[500px]">
+          <svg viewBox={`0 0 ${CHART_WIDTH} 160`} className="w-full h-auto min-w-[500px]">
             {/* SLA Threshold Line at 200ms */}
             <line
-              x1={padding.left}
-              y1={slaY * (160 / chartHeight)}
-              x2={chartWidth - padding.right}
-              y2={slaY * (160 / chartHeight)}
+              x1={CHART_PADDING.left}
+              y1={slaY * (160 / CHART_HEIGHT)}
+              x2={CHART_WIDTH - CHART_PADDING.right}
+              y2={slaY * (160 / CHART_HEIGHT)}
               stroke="#EF4444"
               strokeWidth="2"
               strokeDasharray="6 4"
             />
             <text
-              x={chartWidth - padding.right}
-              y={slaY * (160 / chartHeight) - 6}
+              x={CHART_WIDTH - CHART_PADDING.right}
+              y={slaY * (160 / CHART_HEIGHT) - 6}
               textAnchor="end"
               fontSize="10"
               fill="#EF4444"
@@ -701,13 +698,13 @@ export default function AnalyticsDashboard({ viewMode = 'clinical' }) {
                   fill="none"
                   stroke="#F59E0B"
                   strokeWidth="2"
-                  points={latencyPoints.map(p => `${p.x},${p.y95 * (160 / chartHeight)}`).join(' ')}
+                  points={latencyPoints.map(p => `${p.x},${p.y95 * (160 / CHART_HEIGHT)}`).join(' ')}
                 />
                 <polyline
                   fill="none"
                   stroke="#0891B2"
                   strokeWidth="1.5"
-                  points={latencyPoints.map(p => `${p.x},${p.y50 * (160 / chartHeight)}`).join(' ')}
+                  points={latencyPoints.map(p => `${p.x},${p.y50 * (160 / CHART_HEIGHT)}`).join(' ')}
                 />
               </>
             )}

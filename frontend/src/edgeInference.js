@@ -40,7 +40,6 @@ export const MEDICAL_DISCLAIMER_EDGE =
 // Singleton session cache and loading state
 let inferenceSession = null;
 let sessionLoadingPromise = null;
-let isModelAvailable = null;
 
 // Initialize ONNX runtime configuration for optimal browser performance
 if (typeof ort !== 'undefined' && ort?.env?.wasm) {
@@ -62,7 +61,6 @@ export function isEdgeModelLoaded() {
 export function resetEdgeModelSession() {
   inferenceSession = null;
   sessionLoadingPromise = null;
-  isModelAvailable = null;
 }
 
 /**
@@ -98,11 +96,9 @@ export async function loadEdgeModel(modelSource = EDGE_MODEL_PATH, options = {})
       }
 
       inferenceSession = session;
-      isModelAvailable = true;
       return session;
     } catch (err) {
       inferenceSession = null;
-      isModelAvailable = false;
       sessionLoadingPromise = null;
       throw new Error(`Failed to load ONNX edge model: ${err.message}`);
     }
