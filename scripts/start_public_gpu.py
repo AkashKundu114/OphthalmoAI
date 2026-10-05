@@ -22,7 +22,23 @@ import time
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-PYTHON_GPU = ROOT_DIR / "venv_gpu" / "Scripts" / "python.exe"
+
+
+def find_gpu_python() -> Path:
+    candidates = [
+        ROOT_DIR / ".venv_gpu" / "Scripts" / "python.exe",
+        ROOT_DIR / "venv_gpu" / "Scripts" / "python.exe",
+        ROOT_DIR / ".venv_gpu" / "bin" / "python",
+        ROOT_DIR / "venv_gpu" / "bin" / "python",
+        ROOT_DIR / ".venv" / "Scripts" / "python.exe",
+        ROOT_DIR / "venv" / "Scripts" / "python.exe",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return ROOT_DIR / "venv_gpu" / "Scripts" / "python.exe"
+
+PYTHON_GPU = find_gpu_python()
 CLOUDFLARED = Path(r"C:\Program Files (x86)\cloudflared\cloudflared.exe")
 HF_CLI = Path(os.environ.get("USERPROFILE", "")) / ".local" / "bin" / "hf.exe"
 LAST_URL_FILE = ROOT_DIR / ".last_tunnel_url"

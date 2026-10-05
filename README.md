@@ -385,17 +385,17 @@ performance analytics, and automated optimization systems.
 Launch both FastAPI backend and Vite frontend with automatic GPU detection and browser launch:
 
 ```bash
-# Windows (Double-click or run from CMD):
-start.bat
+# Windows (CMD or double-click):
+scripts\launchers\start.bat
 
 # PowerShell:
-powershell -ExecutionPolicy Bypass -File .\start.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\launchers\start.ps1
 
 # Linux / macOS / WSL:
-chmod +x start.sh && ./start.sh
+chmod +x scripts/launchers/start.sh && ./scripts/launchers/start.sh
 
 # Public GPU Mode (RTX 5060 + Cloudflare Tunnel + Hugging Face & Vercel Sync):
-start_public_gpu.bat
+scripts\launchers\start_public_gpu.bat
 ```
 
 ---
