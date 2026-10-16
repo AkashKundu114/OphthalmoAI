@@ -254,7 +254,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload OWASP HTML report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: steps.check_owasp.outputs.dir_exists == 'true'
         with:
           name: owasp-dependency-report
@@ -294,7 +294,7 @@ jobs:
           fi
 
       - name: Upload pip-audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: pip-audit-report
@@ -326,7 +326,7 @@ jobs:
           npm audit --audit-level=critical
 
       - name: Upload npm-audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: npm-audit-report
