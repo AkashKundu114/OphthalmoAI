@@ -104,7 +104,7 @@ def main(epochs=20, batch_size=32, precision="fp16", wait_seconds=300):
     # 1. Build Docker GPU Image if needed
     img_check = subprocess.run(["docker", "image", "inspect", "ophthalmoai-gpu-trainer"], capture_output=True)
     if img_check.returncode != 0:
-        build_cmd = ["docker", "build", "-t", "ophthalmoai-gpu-trainer", "-f", "Dockerfile.gpu", "."]
+        build_cmd = ["docker", "build", "-t", "ophthalmoai-gpu-trainer", "-f", "deploy/docker/Dockerfile.gpu", "."]
         run_cmd(build_cmd, "BUILDING DOCKER GPU TRAINING IMAGE (CUDA)")
     else:
         print("\n[OK] Docker GPU training image 'ophthalmoai-gpu-trainer' already exists and verified.")

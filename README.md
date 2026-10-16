@@ -22,7 +22,7 @@
 
 ---
 
-## 🔬 Overview & Key Capabilities
+## Overview and Key Capabilities
 
 OphthalmoAI investigates methods for reliable, uncertainty-aware automated retinal fundus screening. In resource-constrained or community health settings, early detection of sight-threatening pathology is critical. OphthalmoAI couples deep vision architectures with rigorous statistical and software engineering safeguards:
 
@@ -35,7 +35,7 @@ OphthalmoAI investigates methods for reliable, uncertainty-aware automated retin
 
 ---
 
-## 📊 Real Evaluated Performance & Latency Benchmarks
+## Evaluated Performance and Latency Benchmarks
 
 All performance metrics reported below represent real, measured evaluations on strictly held-out clinical test splits and hardware benchmarks:
 
@@ -66,7 +66,7 @@ Measured on local hardware (CUDA acceleration & CPU ONNX Runtime):
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -121,7 +121,7 @@ flowchart TD
 
 ---
 
-## 🚀 Quickstart Guides
+## Quickstart Guides
 
 ### Path 1: Docker Compose (Recommended)
 
@@ -195,35 +195,39 @@ In remote clinics or field screenings with zero internet connectivity:
 
 ---
 
-## 🔒 Security, Privacy & Compliance Architecture
+## Security, Privacy, and Compliance Architecture
 
 - **Ephemeral In-Memory Processing**: By default, `PERSIST_SCANS=false`. Uploaded scans are evaluated in memory and discarded upon response completion.
 - **EXIF Metadata Cleansing**: All images undergo metadata stripping (`backend/security.py`) to purge camera serial numbers, patient names, and embedded GPS coordinates.
 - **Supply Chain Hardened**: Clean `pip-audit` scan (0 vulnerabilities) and zero critical `npm audit` advisories.
 - **Strict Role-Based Access Control (RBAC)**: Enforced across clinical review endpoints (`clinician`, `admin`, `patient`).
-- **Comprehensive Threat Documentation**: Review [`docs/PRIVACY.md`](docs/PRIVACY.md), [`docs/SAFETY_MECHANISMS.md`](docs/SAFETY_MECHANISMS.md), and [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
+- **Comprehensive Threat Documentation**: Review [`docs/PRIVACY.md`](docs/PRIVACY.md), [`docs/SAFETY_MECHANISMS.md`](docs/SAFETY_MECHANISMS.md), and [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md).
 
 ---
 
-## 📚 Technical Documentation & Evaluation Protocol
+## Technical Documentation and Evaluation Protocol
 
 - **[Model Card (docs/MODEL_CARD.md)](docs/MODEL_CARD.md)**: Model specifications, training data, metrics, and calibration bounds.
 - **[Intended Use & Clinical Scope (docs/INTENDED_USE.md)](docs/INTENDED_USE.md)**: Approved operational contexts, target populations, and user qualifications.
 - **[Limitations & Failure Modes (docs/LIMITATIONS.md)](docs/LIMITATIONS.md)**: Anatomical edge cases, out-of-distribution behaviors, and sensor shift.
 - **[Safety Mechanisms (docs/SAFETY_MECHANISMS.md)](docs/SAFETY_MECHANISMS.md)**: Deep dive into all 8 defensive runtime layers.
 - **[Privacy Architecture (docs/PRIVACY.md)](docs/PRIVACY.md)**: Data lifecycle and non-compliance disclosures for HIPAA/GDPR/DPDP.
+- **[Production & Cloud Deployment (docs/PRODUCTION.md)](docs/PRODUCTION.md)**: Container orchestration, Kubernetes manifests, and ONNX Runtime deployment.
+- **[Reproducibility Protocol (docs/REPRODUCIBILITY.md)](docs/REPRODUCIBILITY.md)**: Deterministic evaluation seed matrices, hardware baselines, and benchmark verification.
+- **[Project Roadmap (docs/ROADMAP.md)](docs/ROADMAP.md)**: Research and engineering development milestones.
 - **[Pre-Registration Protocol (REMEDIATION/EVAL_PREREG.md)](REMEDIATION/EVAL_PREREG.md)**: Statistical pre-registration for empirical verification.
 - **[Walkthrough Demo Script (REMEDIATION/DEMO_SCRIPT.md)](REMEDIATION/DEMO_SCRIPT.md)**: Step-by-step evaluator testing guide.
+- **[Audit Reports Index (docs/audit-reports/README.md)](docs/audit-reports/README.md)**: Comprehensive repository audit logs, verification suites, and compliance matrices.
 
 ---
 
-## 👥 Community, Contribution & Citation
+## Community, Contribution, and Citation
 
 We welcome academic collaboration and code contributions:
 - **[Contributing Guidelines (CONTRIBUTING.md)](CONTRIBUTING.md)**: PR standards, testing requirements, and style guides.
 - **[Code of Conduct (CODE_OF_CONDUCT.md)](CODE_OF_CONDUCT.md)**: Standards for open, respectful collaboration.
 - **[Security Policy (SECURITY.md)](SECURITY.md)**: Responsible vulnerability disclosure process.
-- **[Support & Contact (SUPPORT.md)](SUPPORT.md)**: Assistance, academic correspondence, and issue tracking.
+- **[Support & Contact (.github/SUPPORT.md)](.github/SUPPORT.md)**: Assistance, academic correspondence, and issue tracking.
 
 If referencing OphthalmoAI in academic work, please use the following citation format from [`CITATION.cff`](CITATION.cff):
 
@@ -239,7 +243,7 @@ If referencing OphthalmoAI in academic work, please use the following citation f
 
 ---
 
-## 📜 License
+## License
 
 Distributed under the **Apache License 2.0**. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) for details.  
 Copyright &copy; 2026 Akash Kundu. All rights reserved.

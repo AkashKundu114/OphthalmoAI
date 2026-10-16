@@ -16,7 +16,7 @@ Write-Host " Target Architecture: $Model | Batch Size: $BatchSize | Precision: $
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 Write-Host "`n[STEP 1/2] Building Docker GPU Training Image..." -ForegroundColor Yellow
-docker build -t ophthalmoai-gpu-trainer -f Dockerfile.gpu .
+docker build -t ophthalmoai-gpu-trainer -f deploy/docker/Dockerfile.gpu .
 
 Write-Host "`n[STEP 2/2] Launching Container with NVIDIA GPU Passthrough..." -ForegroundColor Green
 docker run --rm `

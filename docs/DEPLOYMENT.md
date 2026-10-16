@@ -57,7 +57,7 @@ python -m venv .venv_gpu
 .\.venv_gpu\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # Start backend service
 python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload

@@ -70,7 +70,7 @@ source venv/bin/activate
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # Install backend dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # Install frontend dependencies
 cd frontend

@@ -30,7 +30,7 @@ Write-Host "====================================================================
 
 # Step 1: Build Docker GPU Image
 Write-Host "`n[PHASE 0] Building/Verifying Docker GPU Container Image..." -ForegroundColor Yellow
-docker build -t ophthalmoai-gpu-trainer -f Dockerfile.gpu .
+docker build -t ophthalmoai-gpu-trainer -f deploy/docker/Dockerfile.gpu .
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Docker build failed. Exiting." -ForegroundColor Red
     exit 1

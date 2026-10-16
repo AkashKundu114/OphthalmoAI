@@ -47,7 +47,14 @@ docs/
 ├── SYSTEM_SPECIFICATION.md                    # Core technical architecture, pipeline stages & QA checklist
 ├── PERFORMANCE_METRICS.md                     # Comprehensive empirical evaluation, ROC, and GPU profiling
 ├── OphthalmoAI_Technical_White_Paper.md       # Formal algorithmic white paper & mathematical formulations
+├── PRODUCTION.md                              # Production deployment, Docker Compose, Kubernetes & ONNX Runtime
+├── REPRODUCIBILITY.md                         # Reproducibility verification guide and seed matrices
+├── ROADMAP.md                                 # Technical and clinical research roadmap
+├── PRIVACY_POLICY.md                          # Clinical data handling and privacy disclosures
+├── TERMS_AND_CONDITIONS.md                    # Platform research evaluation terms
 ├── training_guide.md                          # Data preparation, hyperparameter tuning & training manual
+├── audit-reports/                             # Comprehensive historical audit reports and verification matrices
+│   └── README.md                              # Audit reports catalog and index
 ├── clinical/                                  # Clinical Safety & Regulatory Documentation
 │   ├── CLINICAL_EVALUATION_AND_SAFETY.md      # Intended use, clinical risk mitigation & validation protocols
 │   └── EXTERNAL_VALIDATION_REPORT.md          # Multi-cohort external validation & generalization study
