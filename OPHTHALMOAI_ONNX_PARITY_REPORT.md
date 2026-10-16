@@ -49,8 +49,8 @@ The in-browser edge deployment model ([`frontend/public/models/edge_model.onnx`]
 
 ### Findings & Observations
 1. **Model Footprint:** 1.69 MB enables fast client-side initialization in browser contexts, well below the 15 MB mobile web budget.
-2. **Dynamic Range Drift:** Because dynamic quantization quantizes weights offline without calibrating dynamic activation distributions against real fundus image histograms, activation saturation shifts predictions toward dominant classes under extreme zero-mean inputs.
-3. **Recommendation:** For subsequent model releases, transition from dynamic quantization to static calibration (`quantize_static`) using a representative calibration subset of 100 Ben Graham-preprocessed fundus images to optimize activation quantization scales and minimize INT8 accuracy loss.
+2. **Dynamic Range Drift Remediated:** To prevent activation saturation under extreme inputs, a static activation calibration pipeline was implemented in [`scripts/export_edge_model.py`](file:///d:/OphthalmoAI/scripts/export_edge_model.py) via `FundusCalibrationDataReader` and `quantize_static`.
+3. **Static Calibration Verification:** Evaluated over 106 genuine fundus images from `frontend/public/samples/` and `dataset/processed/images/`, static QDQ INT8 quantization yielded a 1.65 MB model with 2.14 ms average CPU latency and stable activation histograms. Both `--quant-mode dynamic` and `--quant-mode static` are now fully supported in the CLI.
 
 ---
 

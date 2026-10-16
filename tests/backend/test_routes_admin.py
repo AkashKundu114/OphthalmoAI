@@ -20,23 +20,11 @@ import pytest
 
 
 @pytest.fixture()
-def client(tmp_path, monkeypatch):
-    db_path = tmp_path / "test_routes_admin.db"
-    monkeypatch.setenv("ENVIRONMENT", "test")
-    monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-not-for-prod")
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("CORS_ORIGINS", "http://localhost:5173")
-    monkeypatch.setenv("FORCE_CPU", "true")
-
-
-
-    import importlib
+def client():
     import backend.db as db_module
-    import backend.db_async as db_async_module
-    importlib.reload(db_module)
-    importlib.reload(db_async_module)
     import backend.main as main_module
-    importlib.reload(main_module)
+    from backend.db import create_tables
+    create_tables()
 
     from fastapi.testclient import TestClient
     with TestClient(main_module.app) as c:

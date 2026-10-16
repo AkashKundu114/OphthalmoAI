@@ -109,3 +109,23 @@ def test_air_gapped_zero_egress_font_integrity():
     # Verify no external CDNs in index.html
     assert "fonts.googleapis.com" not in html_content, "Google Fonts link found in frontend/index.html"
     assert "cdn." not in html_content, "External CDN script/style found in frontend/index.html"
+
+
+def test_static_quantization_pipeline_availability():
+    """
+    Verifies that the static activation calibration reader and quantization options
+    are available and instantiate correctly in scripts/export_edge_model.py.
+    """
+    from scripts.export_edge_model import FundusCalibrationDataReader
+
+    sample_images = list((FRONTEND_DIR / "public" / "samples").glob("*.jpg"))
+    if not sample_images:
+        pytest.skip("Sample fundus images missing")
+
+    reader = FundusCalibrationDataReader(sample_images[:2], input_name="input", img_size=224)
+    first_batch = reader.get_next()
+    assert first_batch is not None, "Calibration reader failed to produce first batch."
+    assert "input" in first_batch
+    assert first_batch["input"].shape == (1, 3, 224, 224)
+    reader.rewind()
+

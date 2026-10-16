@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-10-16 14:48:02",
+  "host": {
+    "os": "win32",
+    "cpu_count": 32,
+    "total_ram_gb": 15.21,
+    "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "cuda_available": true
+  },
+  "image_preprocessing": {
+    "standard_resize_mean_ms": 10.28,
+    "standard_resize_p95_ms": 10.84,
+    "ben_graham_mean_ms": 63.21,
+    "ben_graham_p95_ms": 66.22
+  },
+  "models": [
+    {
+      "model_name": "mobilenet_v3_small_edge",
+      "device": "cpu",
+      "disk_size_mb": 5.95,
+      "cold_load_time_ms": 67.98,
+      "post_load_ram_delta_mb": 16.83,
+      "post_load_vram_delta_mb": 0.0,
+      "peak_ram_mb": 833.69,
+      "peak_vram_mb": 0.0,
+      "latency_p50_ms": 6.41,
+      "latency_p95_ms": 7.15,
+      "latency_p99_ms": 7.27,
+      "latency_mean_ms": 6.55,
+      "throughput_qps": 152.77
+    },
+    {
+      "model_name": "densenet201",
+      "device": "cpu",
+      "disk_size_mb": 70.37,
+      "cold_load_time_ms": 403.43,
+      "post_load_ram_delta_mb": 140.6,
+      "post_load_vram_delta_mb": 0.0,
+      "peak_ram_mb": 1037.2,
+      "peak_vram_mb": 0.0,
+      "latency_p50_ms": 110.02,
+      "latency_p95_ms": 122.82,
+      "latency_p99_ms": 129.24,
+      "latency_mean_ms": 107.81,
+      "throughput_qps": 9.28
+    },
+    {
+      "model_name": "convnext_small",
+      "device": "cpu",
+      "disk_size_mb": 188.8,
+      "cold_load_time_ms": 721.8,
+      "post_load_ram_delta_mb": 199.62,
+      "post_load_vram_delta_mb": 0.0,
+      "peak_ram_mb": 1301.31,
+      "peak_vram_mb": 0.0,
+      "latency_p50_ms": 116.1,
+      "latency_p95_ms": 127.91,
+      "latency_p99_ms": 132.2,
+      "latency_mean_ms": 117.67,
+      "throughput_qps": 8.5
+    },
+    {
+      "model_name": "efficientnet_v2_m",
+      "device": "cpu",
+      "disk_size_mb": 203.18,
+      "cold_load_time_ms": 768.9,
+      "post_load_ram_delta_mb": 67.85,
+      "post_load_vram_delta_mb": 0.0,
+      "peak_ram_mb": 1364.61,
+      "peak_vram_mb": 0.0,
+      "latency_p50_ms": 99.35,
+      "latency_p95_ms": 106.83,
+      "latency_p99_ms": 107.96,
+      "latency_mean_ms": 99.22,
+      "throughput_qps": 10.08
+    },
+    {
+      "model_name": "efficientnet_b4",
+      "device": "cpu",
+      "disk_size_mb": 67.71,
+      "cold_load_time_ms": 330.69,
+      "post_load_ram_delta_mb": 0.0,
+      "post_load_vram_delta_mb": 0.0,
+      "peak_ram_mb": 1341.41,
+      "peak_vram_mb": 0.0,
+      "latency_p50_ms": 66.25,
+      "latency_p95_ms": 83.85,
+      "latency_p99_ms": 92.87,
+      "latency_mean_ms": 68.71,
+      "throughput_qps": 14.55
+    }
+  ]
+}

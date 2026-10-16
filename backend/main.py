@@ -80,6 +80,8 @@ from .security import (
     anonymise_ip,
     make_rate_limit_decorator,
     safe_error_detail,
+    sanitize_filename,
+    strip_image_metadata,
     token_blacklist,
     validate_image_dimensions,
     validate_magic_bytes,
@@ -156,6 +158,18 @@ MONOLITHIC_MODEL: Optional[nn.Module] = None
 ENSEMBLE_MODELS: Dict[str, nn.Module] = {}
 ROUTER_MODEL: Optional[nn.Module] = None
 SPECIALIST_MODELS: Optional[dict] = None
+
+MAX_CONCURRENT_INFERENCES = int(os.getenv("MAX_CONCURRENT_INFERENCES", "4"))
+_INFERENCE_SEMAPHORE: Optional[Any] = None
+
+
+def get_inference_semaphore():
+    global _INFERENCE_SEMAPHORE
+    if _INFERENCE_SEMAPHORE is None:
+        import asyncio
+        _INFERENCE_SEMAPHORE = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
+    return _INFERENCE_SEMAPHORE
+
 
 OPHTHALMOLOGY_SYSTEM_PROMPT = (
     "You are an experienced, empathetic eye care specialist and clinician.\n\n"
@@ -684,7 +698,8 @@ async def predict(
         raise HTTPException(422, detail=dim_result)
 
     try:
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        raw_image = Image.open(io.BytesIO(contents))
+        image = strip_image_metadata(raw_image)
     except Exception:
         raise HTTPException(422, detail="File could not be decoded as an image.")
 
@@ -729,6 +744,16 @@ async def predict(
     except Exception as da_err:
         logger.warning("predict.domain_adaptation_failed", error=str(da_err))
 
+    sem = get_inference_semaphore()
+    try:
+        import asyncio
+        await asyncio.wait_for(sem.acquire(), timeout=20.0)
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=503,
+            detail="Clinical inference capacity saturated. Please retry in a few moments.",
+        )
+
     try:
         model_input_image = ben_graham_preprocess(image, target_size=384)
         input_tensor = preprocess(model_input_image).to(DEVICE).unsqueeze(0)
@@ -758,6 +783,10 @@ async def predict(
                 model_group_name = "Monolithic 12-Class Model"
             else:
                 raise RuntimeError("No prediction models loaded.")
+
+            if torch.isnan(probs).any() or torch.isinf(probs).any():
+                logger.error("predict.numerical_instability", probs=str(probs))
+                raise HTTPException(status_code=500, detail="Inference encountered numerical instability in output tensors.")
 
             class_idx = int(torch.argmax(probs).item())
 
@@ -977,6 +1006,10 @@ async def predict(
                   ip_address=client_ip, error_detail=str(exc))
         raise HTTPException(500, detail=safe_error_detail(exc, request_id=req_id))
     finally:
+        try:
+            sem.release()
+        except (ValueError, RuntimeError):
+            pass
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             gc.collect()
@@ -1532,8 +1565,17 @@ def predict_multimodal_risk(req: MultimodalRiskRequest):
     }
 
 @app.get("/scans/history/{user_id}")
-def get_longitudinal_history(user_id: str, db: Session = Depends(get_db)):
-    
+def get_longitudinal_history(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user),
+):
+    import re
+    if not user_id or not re.match(r"^[a-zA-Z0-9_\-]+$", user_id):
+        raise HTTPException(status_code=400, detail="Invalid user identifier format.")
+
+    if current_user and current_user.role == "patient" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Access denied to requested longitudinal history.")
 
     scans = db.query(ScanResult).filter(ScanResult.user_id == user_id).order_by(ScanResult.created_at.asc()).all()
     history = []
@@ -1671,11 +1713,24 @@ def sign_off_scan(
     }
 
 @app.get("/scans/{scan_id}/details")
-def get_scan_details(scan_id: str, db: Session = Depends(get_db)):
-    
+def get_scan_details(
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user),
+):
+    import re
+    if not scan_id or not re.match(r"^[a-zA-Z0-9_\-]+$", scan_id) or len(scan_id) > 64:
+        raise HTTPException(status_code=400, detail="Invalid scan identifier format.")
+
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan result not found")
+
+    if current_user and current_user.role == "patient":
+        if scan.user_id and scan.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied: Cannot access other patients' scans.")
+        if scan.dicom_patient_id and scan.dicom_patient_id != str(current_user.id) and not scan.user_id:
+            raise HTTPException(status_code=403, detail="Access denied: Cannot access other patients' scans.")
 
     doc = mongo_store.get_document(scan_id) or {}
 
@@ -1718,7 +1773,26 @@ async def compress_uploaded_image(file: UploadFile = File(...)):
     
     from .iqa import compress_retinal_image
     contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Image file exceeds maximum limit of {MAX_FILE_SIZE // (1024 * 1024)} MB",
+        )
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Empty file uploaded.")
+
+    safe_name = sanitize_filename(file.filename or "fundus.jpg")
+    ext = os.path.splitext(safe_name)[1].lower()
+    magic_ok, magic_result = validate_magic_bytes(contents, file.content_type)
+    if not magic_ok:
+        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=magic_result)
+
+    dim_ok, dim_result = validate_image_dimensions(contents)
+    if not dim_ok:
+        raise HTTPException(status_code=422, detail=dim_result)
+
+    raw_img = Image.open(io.BytesIO(contents))
+    image = strip_image_metadata(raw_img)
 
     comp_bytes, orig_sz, comp_sz = compress_retinal_image(image)
     ratio = round((1.0 - (comp_sz / orig_sz)) * 100.0, 1)
@@ -1829,90 +1903,104 @@ async def screen_async(
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(413, detail=f"File exceeds {MAX_FILE_SIZE // (1024*1024)} MB limit.")
 
+    safe_name = sanitize_filename(file.filename or "scan.jpg")
+    magic_ok, magic_result = validate_magic_bytes(contents, file.content_type)
+    if not magic_ok:
+        raise HTTPException(415, detail=magic_result)
+
     dim_ok, dim_result = validate_image_dimensions(contents)
     if not dim_ok:
         raise HTTPException(422, detail=dim_result)
 
-    job_id = screening_queue.create_job(metadata={"filename": file.filename})
+    job_id = screening_queue.create_job(metadata={"filename": safe_name})
 
     # Background async pipeline task
     async def _process_pipeline(report_progress):
-        # Stage 1: Decode & Domain Validation
-        await report_progress(15, ScreeningStage.DOMAIN_VALIDATION)
-        img = Image.open(io.BytesIO(contents)).convert("RGB")
+        try:
+            # Stage 1: Decode & Domain Validation
+            await report_progress(15, ScreeningStage.DOMAIN_VALIDATION)
+            raw_img = Image.open(io.BytesIO(contents))
+            img = strip_image_metadata(raw_img)
 
-        from backend.fundus_validator import validate_fundus_image
-        is_fundus, score, reason, metrics = validate_fundus_image(img)
-        if not is_fundus:
-            raise ValueError(f"Non-fundus image rejected: {reason}")
+            from backend.fundus_validator import validate_fundus_image
+            is_fundus, score, reason, metrics = validate_fundus_image(img)
+            if not is_fundus:
+                raise ValueError(f"Non-fundus image rejected: {reason}")
 
-        if metrics.get("is_bgr_inverted"):
-            r_c, g_c, b_c = img.split()
-            img = Image.merge("RGB", (b_c, g_c, r_c))
+            if metrics.get("is_bgr_inverted"):
+                r_c, g_c, b_c = img.split()
+                img = Image.merge("RGB", (b_c, g_c, r_c))
 
-        # Stage 2: Optical Domain Adaptation
-        await report_progress(35, ScreeningStage.DOMAIN_ADAPTATION)
-        img, domain_info = adapt_fundus_domain(img, apply_color_constancy=apply_domain_adaptation)
+            # Stage 2: Optical Domain Adaptation
+            await report_progress(35, ScreeningStage.DOMAIN_ADAPTATION)
+            img, domain_info = adapt_fundus_domain(img, apply_color_constancy=apply_domain_adaptation)
 
-        # Stage 3: Concurrent Ensemble Forward Pass
-        await report_progress(60, ScreeningStage.ENSEMBLE_INFERENCE)
-        model_input_img = ben_graham_preprocess(img, target_size=384)
-        input_tensor = preprocess(model_input_img).to(DEVICE).unsqueeze(0)
+            # Stage 3: Concurrent Ensemble Forward Pass
+            await report_progress(60, ScreeningStage.ENSEMBLE_INFERENCE)
+            model_input_img = ben_graham_preprocess(img, target_size=384)
+            input_tensor = preprocess(model_input_img).to(DEVICE).unsqueeze(0)
 
-        with torch.no_grad():
-            if len(ENSEMBLE_MODELS) >= 3:
-                probs_list = []
-                for arch_name in ["densenet201", "convnext_small", "efficientnet_v2_m"]:
-                    model = ENSEMBLE_MODELS[arch_name]
-                    raw_logits = model(input_tensor)[0]
-                    t = CALIBRATION_REGISTRY.get(arch_name)
-                    cal_logits = apply_temperature(raw_logits, t)
-                    probs_list.append(torch.nn.functional.softmax(cal_logits, dim=0))
-                probs = torch.stack(probs_list, dim=0).mean(dim=0)
-            elif MONOLITHIC_MODEL is not None:
-                out = MONOLITHIC_MODEL(input_tensor)
-                probs = torch.nn.functional.softmax(out[0], dim=0)
-            else:
-                raise RuntimeError("Models unavailable.")
-            class_idx = int(torch.argmax(probs).item())
+            with torch.no_grad():
+                if len(ENSEMBLE_MODELS) >= 3:
+                    probs_list = []
+                    for arch_name in ["densenet201", "convnext_small", "efficientnet_v2_m"]:
+                        model = ENSEMBLE_MODELS[arch_name]
+                        raw_logits = model(input_tensor)[0]
+                        if torch.isnan(raw_logits).any() or torch.isinf(raw_logits).any():
+                            raise RuntimeError(f"Numerical instability in {arch_name}: model produced NaN or Inf logits.")
+                        t = CALIBRATION_REGISTRY.get(arch_name)
+                        cal_logits = apply_temperature(raw_logits, t)
+                        probs_list.append(torch.nn.functional.softmax(cal_logits, dim=0))
+                    probs = torch.stack(probs_list, dim=0).mean(dim=0)
+                elif MONOLITHIC_MODEL is not None:
+                    out = MONOLITHIC_MODEL(input_tensor)
+                    if torch.isnan(out).any() or torch.isinf(out).any():
+                        raise RuntimeError("Numerical instability: monolithic model produced NaN or Inf logits.")
+                    probs = torch.nn.functional.softmax(out[0], dim=0)
+                else:
+                    raise RuntimeError("Models unavailable.")
+                class_idx = int(torch.argmax(probs).item())
 
-        diagnosis = MONOLITHIC_CLASSES[class_idx]
-        confidence = float(probs[class_idx].item()) * 100
-        probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item()) for i in range(len(MONOLITHIC_CLASSES))}
+            diagnosis = MONOLITHIC_CLASSES[class_idx]
+            confidence = float(probs[class_idx].item()) * 100
+            probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item()) for i in range(len(MONOLITHIC_CLASSES))}
 
-        # Stage 4: Grad-CAM Explainability
-        await report_progress(80, ScreeningStage.EXPLAINABILITY_GRADCAM)
-        heatmap_base64 = None
-        if GRADCAM_AVAILABLE and MONOLITHIC_MODEL is not None:
-            try:
-                cam = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
-                grayscale = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
-                rgb_img = np.float32(model_input_img.resize((384, 384))) / 255
-                vis = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
-                buff = io.BytesIO()
-                Image.fromarray(vis).save(buff, format="JPEG", quality=85)
-                heatmap_base64 = base64.b64encode(buff.getvalue()).decode("utf-8")
-            except Exception:
-                pass
+            # Stage 4: Grad-CAM Explainability
+            await report_progress(80, ScreeningStage.EXPLAINABILITY_GRADCAM)
+            heatmap_base64 = None
+            if GRADCAM_AVAILABLE and MONOLITHIC_MODEL is not None:
+                try:
+                    cam = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
+                    grayscale = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
+                    rgb_img = np.float32(model_input_img.resize((384, 384))) / 255
+                    vis = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
+                    buff = io.BytesIO()
+                    Image.fromarray(vis).save(buff, format="JPEG", quality=85)
+                    heatmap_base64 = base64.b64encode(buff.getvalue()).decode("utf-8")
+                except Exception:
+                    pass
 
-        # Stage 5: Conformal Triage & Clinical Coding
-        await report_progress(95, ScreeningStage.CALIBRATION_TRIAGE)
-        probs_np = probs.cpu().numpy()
-        conformal_set, conformal_probs, stratum, guarantee = CONFORMAL_CALIBRATOR.predict_set(probs_np, diagnosis)
-        code_entry = get_clinical_code(diagnosis)
+            # Stage 5: Conformal Triage & Clinical Coding
+            await report_progress(95, ScreeningStage.CALIBRATION_TRIAGE)
+            probs_np = probs.cpu().numpy()
+            conformal_set, conformal_probs, stratum, guarantee = CONFORMAL_CALIBRATOR.predict_set(probs_np, diagnosis)
+            code_entry = get_clinical_code(diagnosis)
 
-        return {
-            "diagnosis": diagnosis,
-            "confidence": round(confidence, 2),
-            "probabilities": probs_dict,
-            "conformal_prediction_set": conformal_set,
-            "conformal_coverage_guarantee": f"{guarantee:.1f}%",
-            "icd10_code": code_entry["icd10"],
-            "snomed_code": code_entry["snomed_ct"],
-            "urgency": code_entry["urgency"],
-            "domain_adaptation": domain_info,
-            "heatmap": f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,
-        }
+            return {
+                "diagnosis": diagnosis,
+                "confidence": round(confidence, 2),
+                "probabilities": probs_dict,
+                "conformal_prediction_set": conformal_set,
+                "conformal_coverage_guarantee": f"{guarantee:.1f}%",
+                "icd10_code": code_entry["icd10"],
+                "snomed_code": code_entry["snomed_ct"],
+                "urgency": code_entry["urgency"],
+                "domain_adaptation": domain_info,
+                "heatmap": f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,
+            }
+        finally:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     import asyncio
     asyncio.create_task(screening_queue.run_pipeline_task(job_id, _process_pipeline))

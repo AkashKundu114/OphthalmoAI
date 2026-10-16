@@ -21,8 +21,8 @@ _IS_PROD = _ENV not in {"development", "dev", "test", "testing"}
 _CSP = (
     "default-src 'self'; "
     "script-src 'self'; "
-    "style-src 'self' https://fonts.googleapis.com; "
-    "font-src 'self' https://fonts.gstatic.com; "
+    "style-src 'self' 'unsafe-inline'; "
+    "font-src 'self' data:; "
     "img-src 'self' data: blob:; "
     "connect-src 'self'; "
     "frame-ancestors 'none'; "
@@ -101,7 +101,10 @@ _MAGIC: Dict[str, list] = {
 
 ALLOWED_MIMES = frozenset(_MAGIC.keys()) | {"image/jpg"}
 
-_MAX_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", str(89_478_485)))
+_MAX_PIXELS = int(os.getenv("MAX_IMAGE_PIXELS", "25000000"))
+MIN_IMAGE_DIMENSION_PX = 128
+MAX_IMAGE_AXIS_PX = 6000
+MAX_IMAGE_ASPECT_RATIO = 4.0
 
 
 def validate_magic_bytes(
@@ -156,6 +159,25 @@ def validate_image_dimensions(data: bytes) -> Tuple[bool, str]:
         Image.MAX_IMAGE_PIXELS = _MAX_PIXELS
         with Image.open(io.BytesIO(data)) as img:
             w, h = img.size
+            if w < MIN_IMAGE_DIMENSION_PX or h < MIN_IMAGE_DIMENSION_PX:
+                return False, (
+                    f"Image dimensions {w}x{h} are below the minimum required resolution "
+                    f"({MIN_IMAGE_DIMENSION_PX}x{MIN_IMAGE_DIMENSION_PX} px) for clinical screening."
+                )
+
+            if w > MAX_IMAGE_AXIS_PX or h > MAX_IMAGE_AXIS_PX:
+                return False, (
+                    f"Image axis dimension ({max(w, h)} px) exceeds maximum allowed size "
+                    f"({MAX_IMAGE_AXIS_PX} px)."
+                )
+
+            aspect = max(w / max(h, 1), h / max(w, 1))
+            if aspect > MAX_IMAGE_ASPECT_RATIO:
+                return False, (
+                    f"Abnormal image aspect ratio ({aspect:.2f}:1). Retinal fundus photography "
+                    f"requires standard circular or 4:3 optical aspect ratios."
+                )
+
             total = w * h
             if total > _MAX_PIXELS:
                 return False, (
@@ -165,6 +187,32 @@ def validate_image_dimensions(data: bytes) -> Tuple[bool, str]:
         return True, f"{w}x{h}"
     except Exception as exc:
         return False, f"Image dimension check failed: {exc}"
+
+
+def sanitize_filename(raw_filename: Optional[str]) -> str:
+    """Sanitizes user-supplied filenames, stripping path traversal and dangerous characters."""
+    import re
+    if not raw_filename or not isinstance(raw_filename, str):
+        return "fundus_scan.jpg"
+    base = os.path.basename(raw_filename.replace("\\", "/")).strip()
+    base = re.sub(r"[\x00-\x1f\x7f]", "", base)
+    name, ext = os.path.splitext(base)
+    ext = ext.lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".bmp", ".webp"}:
+        ext = ".jpg"
+    clean_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", name)[:64]
+    return f"{clean_name or 'scan'}{ext}"
+
+
+def strip_image_metadata(img: Any) -> Any:
+    """Strips EXIF, GPS, camera serials, and custom metadata tags, returning clean RGB image."""
+    from PIL import Image
+    if img is None:
+        return None
+    rgb = img.convert("RGB")
+    clean_img = Image.new("RGB", rgb.size)
+    clean_img.paste(rgb)
+    return clean_img
 
 
 def anonymise_ip(ip: Optional[str]) -> Optional[str]:

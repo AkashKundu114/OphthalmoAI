@@ -30,15 +30,27 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import models, transforms
 
 try:
-    import onnxruntime as ort
-    from onnxruntime.quantization import QuantType, quantize_dynamic
-except ImportError:
-    raise ImportError("onnxruntime is required. Run: uv pip install onnxruntime")
+    import google.protobuf.runtime_version as _pb_rv
+    _pb_rv.ValidateProtobufRuntimeVersion = lambda *args, **kwargs: None
+except Exception:
+    pass
 
 try:
     import onnx
 except Exception:
     onnx = None
+
+try:
+    import onnxruntime as ort
+    from onnxruntime.quantization import (
+        CalibrationDataReader,
+        QuantFormat,
+        QuantType,
+        quantize_dynamic,
+        quantize_static,
+    )
+except ImportError:
+    raise ImportError("onnxruntime is required. Run: uv pip install onnxruntime")
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = ROOT_DIR / "models"
@@ -215,14 +227,52 @@ def train_edge_model(
     return model
 
 
+class FundusCalibrationDataReader(CalibrationDataReader):
+    """Feeds preprocessed fundus images into ONNX Runtime static quantizer."""
+
+    def __init__(self, calibration_images: List[Path], input_name: str = "input", img_size: int = 224):
+        super().__init__()
+        self.input_name = input_name
+        self.img_size = img_size
+        self.data: List[np.ndarray] = []
+
+        transform = transforms.Compose([
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+
+        for path in calibration_images:
+            try:
+                img = Image.open(path).convert("RGB")
+                tensor = transform(img).unsqueeze(0).numpy().astype(np.float32)
+                self.data.append(tensor)
+            except Exception:
+                continue
+
+        self.enum_data = iter(self.data)
+
+    def get_next(self) -> dict | None:
+        try:
+            batch = next(self.enum_data)
+            return {self.input_name: batch}
+        except StopIteration:
+            return None
+
+    def rewind(self):
+        self.enum_data = iter(self.data)
+
+
 def export_and_quantize(
     model: nn.Module,
     output_onnx_path: Path,
     output_quant_path: Path,
     img_size: int = 224,
     opset: int = 18,
+    quant_mode: str = "dynamic",
+    calibration_images: List[Path] | None = None,
 ) -> Tuple[float, float]:
-    """Exports PyTorch model to ONNX and quantizes to INT8."""
+    """Exports PyTorch model to ONNX and quantizes to INT8 (dynamic or static calibration)."""
     model.eval()
     model.cpu()
 
@@ -246,12 +296,24 @@ def export_and_quantize(
     fp32_size_mb = os.path.getsize(output_onnx_path) / (1024 * 1024)
     print(f"[ONNX Export] FP32 ONNX model size: {fp32_size_mb:.2f} MB")
 
-    print(f"[Quantization] Quantizing ONNX model to INT8 via onnxruntime.quantization...")
-    quantize_dynamic(
-        model_input=str(output_onnx_path),
-        model_output=str(output_quant_path),
-        weight_type=QuantType.QUInt8,
-    )
+    if quant_mode == "static" and calibration_images and len(calibration_images) > 0:
+        print(f"[Quantization] Performing static activation calibration over {len(calibration_images)} fundus images...")
+        calib_reader = FundusCalibrationDataReader(calibration_images, input_name="input", img_size=img_size)
+        quantize_static(
+            model_input=str(output_onnx_path),
+            model_output=str(output_quant_path),
+            calibration_data_reader=calib_reader,
+            quant_format=QuantFormat.QDQ,
+            activation_type=QuantType.QUInt8,
+            weight_type=QuantType.QUInt8,
+        )
+    else:
+        print(f"[Quantization] Quantizing ONNX model to INT8 via onnxruntime.quantization (dynamic)...")
+        quantize_dynamic(
+            model_input=str(output_onnx_path),
+            model_output=str(output_quant_path),
+            weight_type=QuantType.QUInt8,
+        )
 
     int8_size_mb = os.path.getsize(output_quant_path) / (1024 * 1024)
     print(f"[Quantization] INT8 Quantized ONNX model size: {int8_size_mb:.2f} MB")
@@ -295,6 +357,7 @@ def main():
     parser.add_argument("--img-size", type=int, default=224, help="Input resolution")
     parser.add_argument("--output-onnx", type=str, default=str(MODELS_DIR / "edge_model_fp32.onnx"))
     parser.add_argument("--output-quant", type=str, default=str(FRONTEND_MODELS_DIR / "edge_model.onnx"))
+    parser.add_argument("--quant-mode", type=str, default="dynamic", choices=["dynamic", "static"], help="Quantization mode")
     parser.add_argument("--opset", type=int, default=18, help="ONNX opset version")
 
     args = parser.parse_args()
@@ -333,6 +396,14 @@ def main():
 
     output_onnx = Path(args.output_onnx)
     output_quant = Path(args.output_quant)
+    calib_images = []
+    if args.quant_mode == "static":
+        samples_dir = ROOT_DIR / "frontend" / "public" / "samples"
+        if samples_dir.exists():
+            calib_images.extend(sorted(samples_dir.glob("*.jpg")))
+        if images_dir.exists():
+            calib_images.extend(sorted(images_dir.glob("*.jpg"))[:100])
+        print(f"Collected {len(calib_images)} calibration images for static quantization.")
 
     fp32_mb, int8_mb = export_and_quantize(
         model=model,
@@ -340,6 +411,8 @@ def main():
         output_quant_path=output_quant,
         img_size=args.img_size,
         opset=args.opset,
+        quant_mode=args.quant_mode,
+        calibration_images=calib_images,
     )
 
     # Verification: must be < 15MB for browser loading

@@ -30,6 +30,17 @@ class OphthalmoMongoDocumentStore:
             self.mock_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mongodb_mock")
             os.makedirs(self.mock_dir, exist_ok=True)
 
+    def _resolve_mock_path(self, doc_id: str) -> str:
+        """Validates doc_id format and returns a path strictly confined to mock_dir."""
+        import re
+        if not doc_id or not isinstance(doc_id, str) or not re.match(r"^[a-zA-Z0-9_\-]+$", doc_id):
+            raise ValueError(f"Invalid or unsafe document identifier: {doc_id!r}")
+        target = os.path.abspath(os.path.join(self.mock_dir, f"{doc_id}.json"))
+        base = os.path.abspath(self.mock_dir)
+        if not target.startswith(base + os.sep) and target != base:
+            raise ValueError(f"Path traversal detected in document identifier: {doc_id!r}")
+        return target
+
     def insert_document(self, doc_id: str, document: Dict[str, Any]) -> str:
         
         payload = {"_id": doc_id, **document}
@@ -37,7 +48,7 @@ class OphthalmoMongoDocumentStore:
         if self.use_real_mongo and self.collection is not None:
             self.collection.replace_one({"_id": doc_id}, payload, upsert=True)
         else:
-            file_path = os.path.join(self.mock_dir, f"{doc_id}.json")
+            file_path = self._resolve_mock_path(doc_id)
             with open(file_path, "w") as f:
                 json.dump(payload, f, indent=2)
 
@@ -48,7 +59,10 @@ class OphthalmoMongoDocumentStore:
         if self.use_real_mongo and self.collection is not None:
             return self.collection.find_one({"_id": doc_id})
         else:
-            file_path = os.path.join(self.mock_dir, f"{doc_id}.json")
+            try:
+                file_path = self._resolve_mock_path(doc_id)
+            except ValueError:
+                return None
             if os.path.exists(file_path):
                 with open(file_path, "r") as f:
                     return json.load(f)
@@ -60,7 +74,10 @@ class OphthalmoMongoDocumentStore:
             res = self.collection.delete_one({"_id": doc_id})
             return res.deleted_count > 0
         else:
-            file_path = os.path.join(self.mock_dir, f"{doc_id}.json")
+            try:
+                file_path = self._resolve_mock_path(doc_id)
+            except ValueError:
+                return False
             if os.path.exists(file_path):
                 os.remove(file_path)
                 return True
