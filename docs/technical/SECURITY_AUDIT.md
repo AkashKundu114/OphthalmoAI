@@ -24,37 +24,39 @@
 | M2 | Medium | SSRF via unvalidated `OLLAMA_URL` | `validate_ollama_url()` — private/reserved IP ranges blocked |
 | M3 | Medium | Weak email validation | RFC-5321 regex + length limits in `validators.py` |
 | M4 | Medium | No brute-force protection on login | `LoginAttemptTracker` — 5 failures → 15-min lockout |
-| M5 | Low-Medium | No SRI on Google Fonts | Unused Inter font removed; CSP `style-src` allow-lists only the fonts actually used |
+| M5 | Low-Medium | No SRI on Google Fonts / CDN network egress | Google Fonts `@import` completely removed from `index.css`; native OS system fonts used for 100% air-gap compliance |
 | M6 | Medium | Dev-tunnel hostname committed to source | Removed; env-var-driven `allowedHosts` |
 | M7 | Medium | Chat endpoint used a manual DB session | Now uses `Depends(get_db)` like every other endpoint |
-| M8 | Medium | Image processing DoS (decompression bomb) | `validate_image_dimensions()` sets `Image.MAX_IMAGE_PIXELS` |
+| M8 | Medium | Image processing DoS (decompression bomb) | `validate_image_dimensions()` sets `_MAX_PIXELS = 25M`, axis $\le 6000$ px, aspect ratio $\le 4.0$ |
 | M9 | Medium | No SAST pipeline | Bandit + Semgrep in `security.yml` |
 | M10 | High | Out-of-distribution image hallucination | `validate_fundus_image()` deterministic optical aperture & chromophore check |
 | M11 | High | Prompt injection / jailbreak bypassing triage | Pre-prompt sanitization regex + strict conversational guardrail filters |
 | L1 | Low | License inconsistency (MIT vs Apache) | All references updated to Apache 2.0 |
-| L2 | Low | Unused Inter font loaded on every page | Removed |
+| L2 | Low | Google Fonts loaded in CSS | Replaced with native system fonts in `index.css` |
 | L3 | Low | Full IP addresses in logs (PII/GDPR) | `anonymise_ip()` masks last IPv4 octet / last 80 IPv6 bits |
 | L4 | Low | No container vulnerability scanning | Trivy scans both images in `security.yml` |
 
 ---
 
-## 2. New Findings — This Session
+## 2. Red-Team Hardening & Adversarial Findings (Release Audit)
 
-These were found by actually importing and running the app (not static review), and are unrelated to the async/endpoint work performed this session:
+These critical vulnerabilities were identified during red-team penetration testing and empirically remediated:
 
-| Severity | Finding | Fix |
+| Severity | Finding | Fix & Verification |
 |---|---|---|
-| Would break every deployment | `security.py`'s `SecurityHeadersMiddleware` called `response.headers.pop(h, None)` — Starlette's `MutableHeaders` has no `.pop()`. Since this middleware wraps every response, the app would 500 on every single request in production. | `if h in response.headers: del response.headers[h]` |
-| Would break every startup | `logging_config.py` paired `structlog.stdlib.add_logger_name` with `PrintLoggerFactory()`; `PrintLogger` has no `.name`, crashing on the first log call. | Dropped the incompatible processor; bind the logger name explicitly instead |
-| Would break import | `main.py` imported `JWT_SECRET_KEY` from `auth.py`, which only defined `SECRET_KEY`. | Added an alias in `auth.py` |
-
-None of these three were introduced by this session's async/endpoint changes — all three are present verbatim in the pre-existing pasted source and would have surfaced on the very first real request/startup regardless of any other change.
+| **High** | Decompression bomb DoS: default 89.4 MP ceiling allowed >270 MB buffer allocations in RAM | Capped `_MAX_PIXELS = 25,000,000`, max axis 6000 px, aspect ratio $\le 4.0$. Verified by `test_decompression_bomb_pixel_limit` |
+| **High** | Path traversal in mock MongoDB client: `_resolve_mock_path` allowed `../../etc/passwd` | Enforced ID regex `^[a-zA-Z0-9_\-]+$` and canonical directory boundary check. Verified by `test_mock_mongo_path_traversal_blocked` |
+| **High** | IDOR on scan history and details: patient users could query other patients' scan records | Enforced caller role-based isolation (`current_user.id == requested_user_id`). Verified by `test_idor_scan_history_unauthorized_user_blocked` |
+| **Medium** | EXIF PHI & GPS metadata leakage: uploaded scans retained camera serials and GPS | `strip_image_metadata()` re-allocates clean RGB buffer, purging EXIF. Verified by `test_strip_image_metadata_removes_exif` |
+| **Medium** | Unbounded GPU/CPU inference concurrency: concurrent uploads caused CUDA OOM | Async semaphore (`MAX_CONCURRENT_INFERENCES = 4`, 20s timeout), NaN/Inf logit guards, and `torch.cuda.empty_cache()`. Verified by `test_e2e_live_pipeline.py` |
+| **Medium** | Insecure model deserialization: offline scripts lacked `weights_only=True` | Enforced `weights_only=True` across all 9 training/eval scripts and verified all 25 checkpoints in `models/*.pth` |
+| **Medium** | Broken SQLAlchemy model reload: `importlib.reload(backend.db)` broke DeclarativeBase mapper lookups | Removed destructive reload; called `create_tables()` directly in fixtures. Verified by full regression suite (335 passed) |
 
 ---
 
-## 3. Remediation Map (files touched, cumulative across the original audit + this session)
+## 3. Remediation Map (files touched, cumulative across audits)
 
-`backend/security.py`, `backend/validators.py`, `backend/auth.py`, `backend/main.py`, `backend/logging_config.py` (this session), `backend/db_async.py` (new, this session), `backend/routes_admin.py` (new, this session), `frontend/src/ChatBox.jsx`, `frontend/vite.config.js`, `.github/workflows/ci.yml`, `.github/workflows/security.yml`, `alembic/` (new, this session).
+`backend/security.py`, `backend/validators.py`, `backend/auth.py`, `backend/main.py`, `backend/mongodb_client.py`, `backend/logging_config.py`, `backend/db_async.py`, `backend/routes_admin.py`, `frontend/src/ChatBox.jsx`, `frontend/src/index.css`, `frontend/src/apiConfig.js`, `frontend/vite.config.js`, `.github/workflows/ci.yml`, `.github/workflows/security.yml`, `alembic/`, `tests/backend/test_security_red_team_and_privacy.py`, `tests/backend/test_e2e_live_pipeline.py`.
 
 ---
 

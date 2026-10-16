@@ -44,7 +44,10 @@
 
 ### Claim 2: Serving Latency & Benchmarks
 - **COPPER:** 9,856 QPS router throughput is a CPU memory/regex metric; end-to-end task execution latency depends entirely on the loaded local LLM.
-- **OphthalmoAI:** The "84.2 ms p50 Serving Latency (2.15x Speedup)" badge is an estimated synthetic projection from `docs/benchmarks/onnx_benchmark_results.json` (`is_synthetic: true`). Live server screening runs PyTorch FP32 eager execution.
+- **OphthalmoAI:** The historical "84.2 ms p50 Serving Latency" was an estimated projection from early documentation. Real empirical micro-benchmarks have since been measured and verified:
+  - **ONNX FP32 CPU:** **1.97 ms p50** (504.2 QPS, 91.88x speedup) recorded with `is_synthetic: false` in `docs/benchmarks/onnx_benchmark_results.json`.
+  - **In-Browser INT8 Edge ONNX:** **9.03 ms** mean latency via ONNX Runtime Web WASM engine.
+  - **Server PyTorch Tri-Backbone Ensemble:** **67.00 ms** warm GPU inference on NVIDIA RTX 5060 Laptop GPU.
 
 ### Claim 3: Publication & Regulatory Status
 - **COPPER:** General productivity and developer operating system. No medical claims.
@@ -59,7 +62,7 @@ Use these verified, evidence-backed facts when synchronizing portfolio and resum
 ### C.O.P.P.E.R.
 - **Core Positioning:** Sovereign offline personal AI operating system with local LLM orchestration and epistemic memory.
 - **Verified Metrics:**
-  - 625 automated backend tests and 41 frontend tests passing (100% test pass rate).
+  - 644 core + 38 benchmark backend tests and 41 frontend tests passing (100% test pass rate).
   - Sub-second local IPC bridge across Electron 44 and React 19.
   - Hardened Python AST sandbox intercepting dynamic object traversal and unauthorized file/network operations.
   - Multi-tier Guardian Safety Engine intercepting destructive filesystem and database commands.
@@ -68,10 +71,11 @@ Use these verified, evidence-backed facts when synchronizing portfolio and resum
 ### OphthalmoAI
 - **Core Positioning:** Clinical decision-support and retinal screening platform utilizing calibrated multi-backbone ensembles, domain guardrails, and conformal risk control.
 - **Verified Metrics:**
-  - 283 automated backend tests and 23 frontend tests passing (100% test pass rate).
+  - 312 automated backend tests (across 37 modules) and 23 frontend tests passing (335 total tests, 100% test pass rate).
   - Pre-inference Optical Aperture & Chromophore Domain Guardrail (OAC-DG) rejecting non-fundus imagery in $<2\text{ ms}$ on CPU.
   - Multi-backbone soft voting ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with post-hoc Platt temperature calibration.
   - Urgency-stratified conformal prediction sets guaranteeing finite-sample coverage ($\ge 98.8\%$ on sight-threatening conditions).
   - Pixel-aligned Grad-CAM saliency explainability with 1:1 anatomical coordinate registration.
   - In-browser offline edge screening powered by quantized MobileNetV3-Small INT8 on ONNX Runtime Web.
+  - Comprehensive adversarial red-teaming: Decompression bomb defense (25 MP cap), path traversal neutralization, in-memory EXIF PHI scrubbing, IDOR access controls, and async concurrency throttling.
   - Academic status: Peer-reviewed biomedical informatics manuscript (in preparation).

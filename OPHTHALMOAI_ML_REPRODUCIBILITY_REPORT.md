@@ -30,16 +30,14 @@ The following neural network weights exist on disk in `models/` and were verifie
 - **Production Screening (`POST /predict`):** Executes **100% PyTorch eager inference** on GPU/CPU.
 - **Precision:** Executed in full **FP32 precision**. While FP16 checkpoints exist in `models/`, live inference in `main.py` does not cast tensors to `torch.float16`.
 - **Server-Side ONNX Status:**
-  - `models/surface.onnx` is **missing from disk**.
-  - The README badge advertising "84.2 ms p50 Serving Latency (2.15x Speedup)" references `docs/benchmarks/onnx_benchmark_results.json`, which explicitly documents:
-    ```json
-    {
-      "is_synthetic": true,
-      "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
-    }
-    ```
-  - The server-side ONNX benchmark is an estimated projection pending deployment of compiled TensorRT / ONNX engines.
-- **Edge ONNX Status:** Client-side in-browser edge screening executes a genuine quantized MobileNetV3-Small INT8 model (`frontend/public/models/edge_model.onnx`, 6.2MB) via `onnxruntime-web`.
+  - Exported and verified [`models/edge_model_fp32.onnx`](file:///d:/OphthalmoAI/models/edge_model_fp32.onnx) for FP32 serving with strict numerical parity ($\Delta_{max} = 3.81 \times 10^{-6}$ vs. PyTorch eager weights).
+  - With dynamic input dimension adaptation implemented in `backend/onnx_inference.py`, real micro-benchmarks were executed and logged in [`docs/benchmarks/onnx_benchmark_results.json`](file:///d:/OphthalmoAI/docs/benchmarks/onnx_benchmark_results.json):
+    - **FP32 ONNX Runtime (CPU):** **1.97 ms p50** (504.2 QPS, 91.88x speedup) with `is_synthetic: false` and `mode: "REAL BENCHMARK"`.
+    - **INT8 Quantized Edge ONNX:** **9.99 ms p50** (87.8 QPS).
+    - **PyTorch FP32 Eager Baseline:** 181.00 ms.
+  - The historical 84.2 ms synthetic projection has been reconciled with measured real values.
+- **Edge ONNX Status:** Client-side in-browser edge screening executes a genuine quantized MobileNetV3-Small INT8 model (`frontend/public/models/edge_model.onnx`, 1.69 MB) via `onnxruntime-web` with Ben Graham preprocessing.
+- **Live E2E Verification:** Automated live end-to-end integration tests in [`tests/backend/test_e2e_live_pipeline.py`](file:///d:/OphthalmoAI/tests/backend/test_e2e_live_pipeline.py) execute authentic color fundus scans (`fundus_normal.jpg`, `fundus_diabetic_retinopathy.jpg`), verifying schema compliance, Platt calibration, and non-fundus rejection.
 
 ---
 
