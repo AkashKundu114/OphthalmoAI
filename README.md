@@ -11,7 +11,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg)](https://reactjs.org/)
-[![Tests Passing](https://img.shields.io/badge/Tests-283%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-329%20Passed%20(100%25)-brightgreen.svg)](tests/)
 [![Internal Test Accuracy](https://img.shields.io/badge/Internal%20Accuracy-85.18%25-brightgreen.svg)](docs/PERFORMANCE_METRICS.md)
 [![Macro AUROC](https://img.shields.io/badge/Macro%20AUROC-0.9818-blue.svg)](docs/PERFORMANCE_METRICS.md)
 [![External Test (IDRiD)](https://img.shields.io/badge/External%20DR%20Sensitivity-91.30%25-brightgreen.svg)](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)
@@ -81,7 +81,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 - **91.30% External DR Sensitivity / 100% Proliferative DR Recall:** Validated on unseen external clinical cohorts (IDRiD, Kowa VX-10 camera, India) [2].
 - **100% Autonomous Clinical Safety Escalation:** Prediction entropy escalation (`requires_human_review: true`) triggered on 100% of out-of-distribution localized optic disc crops (RIM-ONE DL, Spain) [3].
 - **0.0381 Expected Calibration Error (ECE):** Re-calibrated Platt temperature scaling ($T \in [1.06, 1.34]$) eliminating neural overconfidence [1].
-- **285 / 285 Automated Tests Passing (100%):** Exhaustive test coverage (262 Pytest backend tests + 23 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, ONNX Runtime Web edge inference, and application-level tenant isolation [4].
+- **329 / 329 Automated Tests Passing (100%):** Exhaustive test coverage (306 Pytest backend tests across 36 modules + 23 Vitest frontend tests) across inference engines, temperature calibration, domain guardrails, asynchronous queues, vector search, external validation, boundary condition stress cases, ONNX Runtime Web edge inference, security red-teaming, and application-level tenant isolation [4].
 - **84.2 ms p50 Latency (2.15x Speedup):** Low-latency serving via ONNX Runtime FP16 graph compilation with 17.3 QPS throughput [5] (benchmarks measured on AMD64 32-core CPU execution provider; see `docs/benchmarks/onnx_benchmark_results.json`).
 - **9.03 ms Mean Edge Inference Latency:** Ultra-low-latency in-browser quantized INT8 inference via ONNX Runtime Web WASM engine (`docs/benchmarks/edge_inference_benchmarks.md`).
 - **100% Retinal Domain Specificity:** Deterministic rejection of non-fundus imagery, random noise, and everyday photography before GPU allocation.
@@ -91,7 +91,7 @@ OphthalmoAI addresses these bottlenecks via an end-to-end engineered system: a *
 
 ## Executive Summary & Key Technical Innovations
 
-> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 283 passing automated tests (262 backend + 21 frontend), **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and application-level tenant isolation.
+> **Engineered** an enterprise point-of-care retinal screening and clinical decision-support platform **as measured by** 85.18% internal test accuracy, 0.9818 Macro AUROC, 91.30% external DR sensitivity, 100% fail-safe clinical escalation on out-of-distribution optical crops, 2.15x ONNX serving acceleration (84.2ms p50 latency), and 329 passing automated tests (306 backend + 23 frontend), **by architecting** a calibrated tri-backbone soft ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M) with Platt temperature scaling, dedicated Grad-CAM saliency, deterministic optical domain guardrails, CBMIR visual vector retrieval, and application-level tenant isolation.
 
 ---
 
@@ -505,7 +505,7 @@ OphthalmoAI/
 │   └── technical/                 # System architecture, schemas, and security audits
 ├── deploy/                        # Production deployment manifests (Hugging Face, Docker)
 ├── k8s/                           # Production Kubernetes manifests and ingress configs
-└── tests/                         # 283 automated tests (262 backend pytest + 21 frontend vitest)
+└── tests/                         # 329 automated tests (306 backend pytest + 23 frontend vitest)
 ```
 
 ---
@@ -517,6 +517,13 @@ OphthalmoAI/
 - **[Performance & Telemetry](docs/PERFORMANCE_METRICS.md)**: Comprehensive empirical metrics, ROC curves, calibration charts, and GPU profiling.
 - **[External Clinical Validation Report](docs/clinical/EXTERNAL_VALIDATION_REPORT.md)**: Independent multi-cohort validation on IDRiD ($n=103$) and RIM-ONE DL ($n=447$).
 - **[Clinical Evaluation & Safety](docs/clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Intended use, clinical risk controls, and validation protocols.
+- **[Security Release Audit Report](OPHTHALMOAI_SECURITY_RELEASE_REPORT.md)**: Medical-image privacy, zero-egress CSP compliance, IDOR isolation, and threat model.
+- **[Upload Red-Team Security Report](OPHTHALMOAI_UPLOAD_RED_TEAM_REPORT.md)**: Adversarial upload defenses against decompression bombs, spoofed magic bytes, and path traversals.
+- **[Patient Privacy & Dataflow](OPHTHALMOAI_PRIVACY_DATAFLOW.md)**: In-memory raster buffering, zero-disk staging, and EXIF/PHI sanitization dataflow.
+- **[Model Integrity & Parity Audit](OPHTHALMOAI_MODEL_INTEGRITY_REPORT.md)**: PyTorch eager vs. ONNX FP32 numerical parity ($\Delta_{max} = 3.81 \times 10^{-6}$), checksums, and weights-only deserialization.
+- **[Hardware & Resource Benchmarks](OPHTHALMOAI_RESOURCE_BENCHMARKS.md)**: Empirical cold-load, warm latency, QPS, RAM, and VRAM profiles across RTX 5060 Laptop GPU and 32-core CPU.
+- **[Release Test Execution Ledger](OPHTHALMOAI_RELEASE_TEST_RESULTS.md)**: Empirical test run log across all 329 passing unit, integration, and security tests.
+- **[Security Changelog](OPHTHALMOAI_SECURITY_CHANGELOG.md)**: Architectural and security remediation changelog across releases.
 - **[Scripts Catalog & Operations Guide](scripts/README.md)**: Reference guide for the consolidated 5-pillar script architecture.
 - **[Technical White Paper](docs/OphthalmoAI_Technical_White_Paper.md)**: Engineering methodology, ensemble formulations, and explainability.
 - **[Production Guide](PRODUCTION.md)**: Deployment guidelines for Docker, Kubernetes, and cloud environments.
@@ -529,7 +536,7 @@ OphthalmoAI/
 1. **Internal Test Metrics (85.18% Accuracy, 0.9818 Macro AUROC, 0.0381 ECE):** Evaluated over strictly held-out clinical fundus test scans ($n=938$) across 6 target classes. Calibrated via Platt temperature scaling ($T \in [1.06, 1.34]$). Detailed in `docs/PERFORMANCE_METRICS.md` and `REPRODUCIBILITY.md`.
 2. **External Clinical Validation (IDRiD):** 91.30% sensitivity across $n=103$ test scans acquired on a Kowa VX-10 $\alpha$ digital fundus camera in Nanded, India. Detailed in `docs/clinical/EXTERNAL_VALIDATION_REPORT.md`.
 3. **Autonomous Escalation Net (RIM-ONE DL):** 100% fail-safe escalation rate (`requires_human_review: true`) triggered across $n=447$ localized optic disc crops from Hospital Universitario de Canarias, Spain. Detailed in `docs/clinical/EXTERNAL_VALIDATION_REPORT.md`.
-4. **Automated Test Suite Verification:** 283 passed tests (100% pass rate) verified live: 262 backend Pytest tests (216 in `tests/backend/` + 46 in `tests/test_analytics.py` and `tests/test_boundary_conditions.py`) and 21 frontend Vitest unit tests (5 test suites in `frontend/tests/`).
+4. **Automated Test Suite Verification:** 329 passed tests (100% pass rate) verified live: 306 backend Pytest tests (across 36 modules in `tests/`) and 23 frontend Vitest unit tests (5 test suites in `frontend/tests/`).
 5. **ONNX Runtime Serving & Latency:** Measured on AMD64 (32-core CPU execution provider, Windows 11). Reproducible via `scripts/benchmark_onnx.py`; persistent benchmark telemetry logged in `docs/benchmarks/onnx_benchmark_results.json`. Note: When compiled ONNX weights are not locally present, benchmark scripts output clearly flagged synthetic reference projections.
 
 ---
