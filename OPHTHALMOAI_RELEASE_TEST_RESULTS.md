@@ -12,12 +12,12 @@
 A comprehensive regression pass was conducted across the OphthalmoAI codebase covering model inference, preprocessing parity, security middleware, adversarial uploads, medical privacy, tenancy isolation, and clinical decision guardrails.
 
 ### Test Execution Overview:
-- **Total Test Cases Executed**: 306 tests
-- **Passing**: 306 tests (100% Pass Rate)
+- **Total Test Cases Executed**: 312 backend Pytest tests (across 37 modules) + 23 frontend Vitest tests = 335 total tests
+- **Passing**: 335 tests (100% Pass Rate)
 - **Failing**: 0
 - **Errors**: 0
-- **Skipped**: 0 (all conditional ONNX and GPU fixtures met)
-- **Execution Time**: ~80 seconds across full suite
+- **Skipped**: 0 (all conditional ONNX, GPU, and authentic image fixtures met)
+- **Execution Time**: 103.00 seconds for backend suite; 3.98 seconds for frontend suite
 
 ---
 
@@ -47,6 +47,12 @@ A comprehensive regression pass was conducted across the OphthalmoAI codebase co
 - **IDOR Protections**: Enforced patient scan history isolation on `/scans/history/{user_id}` and `/scans/{scan_id}/details`.
 - **RBAC**: Technician, clinician, ophthalmologist, and platform admin permission hierarchies.
 
+### 2.6 End-to-End Live Pipeline & Screening Verification (`tests/backend/test_e2e_live_pipeline.py`)
+- **Authentic Fundus Inference**: Verified full inference pipeline on real clinical fundus photographs from `frontend/public/samples/` (`fundus_normal.jpg` and `fundus_diabetic_retinopathy.jpg`).
+- **Interactive Schema Validation**: Validated probability distributions, Platt calibration, clinical uncertainty escalation (`requires_human_review`), and urgency classification.
+- **Sanitized Compression**: Verified `/scans/compress` strips all EXIF metadata and reduces file size while retaining JPEG structure.
+- **Live Rejection Verification**: Tested live rejection of synthetic non-fundus images (HTTP 422) and decompression bombs (HTTP 422).
+
 ---
 
 ## 3. Automated Regression Verification Command
@@ -55,4 +61,8 @@ To reproduce the full test verification:
 ```powershell
 & ".venv_gpu\Scripts\python.exe" -m pytest tests -q
 ```
-**Result**: `306 passed, 20 warnings in 78.4s`.
+**Result**: `312 passed, 22 warnings in 103.00s`.
+```powershell
+cd frontend && npm.cmd run test
+```
+**Result**: `23 passed in 3.98s`.

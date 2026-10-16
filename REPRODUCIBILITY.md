@@ -103,4 +103,4 @@ API Documentation will be live at `http://localhost:8000/docs`.
 ```bash
 pytest tests/
 ```
-All 36 backend test modules (306 passing unit, integration, and security red-team tests) cover the full spectrum from boundary conditions and biophysical guardrails, multi-tenant Row-Level Security, asynchronous job telemetry, to FHIR interoperability, decompression bomb mitigation, and zero-egress clinical privacy.
+All 37 backend test modules (312 passing unit, integration, and security red-team tests) cover the full spectrum from boundary conditions and biophysical guardrails, multi-tenant Row-Level Security, asynchronous job telemetry, to FHIR interoperability, decompression bomb mitigation, live end-to-end inference, and zero-egress clinical privacy.

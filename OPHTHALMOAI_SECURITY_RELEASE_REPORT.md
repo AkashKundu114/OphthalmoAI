@@ -3,7 +3,7 @@
 > **Document Status**: Official Release Security & Optimization Audit  
 > **Release Target**: OphthalmoAI Clinical Screening Pipeline (PyTorch CUDA / ONNX / FastAPI / React 19)  
 > **Publication & Regulatory Status**: Academic Research Manuscript in Preparation (Investigational Decision-Support Prototype). Not published in IEEE; not cleared for standalone diagnostic use.  
-> **Automated Verification**: **306 Passed**, 0 Failed across full regression suite.  
+> **Automated Verification**: **312 Passed**, 0 Failed across full backend regression suite (335 total passed including 23 frontend Vitest tests).  
 
 ---
 
@@ -114,7 +114,10 @@ The hardening cycle achieved:
 All remediations are verified by automated regression test suites:
 - `tests/backend/test_security_red_team_and_privacy.py` (19 passed)
 - `tests/backend/test_onnx_parity_and_security.py` (3 passed)
-- Full Test Suite `tests/`: **306 passed, 0 failed** in ~80 seconds.
+- `tests/backend/test_e2e_live_pipeline.py` (6 passed)
+- Full Backend Test Suite `tests/`: **312 passed, 0 failed** in 103 seconds.
+- Full Frontend Vitest Suite `frontend/tests/`: **23 passed, 0 failed** in 3.98 seconds.
+- Total Verified Repository Tests: **335 passed, 0 failed (100% pass rate)**.
 
 ---
 
