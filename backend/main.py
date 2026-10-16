@@ -789,7 +789,15 @@ async def predict(
             except Exception as unc_err:
                 logger.warning("predict.uncertainty_failed", error=str(unc_err))
 
-        if GRADCAM_AVAILABLE:
+        preprocessed_base64 = None
+        try:
+            p_buff = io.BytesIO()
+            model_input_image.resize((384, 384)).save(p_buff, format="JPEG", quality=85)
+            preprocessed_base64 = base64.b64encode(p_buff.getvalue()).decode("utf-8")
+        except Exception:
+            pass
+
+        if GRADCAM_AVAILABLE and MONOLITHIC_MODEL is not None:
             try:
                 cam        = GradCAM(model=MONOLITHIC_MODEL, target_layers=[MONOLITHIC_MODEL.features[-1]])
                 grayscale  = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
@@ -859,6 +867,7 @@ async def predict(
             "models_ensembled":         list(ENSEMBLE_MODELS.keys()) if len(ENSEMBLE_MODELS) >= 3 else ["efficientnet_b4"],
             "diagnosis":                diagnosis,
             "confidence":               round(confidence, 2),
+            "preprocessed_image":       f"data:image/jpeg;base64,{preprocessed_base64}" if preprocessed_base64 else None,
             "heatmap":                  f"data:image/jpeg;base64,{heatmap_base64}" if heatmap_base64 else None,
             "details":                  details,
             "hybrid_warnings":          hybrid_warnings,
@@ -1725,12 +1734,14 @@ async def compress_uploaded_image(file: UploadFile = File(...)):
 def schedule_appointment(appt: AppointmentCreate, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user)):
     
     if not current_user:
-        current_user = db.query(User).first()
-        if not current_user:
-            current_user = User(email="demo@ophthalmoai.org", hashed_password="demo_password", role="patient")  
-            db.add(current_user)
+        # Use dedicated demo user to prevent privilege escalation into admin or existing patient accounts
+        demo_user = db.query(User).filter(User.email == "demo@ophthalmoai.org").first()
+        if not demo_user:
+            demo_user = User(email="demo@ophthalmoai.org", hashed_password=hash_password("demo_password"), role="patient")
+            db.add(demo_user)
             db.commit()
-            db.refresh(current_user)
+            db.refresh(demo_user)
+        current_user = demo_user
 
     try:
         dt = datetime.fromisoformat(appt.appointment_time.replace("Z", "+00:00"))
@@ -1758,7 +1769,7 @@ def schedule_appointment(appt: AppointmentCreate, db: Session = Depends(get_db),
 @app.get("/appointments/history")
 def get_appointments_history(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user)):
     if not current_user:
-        current_user = db.query(User).first()
+        current_user = db.query(User).filter(User.email == "demo@ophthalmoai.org").first()
         if not current_user:
             return {"appointments": []}
     appts = db.query(PatientAppointment).filter(PatientAppointment.user_id == current_user.id).all()

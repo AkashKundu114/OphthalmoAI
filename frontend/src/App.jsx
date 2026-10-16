@@ -2067,7 +2067,7 @@ export default function App() {
                   {result && result.heatmap ? (
                     <div className="space-y-3">
                       <SplitSenseSlider
-                        originalImage={previewUrl}
+                        originalImage={result.preprocessed_image || previewUrl}
                         heatmapImage={result.heatmap}
                         alt="Retinal Scan Split Analysis"
                       />

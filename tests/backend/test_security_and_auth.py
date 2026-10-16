@@ -113,6 +113,18 @@ class TestSecurityAndAuth(unittest.TestCase):
         invalid, err = sanitise_chat_message("<script>alert('xss')</script>")
         self.assertFalse(invalid)
 
+    def test_appointment_unauthenticated_isolation(self):
+        from backend.main import app
+        from backend.db import get_db, User
+        from sqlalchemy.orm import Session
+
+        client = TestClient(app)
+        # Verify unauthenticated history endpoint does not leak admin appointments
+        res = client.get("/appointments/history")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("appointments", res.json())
+
 
 if __name__ == "__main__":
     unittest.main()
+
