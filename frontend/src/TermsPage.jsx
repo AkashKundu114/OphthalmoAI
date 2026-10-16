@@ -157,7 +157,7 @@ export default function TermsPage({ onNavigate }) {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-5xl mx-auto px-1 sm:px-2">
-      {/* Header Banner */}
+
       <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <button
@@ -188,7 +188,7 @@ export default function TermsPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* Quick Summary Highlights */}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1.5">
           <div className="flex items-center gap-2 text-rose-600">
@@ -221,7 +221,7 @@ export default function TermsPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* Section Quick Jump Filter */}
+
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4">
         <span className="text-[11px] uppercase font-mono text-slate-500 mr-1 font-medium">Filter Sections:</span>
         <button
@@ -249,7 +249,7 @@ export default function TermsPage({ onNavigate }) {
         ))}
       </div>
 
-      {/* Main Sections Stack */}
+
       <div className="space-y-5">
         {filteredSections.map(sec => (
           <div
@@ -275,7 +275,7 @@ export default function TermsPage({ onNavigate }) {
         ))}
       </div>
 
-      {/* Contact and Agreement Actions */}
+
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-2xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">

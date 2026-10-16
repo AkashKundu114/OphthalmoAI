@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 def export_to_fhir_diagnostic_report(scan: Dict[str, Any]) -> Dict[str, Any]:
-    
+
     scan_id = str(scan.get("scan_id") or scan.get("id") or "UNKNOWN")
     patient_ref = f"Patient/{scan.get('user_id') or 'ANONYMOUS'}"
     effective_dt = scan.get("timestamp") or datetime.now(timezone.utc).isoformat()

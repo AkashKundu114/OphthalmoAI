@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import Dict, List, Optional
+
+from typing import Dict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# Unified 6-Class Retinal Fundus Taxonomy
 CLASS_NAMES = [
     "Normal",
     "Diabetic Retinopathy",
@@ -14,9 +15,8 @@ CLASS_NAMES = [
     "Hypertensive Retinopathy / Pathological Myopia"
 ]
 
-# Clinical Urgency mapping for Posterior Pole conditions
 URGENCY_TIERS: Dict[str, str] = {
-    "Age-related Macular Degeneration": "Emergency", # Acute wet AMD conversion requires same-day anti-VEGF
+    "Age-related Macular Degeneration": "Emergency",
     "Diabetic Retinopathy": "Urgent",
     "Glaucoma": "Urgent",
     "Hypertensive Retinopathy / Pathological Myopia": "Urgent",
@@ -33,14 +33,7 @@ URGENCY_RANKS: Dict[str, int] = {
 }
 
 def build_clinical_cost_matrix(num_classes: int = 6) -> torch.Tensor:
-    """
-    Constructs an asymmetric clinical cost matrix C in R^{K x K}.
-    C[i, j] represents the penalty of predicting class j when true class is i.
-    - True sight-threatening (AMD, DR, Glaucoma) mispredicted as Normal: 5.0x penalty
-    - True urgent condition mispredicted as elective: 3.0x penalty
-    - Safe over-triage (Normal suspected as DR): 0.2x penalty
-    - Correct diagnosis: 0.0 penalty
-    """
+    """Constructs an asymmetric clinical cost matrix C in R^{K x K}."""
     C = torch.zeros((num_classes, num_classes), dtype=torch.float32)
     for i, true_name in enumerate(CLASS_NAMES):
         true_urgency = URGENCY_TIERS.get(true_name, "Non-urgent")
@@ -55,29 +48,20 @@ def build_clinical_cost_matrix(num_classes: int = 6) -> torch.Tensor:
             pred_rank = URGENCY_RANKS[pred_urgency]
 
             if true_rank >= 3 and pred_rank == 0:
-                # Catastrophic under-triage: Sight-threatening emergency labelled Normal
                 C[i, j] = 5.0
             elif true_rank >= 3 and pred_rank < true_rank:
-                # Significant under-triage
                 C[i, j] = 3.0
             elif true_rank > pred_rank:
-                # Moderate under-triage
                 C[i, j] = 2.0
             elif true_rank < pred_rank:
-                # Safe over-triage: False alarm is benign in healthcare screening
                 C[i, j] = 0.25
             else:
-                # Intra-tier misclassification
                 C[i, j] = 1.0
 
     return C
 
 class DirichletMetaClassifier(nn.Module):
-    """
-    Dirichlet Evidential Meta-Classifier for Posterior Pole Retinal Fundus Screening.
-    Takes concatenated backbone representation features (e.g. 6 logits * 3 = 18),
-    and outputs Dirichlet concentration parameters alpha in R^K.
-    """
+    """Dirichlet Evidential Meta-Classifier for Posterior Pole Retinal Fundus Screening."""
     def __init__(self, in_features: int = 18, num_classes: int = 6, hidden_dim: int = 64):
         super().__init__()
         self.net = nn.Sequential(
@@ -90,19 +74,15 @@ class DirichletMetaClassifier(nn.Module):
 
     def forward(self, x: torch.Tensor):
         logits = self.net(x)
-        # Evidence e >= 0 using softplus
         evidence = F.softplus(logits)
-        # Concentration alpha_k = evidence_k + 1
         alpha = evidence + 1.0
-        # Dirichlet strength S = sum(alpha_k)
         S = torch.sum(alpha, dim=-1, keepdim=True)
-        # Expected categorical probabilities
         probs = alpha / S
-        # Epistemic vacuity (total subjective uncertainty) u = K / S
         vacuity = self.net[-1].out_features / S.squeeze(-1)
         return probs, vacuity, alpha
 
 class AsymmetricClinicalLoss(nn.Module):
+    cost_matrix: torch.Tensor
     """
     Combines Evidential Type-II Maximum Likelihood with an Asymmetric Clinical Urgency Penalty
     and a KL-divergence regularization term to shrink evidence on misleading classes.
@@ -119,16 +99,13 @@ class AsymmetricClinicalLoss(nn.Module):
         S = torch.sum(alpha, dim=-1, keepdim=True)
         probs = alpha / S
 
-        # 1. Sum of Squared Errors loss on Dirichlet distribution
         err = torch.sum((y_onehot - probs) ** 2, dim=-1)
         var = torch.sum(alpha * (S - alpha) / (S * S * (S + 1.0)), dim=-1)
         base_loss = torch.mean(err + var)
 
-        # 2. Asymmetric Clinical Cost Penalty
-        cost_weights = self.cost_matrix[targets] # (B, K)
+        cost_weights = self.cost_matrix[targets]
         cost_penalty = torch.mean(torch.sum(cost_weights * probs, dim=-1))
 
-        # 3. Annealed KL divergence to uniform prior on misleading classes
         kl_anneal = min(1.0, epoch / 10.0)
         alpha_tilde = y_onehot + (1.0 - y_onehot) * alpha
         kl = torch.mean(torch.sum((alpha_tilde - 1.0) * 0.05, dim=-1))

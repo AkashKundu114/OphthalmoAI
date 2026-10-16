@@ -81,12 +81,12 @@ export default function AnalyticsDashboard() {
       if (trendRes.data?.data_points) setTrendData(trendRes.data.data_points)
       if (anomRes.data?.anomalies) setAnomaliesData(anomRes.data.anomalies)
 
-      // Optionally attempt comparison endpoint
+
       try {
         const compRes = await axios.get(`${BASE_API_URL}/analytics/comparison`, { headers })
         if (compRes.data) setComparisonData(compRes.data)
       } catch {
-        // Non-admin will 403 gracefully
+
         setComparisonData(null)
       }
     } catch (err) {
@@ -129,7 +129,7 @@ export default function AnalyticsDashboard() {
     }
   }
 
-  // Fallback synthetic data if API not fully populated yet
+
   const summary = dashboardData?.summary || {
     total_screenings_today: 142,
     total_screenings_7d: 1045,
@@ -182,17 +182,17 @@ export default function AnalyticsDashboard() {
     return { pointsStr: pts, baselineStr: bpts, minVal: min, maxVal: max, mappedPoints: mapped }
   }, [trendData])
 
-  // Latency SLA chart computation
+
   const latencyPoints = useMemo(() => {
     if (!trendData || trendData.length === 0) return []
     const innerW = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
     const innerH = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
     const minL = 0
-    const maxL = 320 // SLA is 200ms
+    const maxL = 320
 
     return trendData.map((d, i) => {
       const x = CHART_PADDING.left + (i / Math.max(1, trendData.length - 1)) * innerW
-      // Simulate p50 and p95
+
       const p50 = d.value ? (selectedMetric === 'inference_time' ? d.value * 0.85 : 75 + (i % 7) * 3) : 80
       const p95 = d.value ? (selectedMetric === 'inference_time' ? d.value : 98 + (i % 5) * 6) : 110
       const y50 = CHART_PADDING.top + innerH - ((p50 - minL) / (maxL - minL)) * innerH
@@ -205,7 +205,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Header */}
+
       <div className="bg-gradient-to-r from-slate-900 via-cyan-950 to-slate-900 border border-cyan-800/40 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -281,7 +281,7 @@ export default function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Ad-Tech Mapping Ribbon */}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white/70 backdrop-blur-xs border border-slate-200 rounded-2xl p-3 shadow-2xs">
         <div className="flex items-center gap-2.5 px-2">
           <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center font-bold text-xs">
@@ -321,9 +321,9 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Screenings */}
+
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs relative overflow-hidden group hover:border-cyan-400 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Total Screenings ({period})</span>
@@ -349,7 +349,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Diagnostic Confidence */}
+
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs relative overflow-hidden group hover:border-emerald-400 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Avg Model Confidence</span>
@@ -370,7 +370,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Inference Latency */}
+
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs relative overflow-hidden group hover:border-amber-400 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>Avg Inference Latency</span>
@@ -395,7 +395,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* High Risk Detections */}
+
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs relative overflow-hidden group hover:border-purple-400 transition-all">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-2">
             <span>High-Risk Detections</span>
@@ -416,9 +416,9 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Main Charts Grid: Volume Trend + Diagnosis Donut */}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Screening Volume Line Chart (2 Cols) */}
+
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
@@ -451,13 +451,13 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
 
-          {/* Interactive SVG Chart */}
+
           <div className="relative w-full overflow-x-auto">
             <svg
               viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
               className="w-full h-auto min-w-[500px] select-none"
             >
-              {/* Grid Lines */}
+
               {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
                 const y = CHART_PADDING.top + (CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom) * pct
                 const val = maxVal - (pct * (maxVal - minVal))
@@ -485,7 +485,7 @@ export default function AnalyticsDashboard() {
                 )
               })}
 
-              {/* Baseline Trendline (dashed slate) */}
+
               {baselineStr && (
                 <polyline
                   fill="none"
@@ -497,7 +497,7 @@ export default function AnalyticsDashboard() {
                 />
               )}
 
-              {/* Primary Value Line (cyan gradient stroke) */}
+
               {pointsStr && (
                 <polyline
                   fill="none"
@@ -509,12 +509,12 @@ export default function AnalyticsDashboard() {
                 />
               )}
 
-              {/* Data Points and Anomaly Markers */}
+
               {mappedPoints.map((p, idx) => {
                 const isHovered = hoveredPoint?.date === p.date
                 return (
                   <g key={idx} className="cursor-pointer" onMouseEnter={() => setHoveredPoint(p)} onMouseLeave={() => setHoveredPoint(null)}>
-                    {/* Normal Point */}
+
                     <circle
                       cx={p.x}
                       cy={p.y}
@@ -524,7 +524,7 @@ export default function AnalyticsDashboard() {
                       strokeWidth={isHovered ? 2 : 1}
                     />
 
-                    {/* Anomaly Pulsing Aura */}
+
                     {p.is_anomaly && (
                       <g>
                         <circle
@@ -551,7 +551,7 @@ export default function AnalyticsDashboard() {
                 )
               })}
 
-              {/* X Axis Labels */}
+
               {mappedPoints.filter((_, i) => i % Math.max(1, Math.floor(mappedPoints.length / 6)) === 0).map((p, idx) => (
                 <text
                   key={idx}
@@ -567,7 +567,7 @@ export default function AnalyticsDashboard() {
               ))}
             </svg>
 
-            {/* Hover Tooltip Overlay */}
+
             {hoveredPoint && (
               <div
                 className="absolute z-20 pointer-events-none bg-slate-900 text-white rounded-xl px-3 py-2 text-xs shadow-lg border border-slate-700 -translate-x-1/2 -translate-y-full"
@@ -604,7 +604,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Diagnosis Distribution Breakdown (1 Col) */}
+
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
@@ -615,7 +615,7 @@ export default function AnalyticsDashboard() {
               Distribution of screening outcomes (Audience Composition in ad-tech)
             </p>
 
-            {/* Visual Donut / Stacked Bar representation */}
+
             <div className="space-y-3">
               {diagnosisList.map((item, idx) => (
                 <div key={idx} className="space-y-1">
@@ -648,7 +648,7 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Latency Performance & SLA Budget (<200ms) */}
+
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
@@ -667,10 +667,10 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Latency Chart */}
+
         <div className="relative w-full overflow-x-auto">
           <svg viewBox={`0 0 ${CHART_WIDTH} 160`} className="w-full h-auto min-w-[500px]">
-            {/* SLA Threshold Line at 200ms */}
+
             <line
               x1={CHART_PADDING.left}
               y1={slaY * (160 / CHART_HEIGHT)}
@@ -691,7 +691,7 @@ export default function AnalyticsDashboard() {
               200ms RTB / SLA Hard Limit
             </text>
 
-            {/* Latency Curves */}
+
             {latencyPoints.length > 1 && (
               <>
                 <polyline
@@ -721,7 +721,7 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Anomaly Alerts Panel (Ad-Tech Parallel Demonstration) */}
+
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -775,12 +775,12 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
 
-                  {/* Recommendation */}
+
                   <div className="text-xs text-slate-700 mb-2">
                     <strong className="text-slate-900">Clinical Action:</strong> {anom.recommendation}
                   </div>
 
-                  {/* Ad-Tech Engineering Parallel Box */}
+
                   <div className="mt-2.5 p-2.5 rounded-xl bg-slate-900 text-cyan-200 border border-cyan-800/40 text-xs flex items-start gap-2 shadow-inner">
                     <Zap className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                     <div>
@@ -797,7 +797,7 @@ export default function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Admin Cross-Tenant Comparison View */}
+
       {comparisonData && (
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-4">

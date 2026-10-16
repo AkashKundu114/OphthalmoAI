@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Dict, List, Tuple, Any
+
+from typing import Any, Dict, List, Tuple
+
 import torch
 
 CRITICAL_DIAGNOSES = {"Uveitis", "Jaundice", "Keratitis"}
@@ -15,7 +17,7 @@ def mc_dropout_predict(
     input_tensor: torch.Tensor,
     n_passes: int = 8,
 ) -> Tuple[torch.Tensor, float]:
-    
+
     was_training = model.training
     model.train()
     try:
@@ -38,11 +40,11 @@ def needs_human_review(
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     uncertainty_threshold: float = DEFAULT_UNCERTAINTY_THRESHOLD,
     critical_confidence_threshold: float = CRITICAL_CONFIDENCE_THRESHOLD,
-    conformal_set: Optional[List[str]] = None,
-    vacuity: Optional[float] = None,
+    conformal_set: List[str] | None = None,
+    vacuity: float | None = None,
     vacuity_threshold: float = DEFAULT_VACUITY_THRESHOLD,
 ) -> Tuple[bool, List[str]]:
-    
+
     reasons: List[str] = []
     if confidence_fraction < confidence_threshold:
         reasons.append(f"Confidence ({confidence_fraction*100:.1f}%) is below the {confidence_threshold*100:.0f}% review threshold.")
@@ -65,10 +67,10 @@ def build_review_payload(
     diagnosis: str,
     confidence_fraction: float,
     uncertainty: float,
-    conformal_set: Optional[List[str]] = None,
-    vacuity: Optional[float] = None,
+    conformal_set: List[str] | None = None,
+    vacuity: float | None = None,
 ) -> Dict[str, Any]:
-    
+
     flagged, reasons = needs_human_review(
         diagnosis, confidence_fraction, uncertainty,
         conformal_set=conformal_set, vacuity=vacuity

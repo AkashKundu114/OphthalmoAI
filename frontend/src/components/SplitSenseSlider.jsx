@@ -2,10 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { Eye, Flame, MoveHorizontal } from 'lucide-react'
 import { playClickSound } from '../utils/soundEffects'
 
-/**
- * Interactive before/after split comparison slider.
- * Allows sliding comparison of original retinal scan vs AI Grad-CAM lesion heatmap.
- */
+
 export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'Retinal Scan Comparison' }) {
   const [sliderPos, setSliderPos] = useState(50)
   const [isDragging, setIsDragging] = useState(false)
@@ -72,7 +69,7 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
     }
   }, [isDragging, handleMove])
 
-  // If only one image is available, fallback to single image viewer
+
   if (!heatmapImage) {
     return (
       <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-900 aspect-square max-w-md mx-auto flex items-center justify-center">
@@ -87,7 +84,7 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
 
   return (
     <div className="space-y-3">
-      {/* Control / Legend Header */}
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs px-0.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-[11px] shadow-2xs">
@@ -105,7 +102,7 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
         </div>
       </div>
 
-      {/* Interactive Split Frame */}
+
       <div
         ref={containerRef}
         role="slider"
@@ -119,14 +116,14 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
         onTouchStart={onTouchStart}
         className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-950 select-none cursor-ew-resize group focus:outline-none focus:ring-2 focus:ring-cyan-500"
       >
-        {/* Heatmap Layer (Full Background) */}
+
         <img
           src={heatmapImage}
           alt="AI Attention Heatmap Overlay"
           className="absolute inset-0 w-full h-full object-contain pointer-events-none"
         />
 
-        {/* Original Image Layer (Clipped to Slider Percentage) */}
+
         {originalImage && (
           <img
             src={originalImage}
@@ -136,12 +133,12 @@ export default function SplitSenseSlider({ originalImage, heatmapImage, alt = 'R
           />
         )}
 
-        {/* Vertical Divider Line */}
+
         <div
           className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_rgba(0,173,181,0.8)] pointer-events-none"
           style={{ left: `${sliderPos}%` }}
         >
-          {/* Circular Tactile Thumb */}
+
           <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white border-2 border-cyan-500 shadow-lg flex items-center justify-center text-cyan-600 transition-transform group-hover:scale-110">
             <MoveHorizontal className="w-4 h-4" />
           </div>

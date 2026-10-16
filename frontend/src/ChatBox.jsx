@@ -159,7 +159,7 @@ const ChatBot = ({ diagnosisContext }) => {
   const [loading,         setLoading]         = useState(false)
   const [inputError,      setInputError]      = useState('')
 
-  // Voice recording & Audio playback states
+
   const [isRecording,      setIsRecording]      = useState(false)
   const [recordingSeconds, setRecordingSeconds]  = useState(0)
   const [playingMsgIndex,  setPlayingMsgIndex]  = useState(null)
@@ -180,12 +180,12 @@ const ChatBot = ({ diagnosisContext }) => {
     if (isOpen && !isMinimized) inputRef.current?.focus()
   }, [isOpen, isMinimized])
 
-  // Update greeting when diagnosisContext or language changes
+
   useEffect(() => {
     setMessages([{ role: 'assistant', content: getInitialGreeting(selectedLanguage) }])
   }, [selectedLanguage, getInitialGreeting])
 
-  // Stop recording timer when recording ends
+
   useEffect(() => {
     if (isRecording) {
       setRecordingSeconds(0)
@@ -211,9 +211,9 @@ const ChatBot = ({ diagnosisContext }) => {
     }
   }, [])
 
-  // Audio Playback handler
+
   const handlePlayAudio = useCallback((msg, idx) => {
-    // If already playing this message, stop it
+
     if (playingMsgIndex === idx) {
       if (audioPlayerRef.current) {
         audioPlayerRef.current.pause()
@@ -226,7 +226,7 @@ const ChatBot = ({ diagnosisContext }) => {
       return
     }
 
-    // Stop any existing playback
+
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause()
       audioPlayerRef.current = null
@@ -235,7 +235,7 @@ const ChatBot = ({ diagnosisContext }) => {
       window.speechSynthesis.cancel()
     }
 
-    // Option 1: Native Sarvam synthesized base64 audio
+
     if (msg.audio_base64) {
       try {
         const audio = new Audio(`data:audio/wav;base64,${msg.audio_base64}`)
@@ -259,7 +259,7 @@ const ChatBot = ({ diagnosisContext }) => {
       }
     }
 
-    // Option 2: Browser Web Speech API fallback
+
     fallbackWebSpeech(msg.content, selectedLanguage, idx)
   }, [playingMsgIndex, selectedLanguage])
 

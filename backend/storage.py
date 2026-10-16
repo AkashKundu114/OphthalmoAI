@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import os
-from typing import Optional
+
 from .logging_config import get_logger
 
 logger = get_logger("storage")
@@ -24,7 +25,7 @@ def _get_client():
         return None
 
 
-def store(data: bytes, key: str, content_type: str = "image/jpeg") -> Optional[str]:
+def store(data: bytes, key: str, content_type: str = "image/jpeg") -> str | None:
     if not BUCKET:
         return None
     client = _get_client()
@@ -41,7 +42,7 @@ def store(data: bytes, key: str, content_type: str = "image/jpeg") -> Optional[s
         return None
 
 
-def fetch(key: str) -> Optional[bytes]:
+def fetch(key: str) -> bytes | None:
     if not BUCKET or not key:
         return None
     client = _get_client()
@@ -55,7 +56,7 @@ def fetch(key: str) -> Optional[bytes]:
         return None
 
 
-def presigned_url(key: str, expires_seconds: int = 300) -> Optional[str]:
+def presigned_url(key: str, expires_seconds: int = 300) -> str | None:
     if not BUCKET or not key:
         return None
     client = _get_client()

@@ -1,7 +1,8 @@
 from __future__ import annotations
-import os
+
 import json
-from typing import Dict, Any, Optional
+import os
+from typing import Any, Dict
 
 try:
     import pymongo
@@ -42,7 +43,7 @@ class OphthalmoMongoDocumentStore:
         return target
 
     def insert_document(self, doc_id: str, document: Dict[str, Any]) -> str:
-        
+
         payload = {"_id": doc_id, **document}
 
         if self.use_real_mongo and self.collection is not None:
@@ -54,8 +55,8 @@ class OphthalmoMongoDocumentStore:
 
         return doc_id
 
-    def get_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
-        
+    def get_document(self, doc_id: str) -> Dict[str, Any] | None:
+
         if self.use_real_mongo and self.collection is not None:
             return self.collection.find_one({"_id": doc_id})
         else:
@@ -64,12 +65,12 @@ class OphthalmoMongoDocumentStore:
             except ValueError:
                 return None
             if os.path.exists(file_path):
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     return json.load(f)
             return None
 
     def delete_document(self, doc_id: str) -> bool:
-        
+
         if self.use_real_mongo and self.collection is not None:
             res = self.collection.delete_one({"_id": doc_id})
             return res.deleted_count > 0

@@ -1,21 +1,10 @@
-"""
-Model Architecture Builders and Safe Checkpoint Loader.
-
-Provides explicit constructors for:
-- EfficientNet-B4 (Monolithic 6-class baseline and Grad-CAM backbone)
-- DenseNet-201 (Dense connectivity feature extraction)
-- ConvNeXt-Small (Modern pure-convolutional inductive biases)
-- EfficientNet-V2-M (Progressive learning and fused MBConv layers)
-
-Enforces:
-- Safe weights loading with weights_only=True
-- Fallback telemetry when checkpoints are missing or incompatible
-"""
+"""Model Architecture Builders and Safe Checkpoint Loader."""
 
 from __future__ import annotations
 
 import os
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Tuple
+
 import torch
 import torch.nn as nn
 from torchvision import models
@@ -59,10 +48,7 @@ def load_checkpoint(
     ckpt_path: str,
     device: torch.device = DEVICE,
 ) -> bool:
-    """
-    Safely loads checkpoint weights with weights_only=True and places on device.
-    Returns True if successfully loaded, False otherwise.
-    """
+    """Safely loads checkpoint weights with weights_only=True and places on device."""
     if not os.path.exists(ckpt_path):
         logger.warning("model_loader.checkpoint_missing", path=ckpt_path)
         return False
@@ -80,18 +66,13 @@ def load_checkpoint(
 def load_all_models(
     models_dir: str = MODELS_DIR,
     device: torch.device = DEVICE,
-) -> Tuple[Optional[nn.Module], Dict[str, nn.Module]]:
-    """
-    Initializes and loads all production screening models:
-    1. Primary Monolithic Model (EfficientNet-B4 - Grad-CAM & fallback)
-    2. Tri-Backbone Ensemble (DenseNet-201, ConvNeXt-Small, EfficientNet-V2-M)
-    """
+) -> Tuple[nn.Module | None, Dict[str, nn.Module]]:
+    """Initializes and loads all production screening models:"""
     num_classes = len(MONOLITHIC_CLASSES)
 
-    # 1. Primary Monolithic Model
     monolith = build_monolithic_model(num_classes)
     monolith_path = os.path.join(models_dir, "efficientnet_b4.pth")
-    monolithic_model: Optional[nn.Module] = None
+    monolithic_model: nn.Module | None = None
 
     if load_checkpoint(monolith, monolith_path, device=device):
         monolithic_model = monolith
@@ -99,7 +80,6 @@ def load_all_models(
     else:
         logger.warning("model_loader.monolithic_model_unavailable", path=monolith_path)
 
-    # 2. Tri-Backbone Ensemble
     ensemble_specs: Dict[str, Tuple[Callable[[int], nn.Module], str]] = {
         "densenet201": (build_densenet201, "densenet201.pth"),
         "convnext_small": (build_convnext_small, "convnext_small.pth"),

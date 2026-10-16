@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ophthalmoai"
+version = "0.1.0-alpha"
+description = "AI-assisted retinal screening research prototype for educational and research evaluation (non-diagnostic)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Akash Kundu", email = "akashkundu114@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Medical Science Apps."
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.4",
+    "torch>=2.2.0",
+    "torchvision>=0.17.0",
+    "onnxruntime>=1.17.1",
+    "pillow>=10.2.0",
+    "numpy>=1.26.4",
+    "scipy>=1.12.0",
+    "opencv-python-headless>=4.9.0.80",
+    "sqlalchemy>=2.0.28",
+    "alembic>=1.13.1",
+    "pyjwt>=2.8.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.9",
+    "slowapi>=0.1.9"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.1",
+    "pytest-asyncio>=0.23.5",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.27.0",
+    "ruff>=0.3.3",
+    "mypy>=1.9.0",
+    "pip-audit>=2.7.2"
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "UP", "I"]
+ignore = [
+    "E501",
+    "UP006",
+    "UP035",
+    "E712",
+    "F841"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"backend/db.py" = ["F401"]
+"backend/__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+follow_imports = "silent"
+check_untyped_defs = false
+warn_unused_ignores = false
+disable_error_code = ["attr-defined", "assignment", "arg-type", "call-overload", "misc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+addopts = "-v --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning"
+]

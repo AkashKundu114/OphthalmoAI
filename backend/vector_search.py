@@ -1,19 +1,12 @@
-"""
-Vector Database and Content-Based Medical Image Retrieval (CBMIR) Engine.
-
-Extracts normalized dense visual feature embeddings and performs cosine similarity
-search against an indexed clinical reference archive of verified cases with confirmed
-patient outcomes.
-"""
+"""Vector Database and Content-Based Medical Image Retrieval (CBMIR) Engine."""
 
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 import numpy as np
 
-
-# Historical clinical reference cases for comparative case retrieval
 HISTORICAL_CLINICAL_ARCHIVE: List[Dict[str, Any]] = [
     {
         "case_id": "REF-DR-104",
@@ -88,7 +81,7 @@ TARGET_CLASSES = [
 
 
 def _generate_synthetic_class_embedding(
-    class_index: int, dim: int = 512, seed: Optional[int] = None
+    class_index: int, dim: int = 512, seed: int | None = None
 ) -> np.ndarray:
     """Generates consistent normalized reference embeddings for each diagnostic category."""
     s = (class_index * 1337 + 42) if seed is None else seed
@@ -104,10 +97,7 @@ def _generate_synthetic_class_embedding(
 
 
 class ClinicalCaseVectorIndex:
-    """
-    In-memory vector index providing Content-Based Medical Image Retrieval (CBMIR)
-    using normalized cosine similarity search.
-    """
+    """In-memory vector index providing Content-Based Medical Image Retrieval (CBMIR)"""
 
     def __init__(self, dim: int = 512):
         self.dim = max(64, dim)
@@ -126,11 +116,8 @@ class ClinicalCaseVectorIndex:
             vec_list.append(vec)
         self.vectors = np.stack(vec_list, axis=0)
 
-    def extract_embedding_from_probabilities(self, probabilities: Optional[Dict[str, float]]) -> np.ndarray:
-        """
-        Synthesizes a 512-d normalized feature embedding vector from posterior model probabilities.
-        Safeguards against empty or non-numeric inputs.
-        """
+    def extract_embedding_from_probabilities(self, probabilities: Dict[str, float] | None) -> np.ndarray:
+        """Synthesizes a 512-d normalized feature embedding vector from posterior model probabilities."""
         if not probabilities or not isinstance(probabilities, dict):
             probabilities = {}
 
@@ -164,10 +151,7 @@ class ClinicalCaseVectorIndex:
         top_k: int = 3,
         min_similarity: float = 0.0,
     ) -> List[Dict[str, Any]]:
-        """
-        Executes cosine similarity search against indexed clinical reference cases.
-        Returns top-K matching historical cases ranked by cosine similarity score.
-        """
+        """Executes cosine similarity search against indexed clinical reference cases."""
         if query_vector is None or query_vector.size == 0:
             return []
 
@@ -187,7 +171,6 @@ class ClinicalCaseVectorIndex:
         q_norm = np.linalg.norm(q_vec, axis=1, keepdims=True)
         q_normed = q_vec / np.maximum(q_norm, 1e-6)
 
-        # Dot product with normalized index vectors yields cosine similarity in [-1, 1]
         cosine_sims = np.dot(self.vectors, q_normed.T).flatten()
 
         safe_top_k = max(1, min(int(top_k), len(self.cases)))
@@ -208,5 +191,4 @@ class ClinicalCaseVectorIndex:
         return results
 
 
-# Global singleton instance
 vector_index = ClinicalCaseVectorIndex()

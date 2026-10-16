@@ -2,10 +2,7 @@ import React from 'react'
 import { Activity, Gauge } from 'lucide-react'
 import { playClickSound } from '../utils/soundEffects'
 
-/**
- * AI compute and hardware telemetry header bar.
- * Displays real-time model backend, tensor shape, latency, and hardware benchmark metrics.
- */
+
 export default function ComputeTelemetryHud({ edgeMode = false, asyncStreamingMode = false, onOpenBenchmarks }) {
   const handleOpenBenchmarks = () => {
     playClickSound()
@@ -17,7 +14,7 @@ export default function ComputeTelemetryHud({ edgeMode = false, asyncStreamingMo
   return (
     <div className="w-full bg-slate-900 text-slate-200 border-y border-slate-800 px-4 py-2 text-xs font-mono select-none">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-        {/* Active Compute Node & Precision */}
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -45,7 +42,7 @@ export default function ComputeTelemetryHud({ edgeMode = false, asyncStreamingMo
           </div>
         </div>
 
-        {/* Latency & Benchmark Launcher */}
+
         <div className="flex items-center gap-2.5">
           <div className="hidden sm:flex items-center gap-1.5 text-slate-300 text-[11px]">
             <Gauge className="w-3.5 h-3.5 text-cyan-400" />

@@ -1,25 +1,11 @@
-"""
-Clinical Workflows & EHR Integration Route Handlers.
-
-Endpoints:
-- GET /conditions, GET /api/conditions: Disease encyclopedia & patient guidance
-- GET /fhir/export/{scan_id}, GET /api/fhir/export/{scan_id}: HL7 FHIR R4 DiagnosticReport export
-- GET /clinician/cases, GET /api/clinician/cases: Pending clinician review queue
-- POST /clinician/override/{scan_id}: Human-in-the-loop diagnostic sign-off / override
-- GET /patient/history/{patient_id}: Patient screening historical record
-- POST /predict/multimodal: Multimodal systemic & ophthalmic progression risk scoring
-- GET /scans/history/{user_id}: Longitudinal progression velocity tracking
-- GET /scans/{scan_id}/details: Detailed diagnostic scan payload
-- POST /scans/{scan_id}/sign-off: Clinician verification and EHR synchronization
-- POST /appointments, GET /appointments/history: Tele-ophthalmology appointment scheduling
-"""
+"""Clinical Workflows & EHR Integration Route Handlers."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import re
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -234,7 +220,7 @@ def predict_multimodal_risk(req: MultimodalRiskRequest):
 def get_longitudinal_history(
     user_id: str,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Computes longitudinal disease progression velocity and estimated degradation trajectory."""
     if not user_id or not re.match(r"^[a-zA-Z0-9_\-]+$", user_id):
@@ -280,7 +266,7 @@ def get_longitudinal_history(
 def get_scan_details(
     scan_id: str,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Fetches comprehensive metadata for a specific scan."""
     if not scan_id or not re.match(r"^[a-zA-Z0-9_\-]+$", scan_id) or len(scan_id) > 64:
@@ -318,7 +304,7 @@ def sign_off_scan(
     verified_diagnosis: str = Form(...),
     notes: str = Form(default=""),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Records clinician verification and dispatches HL7 sync to EHR middleware."""
     scan = db.query(ScanResult).filter(ScanResult.id == scan_id).first()
@@ -360,7 +346,7 @@ def sign_off_scan(
 def schedule_appointment(
     appt: AppointmentCreate,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Schedules a clinical appointment and dispatches simulated patient SMS notification."""
     if not current_user:
@@ -406,7 +392,7 @@ def schedule_appointment(
 @router.get("/appointments/history")
 def get_appointments_history(
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Returns appointment schedule history for current user or demo fallback."""
     if not current_user:

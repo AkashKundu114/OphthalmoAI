@@ -1,22 +1,15 @@
-"""
-Urgency-Stratified Conformal Risk Control (US-CRC).
-
-Provides distribution-free coverage guarantees with error budget stratification:
-- Emergency stratum (sight-threatening): alpha = 0.01 (99% guaranteed coverage)
-- Routine stratum (elective/adnexal): alpha = 0.05 (95% guaranteed coverage)
-Includes Admissibility-Weighted Conformal Risk Control (AW-CRC) for degraded scans.
-"""
+"""Urgency-Stratified Conformal Risk Control (US-CRC)."""
 
 from __future__ import annotations
 
 import json
 import math
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
 
-from .evidential import CLASS_NAMES, URGENCY_TIERS, URGENCY_RANKS
-
+from .evidential import CLASS_NAMES, URGENCY_TIERS
 
 DEFAULT_ALPHA_EMERGENCY: float = 0.01
 DEFAULT_ALPHA_ROUTINE: float = 0.05
@@ -34,22 +27,18 @@ def validate_alpha(alpha: float, name: str = "alpha") -> float:
 
 
 class ConformalCalibrator:
-    """
-    Split-conformal prediction calibrator with Urgency-Stratified Risk bounds.
-    Calibrates non-conformity thresholds independently for high-urgency and routine strata.
-    """
+    """Split-conformal prediction calibrator with Urgency-Stratified Risk bounds."""
 
     def __init__(
         self,
         alpha_emergency: float = DEFAULT_ALPHA_EMERGENCY,
         alpha_routine: float = DEFAULT_ALPHA_ROUTINE,
-        calibration_path: Optional[str] = None,
+        calibration_path: str | None = None,
     ):
         self.alpha_emergency = validate_alpha(alpha_emergency, "alpha_emergency")
         self.alpha_routine = validate_alpha(alpha_routine, "alpha_routine")
         self.calibration_path = calibration_path
 
-        # Baseline empirical quantiles
         self.q_emergency: float = 0.992
         self.q_routine: float = 0.948
         self.is_calibrated: bool = False
@@ -63,11 +52,7 @@ class ConformalCalibrator:
         val_probs: np.ndarray,
         val_targets: np.ndarray,
     ) -> Dict[str, Any]:
-        """
-        Computes conformal non-conformity quantiles on validation holdout set.
-        val_probs: (N, C) predicted probabilities
-        val_targets: (N,) true integer class labels
-        """
+        """Computes conformal non-conformity quantiles on validation holdout set."""
         if val_probs.ndim != 2:
             raise ValueError(f"Expected 2D probability matrix, got shape {val_probs.shape}.")
         if val_targets.ndim != 1:
@@ -90,7 +75,6 @@ class ConformalCalibrator:
 
             true_name = CLASS_NAMES[true_idx]
             urgency = URGENCY_TIERS.get(true_name, "Non-urgent")
-            # Non-conformity score: s_i = 1 - p(y_i)
             p_val = float(val_probs[i, true_idx]) if i < val_probs.shape[0] else 0.0
             p_val = max(0.0, min(1.0, p_val))
             score = 1.0 - p_val
@@ -100,7 +84,6 @@ class ConformalCalibrator:
             else:
                 scores_routine.append(score)
 
-        # Finite-sample correction: ceil((n + 1)(1 - alpha)) / n
         if scores_emergency:
             n_e = len(scores_emergency)
             p_level_e = max(0.0, min(1.0, math.ceil((n_e + 1) * (1.0 - self.alpha_emergency)) / n_e))
@@ -159,10 +142,7 @@ class ConformalCalibrator:
         probs: np.ndarray,
         top_diagnosis: str,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
-        """
-        Constructs the conformal prediction set for a single sample.
-        Guarantees non-empty prediction set return.
-        """
+        """Constructs the conformal prediction set for a single sample."""
         probs = np.asarray(probs, dtype=np.float64)
         if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
             probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
@@ -200,12 +180,7 @@ class ConformalCalibrator:
         admissibility_score: float = 0.95,
         gamma: float = 1.0,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
-        """
-        Admissibility-Weighted Conformal Risk Control (AW-CRC):
-        Dynamically adjusts inclusion cutoff based on optical admissibility score S(X):
-          cutoff = max(0.005, 1 - (q_base / S(X)^gamma))
-        Under optical blur/degradation (S(X) -> 0.50), prediction sets expand adaptively.
-        """
+        """Admissibility-Weighted Conformal Risk Control (AW-CRC):"""
         probs = np.asarray(probs, dtype=np.float64)
         if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
             probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
@@ -260,7 +235,7 @@ class ConformalCalibrator:
     def load(self, path: str) -> None:
         """Loads and validates calibrated quantiles from JSON."""
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
             self.q_emergency = float(data.get("q_emergency", self.q_emergency))
             self.q_routine = float(data.get("q_routine", self.q_routine))
@@ -280,10 +255,7 @@ class ConformalCalibrator:
 
 
 class ConformalTriagePolicy:
-    """
-    Evaluates conformal prediction set cardinality and severity to produce an
-    actionable clinical triage recommendation.
-    """
+    """Evaluates conformal prediction set cardinality and severity to produce an"""
 
     @staticmethod
     def evaluate(

@@ -7,7 +7,10 @@
 
 ## 1. Introduction
 
-At **OphthalmoAI**, we prioritize patient data privacy, biometric security, and clinical confidentiality. OphthalmoAI (Point-of-Care Retinal Disease Screening Platform) is engineered by **Akash Kundu** with privacy-by-design principles adhering to the Health Insurance Portability and Accountability Act (**HIPAA**) and the General Data Protection Regulation (**GDPR**).
+**OphthalmoAI** is an open-source research and educational retinal screening prototype developed by **Akash Kundu**. This document outlines the project's data privacy posture and design considerations.
+
+> **Important Regulatory Notice:**  
+> OphthalmoAI is a research software prototype and is **NOT certified under HIPAA, GDPR, or the DPDP Act**. It must not be deployed in real patient diagnostic workflows without independent clinical validation, institutional ethics approval, and regulatory compliance clearance. For complete architectural details, see [`docs/PRIVACY.md`](docs/PRIVACY.md).
 
 ---
 

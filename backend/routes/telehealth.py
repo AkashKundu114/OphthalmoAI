@@ -1,17 +1,11 @@
-"""
-Tele-Ophthalmology, Conversational AI & Multilingual Indic Speech Service.
-
-Endpoints:
-- POST /chat, POST /api/chat: Multilingual clinical guidance chat with emergency interceptor
-- POST /chat/tts, POST /api/chat/tts: Neural text-to-speech synthesis (Sarvam Bulbul)
-- POST /chat/voice, POST /api/chat/voice: Direct voice-in / voice-out clinical triage
-"""
+"""Tele-Ophthalmology, Conversational AI & Multilingual Indic Speech Service."""
 
 from __future__ import annotations
 
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -38,7 +32,7 @@ router = APIRouter(tags=["Telehealth"])
 _chat_limit = make_rate_limit_decorator(CHAT_RATE_LIMIT)
 
 
-def _client_ip(request: Request) -> Optional[str]:
+def _client_ip(request: Request) -> str | None:
     xff = request.headers.get("X-Forwarded-For")
     if xff:
         return xff.split(",")[0].strip()
@@ -53,14 +47,14 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: List[ChatMessage] = []
-    diagnosis_context: Optional[Dict[str, Any]] = None
-    language: Optional[str] = "en-IN"
-    audio_output_requested: Optional[bool] = False
+    diagnosis_context: Dict[str, Any] | None = None
+    language: str | None = "en-IN"
+    audio_output_requested: bool | None = False
 
 
 class TTSRequest(BaseModel):
     text: str
-    language: Optional[str] = "hi-IN"
+    language: str | None = "hi-IN"
 
 
 @router.post("/chat")
@@ -70,15 +64,11 @@ async def chat_endpoint(
     request: Request,
     chat_request: ChatRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
-    """
-    Multilingual Indic conversational agent for patient education, symptoms advice,
-    and visual biomarker grounding.
-    """
+    """Multilingual Indic conversational agent for patient education, symptoms advice,"""
     import backend.main as bm
 
-    # Allow dynamically patched translation functions from tests
     translate_fn = getattr(bm, "translate_text", translate_text)
     tts_fn = getattr(bm, "text_to_speech", text_to_speech)
 
@@ -93,7 +83,6 @@ async def chat_endpoint(
     is_indic = target_lang != "en-IN" and target_lang in SUPPORTED_INDIC_LANGUAGES
     sarvam_active = is_sarvam_available()
 
-    # Step 1: In rural / Indic mode, translate user query to English for medical reasoning
     english_query = safe_msg
     if is_indic and sarvam_active:
         ok_trans, translated_q = await translate_fn(
@@ -102,7 +91,6 @@ async def chat_endpoint(
         if ok_trans and translated_q:
             english_query = translated_q
 
-    # Step 2: Emergency detection (check both original and translated text)
     is_emergency, emergency_msg = detect_medical_emergency(safe_msg)
     if not is_emergency and english_query != safe_msg:
         is_emergency, emergency_msg = detect_medical_emergency(english_query)
@@ -135,7 +123,6 @@ async def chat_endpoint(
             "disclaimer": "🚨 EMERGENCY NOTICE: Seek immediate in-person emergency medical care.",
         }
 
-    # Guardrail: Refusal to diagnose unsupported / non-fundus images
     if chat_request.diagnosis_context:
         ctx = chat_request.diagnosis_context
         if ctx.get("status") == "unsupported_image" or ctx.get("is_fundus") is False:
@@ -241,8 +228,8 @@ async def chat_endpoint(
 
         else:
             reply = (
-                "The AI Doctor chat is not configured. "
-                "Set GEMINI_API_KEY or OLLAMA_URL in your .env file."
+                "The OphthalmoAI chat assistant is not configured. "
+                "Set OLLAMA_URL for local private inference, or configure GEMINI_API_KEY."
             )
 
     except Exception as exc:
@@ -252,7 +239,6 @@ async def chat_endpoint(
             "Please try again. For urgent eye concerns, contact a qualified ophthalmologist."
         )
 
-    # Step 3: Translate clinical guidance back into the patient's native Indic language
     if is_indic and sarvam_active and reply:
         ok_reply_trans, translated_reply = await translate_fn(
             reply, source_lang="en-IN", target_lang=target_lang
@@ -260,7 +246,6 @@ async def chat_endpoint(
         if ok_reply_trans and translated_reply:
             reply = translated_reply
 
-    # Step 4: Synthesize regional spoken audio for visually impaired accessibility
     audio_b64 = None
     if chat_request.audio_output_requested and sarvam_active and reply:
         _, audio_b64, _ = await tts_fn(reply, target_lang=target_lang)
@@ -322,15 +307,12 @@ async def chat_voice_endpoint(
     request: Request,
     file: UploadFile = File(...),
     language: str = Form("hi-IN"),
-    diagnosis_context_json: Optional[str] = Form(None),
+    diagnosis_context_json: str | None = Form(None),
     audio_output_requested: bool = Form(True),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
-    """
-    Direct voice-in / voice-out clinical triage endpoint for visually impaired
-    patients and rural outreach workers (PHC / ASHA).
-    """
+    """Direct voice-in / voice-out clinical triage endpoint for visually impaired"""
     import backend.main as bm
 
     transcribe_fn = getattr(bm, "transcribe_speech", transcribe_speech)

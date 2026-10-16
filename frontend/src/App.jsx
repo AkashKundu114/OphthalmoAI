@@ -206,7 +206,7 @@ const BENCHMARK_DATA = [
 const HomePage = ({ onNavigate }) => {
   return (
     <div className="space-y-12 sm:space-y-16 animate-fade-in">
-      {/* Hero Section */}
+
       <section className="relative overflow-hidden py-6 sm:py-10 lg:py-16">
         <div className="max-w-7xl px-4 mx-auto sm:px-6 lg:px-8">
           <div className="grid items-center grid-cols-1 gap-8 lg:gap-12 lg:grid-cols-12">
@@ -249,7 +249,7 @@ const HomePage = ({ onNavigate }) => {
                 </button>
               </div>
 
-              {/* Public Trust & Usability Highlights */}
+
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-200">
                 {[
                   { value: '100% Free', label: 'No Sign-Up or Fees', color: 'text-cyan-700' },
@@ -265,7 +265,7 @@ const HomePage = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* Simple Guided Walkthrough Card */}
+
             <div className="lg:col-span-5 glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm relative">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-cyan-700 flex items-center gap-2">
@@ -326,7 +326,7 @@ const HomePage = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Common Eye Conditions Section */}
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -367,7 +367,7 @@ const HomePage = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Why Use OphthalmoAI (Patient & Public Benefits) */}
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
@@ -398,7 +398,7 @@ const HomePage = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Medical Notice & Privacy Strip */}
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
@@ -446,16 +446,16 @@ const ArchitectureTelemetryPage = ({
   fetchAndShowFairness
 }) => (
   <div className="space-y-8 animate-fade-in">
-    {/* Live AI Hardware & Compute Telemetry HUD (vgpu.sh & bencho.dev) */}
+
     <div className="rounded-xl overflow-hidden border border-slate-800 shadow-sm">
-      <ComputeTelemetryHud 
-        edgeMode={edgeMode} 
-        asyncStreamingMode={asyncStreamingMode} 
-        onOpenBenchmarks={onOpenBenchmarks || fetchAndShowBenchmarks} 
+      <ComputeTelemetryHud
+        edgeMode={edgeMode}
+        asyncStreamingMode={asyncStreamingMode}
+        onOpenBenchmarks={onOpenBenchmarks || fetchAndShowBenchmarks}
       />
     </div>
 
-    {/* Runtime Diagnostics, Benchmarks & Audits Toolbar */}
+
     <div className="glass-panel p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">Runtime & Audits:</span>
@@ -518,7 +518,7 @@ const ArchitectureTelemetryPage = ({
       </div>
     </div>
 
-    {/* Header */}
+
     <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 mb-2">
@@ -556,7 +556,7 @@ const ArchitectureTelemetryPage = ({
       </div>
     </div>
 
-    {/* Key Telemetry Highlights */}
+
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {[
         { title: '85.18% SOTA Ensemble', subtitle: 'Tri-Backbone Soft Voting', desc: '0.9805 Macro AUROC across all 6 retinal disease classes', color: 'text-emerald-700' },
@@ -572,7 +572,7 @@ const ArchitectureTelemetryPage = ({
       ))}
     </div>
 
-    {/* Verified Engineering Benchmarks Table */}
+
     <div className="glass-panel p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
         <div>
@@ -630,7 +630,7 @@ const ArchitectureTelemetryPage = ({
       </div>
     </div>
 
-    {/* Three Base Vision Backbones Deep Dive */}
+
     <div className="space-y-4">
       <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
         <Microscope className="w-5 h-5 text-indigo-600" /> Vision Ensemble Backbones Triad
@@ -682,9 +682,8 @@ const ArchitectureTelemetryPage = ({
   </div>
 )
 
-// ClinicalResearchPage is imported from ./ClinicalResearchPage.jsx
 
-const MAX_IMAGE_FILE_SIZE = 25 * 1024 * 1024 // 25 MB
+const MAX_IMAGE_FILE_SIZE = 25 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp']
 
 function validateImageFile(file) {
@@ -713,7 +712,7 @@ export default function App() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
 
-  // Clinical Symptom Intake State
+
   const [painLevel, setPainLevel] = useState('None')
   const [visionLoss, setVisionLoss] = useState('No')
   const [itchiness, setItchiness] = useState('No')
@@ -724,7 +723,7 @@ export default function App() {
   const [halos, setHalos] = useState('No')
   const [affectedEye, setAffectedEye] = useState('Both Eyes (OU)')
 
-  // Patient Systemic Biomarkers (Optional)
+
   const [patientAge, setPatientAge] = useState('')
   const [systolicBP, setSystolicBP] = useState('')
   const [diastolicBP, setDiastolicBP] = useState('')
@@ -732,7 +731,7 @@ export default function App() {
   const [iop, setIop] = useState('')
   const [visualAcuity, setVisualAcuity] = useState('')
   const [isSmoker, setIsSmoker] = useState('Non-Smoker')
-  const [activeQuestionTab, setActiveQuestionTab] = useState('symptoms') // 'symptoms' | 'phenomena' | 'vitals'
+  const [activeQuestionTab, setActiveQuestionTab] = useState('symptoms')
 
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
@@ -753,7 +752,7 @@ export default function App() {
   }
   const viewMode = 'public'
 
-  // Enterprise Upgrades State (Edge, Async, Telemetry, HITL)
+
   const [edgeMode, setEdgeMode] = useState(false)
   const [asyncStreamingMode, setAsyncStreamingMode] = useState(false)
   const [streamProgress, setStreamProgress] = useState({ percent: 0, stage: '' })
@@ -823,7 +822,7 @@ export default function App() {
     }
   }
 
-  // CBMIR & Fairness Audit Upgrades State
+
   const [showFairnessModal, setShowFairnessModal] = useState(false)
   const [fairnessData, setFairnessData] = useState(null)
   const [fairnessLoading, setFairnessLoading] = useState(false)
@@ -923,7 +922,7 @@ export default function App() {
     }
   }
 
-  // Clinical Quick Presets
+
   const applyPreset = (type) => {
     playClickSound()
     if (type === 'normal') {
@@ -1063,7 +1062,7 @@ export default function App() {
   const updatePreviewUrl = useCallback((newUrl) => {
     setPreviewUrl((prevUrl) => {
       if (prevUrl && typeof prevUrl === 'string' && prevUrl.startsWith('blob:')) {
-        try { URL.revokeObjectURL(prevUrl) } catch { /* no-op */ }
+        try { URL.revokeObjectURL(prevUrl) } catch {  }
       }
       return newUrl
     })
@@ -1162,7 +1161,7 @@ export default function App() {
     setOverrideSubmitted(false)
     setStreamProgress({ percent: 0, stage: '' })
 
-    // UPGRADE 3: 100% Client-Side In-Browser Edge Inference
+
     if (edgeMode) {
       setStreamProgress({ percent: 35, stage: 'Client-Side Optical Chromophore Extraction...' })
       try {
@@ -1205,7 +1204,7 @@ export default function App() {
       formData.append('eye_side', eyeSideCode)
       if (isSmoker) formData.append('is_smoker', isSmoker === 'Active Smoker' ? 'true' : 'false')
 
-      // UPGRADE 2: Asynchronous Task Queue & Real-Time WebSocket Streaming
+
       if (asyncStreamingMode) {
         setStreamProgress({ percent: 10, stage: 'Queuing screening task to asynchronous worker pool...' })
         const asyncRes = await axios.post(`${apiUrl}/api/v1/screen/async`, formData, {
@@ -1246,10 +1245,10 @@ export default function App() {
             }
           }
         } catch {
-          // Polling will handle it below
+
         }
 
-        // Polling fallback
+
         const intervalId = setInterval(async () => {
           if (jobCompleted) {
             clearInterval(intervalId)
@@ -1275,13 +1274,13 @@ export default function App() {
               setLoading(false)
             }
           } catch {
-            // keep trying until timeout
+
           }
         }, 900)
         return
       }
 
-      // Standard Synchronous Mode
+
       let res
       try {
         res = await axios.post(`${apiUrl}/predict`, formData, {
@@ -1339,17 +1338,17 @@ export default function App() {
     if (!result) return
     try {
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageWidth = doc.internal.pageSize.getWidth() // 210 mm
-      const pageHeight = doc.internal.pageSize.getHeight() // 297 mm
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
       const margin = 10
-      const contentWidth = pageWidth - (margin * 2) // 190 mm
+      const contentWidth = pageWidth - (margin * 2)
 
       const scanId = result?.scan_id || `SCAN-${Math.random().toString(36).substring(2, 9).toUpperCase()}`
       const now = new Date()
       const formattedDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 
-      // Pre-encode images for embedding
+
       let origImgData = null
       let heatmapImgData = null
       try {
@@ -1359,18 +1358,17 @@ export default function App() {
         console.warn('Image encoding notice:', imgErr)
       }
 
-      // --- 1. MODERN MINIMALIST HEADER ---
-      // Accent top bar (Cyan to Teal)
-      doc.setFillColor(8, 145, 178) // #0891B2
+
+      doc.setFillColor(8, 145, 178)
       doc.rect(0, 0, pageWidth * 0.6, 2, 'F')
-      doc.setFillColor(13, 148, 136) // #0D9488
+      doc.setFillColor(13, 148, 136)
       doc.rect(pageWidth * 0.6, 0, pageWidth * 0.4, 2, 'F')
 
-      // Modern header background
-      doc.setFillColor(248, 250, 252) // #F8FAFC
+
+      doc.setFillColor(248, 250, 252)
       doc.rect(0, 2, pageWidth, 16.5, 'F')
 
-      // Circular vector logo emblem
+
       doc.setFillColor(8, 145, 178)
       doc.circle(margin + 4, 10.5, 4, 'F')
       doc.setFillColor(255, 255, 255)
@@ -1378,7 +1376,7 @@ export default function App() {
       doc.setFillColor(15, 23, 42)
       doc.circle(margin + 4, 10.5, 1, 'F')
 
-      // Brand Title & Subtitle
+
       doc.setTextColor(15, 23, 42)
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
@@ -1394,7 +1392,7 @@ export default function App() {
       doc.setTextColor(100, 116, 139)
       doc.text('Calibrated Tri-Backbone Vision Ensemble · ISO 13485 Research Standard', margin + 10, 15.8)
 
-      // Header Metadata (Right-Aligned)
+
       doc.setFontSize(6.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(51, 65, 85)
@@ -1411,7 +1409,7 @@ export default function App() {
 
       let currentY = 20.5
 
-      // --- 2. PRIMARY CLINICAL DIAGNOSIS CARD ---
+
       const urgencyStr = (result.urgency || '').toLowerCase()
       const isUrgent = urgencyStr.includes('high') || urgencyStr.includes('sight') || urgencyStr.includes('urgent') || urgencyStr.includes('emergency')
       const cardBorder = isUrgent ? [239, 68, 68] : [13, 148, 136]
@@ -1422,7 +1420,7 @@ export default function App() {
       doc.setLineWidth(0.5)
       doc.roundedRect(margin, currentY, contentWidth, 20.5, 1.5, 1.5, 'FD')
 
-      // SOTA Model Tag & Urgency Pill
+
       doc.setFillColor(...cardBorder)
       const badgeText = (result.group_name || 'TRI-BACKBONE ENSEMBLE (85.2% SOTA)').toUpperCase()
       const bWidth = Math.min(doc.getTextWidth(badgeText) + 4, 75)
@@ -1438,20 +1436,20 @@ export default function App() {
       doc.roundedRect(margin + 4 + bWidth, currentY + 2.2, urgWidth, 3.5, 0.8, 0.8, 'F')
       doc.text(urgText, margin + 6 + bWidth, currentY + 4.7)
 
-      // Diagnosis Title
+
       doc.setTextColor(15, 23, 42)
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.text(result.diagnosis || 'Diagnostic Screening Complete', margin + 2.5, currentY + 10.8)
 
-      // Clinical Codes & Referral
+
       doc.setFontSize(5.8)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
       doc.text(`ICD-10: ${result.icd10_code || 'N/A'}    |    SNOMED-CT: ${result.snomed_code || 'N/A'}    |    Laterality: ${affectedEye || 'OU'}`, margin + 2.5, currentY + 14.8)
       doc.text(`Referral Recommendation: ${result.referral_pathway || result.referral || 'Specialist Dilated Biomicroscopy & OCT'}`, margin + 2.5, currentY + 18.5)
 
-      // Right-Aligned Confidence & Uncertainty
+
       doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...(isUrgent ? [185, 28, 28] : [8, 145, 178]))
@@ -1469,12 +1467,12 @@ export default function App() {
 
       currentY += 23.5
 
-      // --- 3. SIDE-BY-SIDE VISUAL FINDINGS CARDS (Patient Scan + Grad-CAM Heatmap) ---
-      const imgCardWidth = (contentWidth - 4) / 2 // 93 mm
+
+      const imgCardWidth = (contentWidth - 4) / 2
       const imgCardHeight = 31
       const imgSize = 23
 
-      // Fig 1A: Patient Scan
+
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
       doc.setLineWidth(0.3)
@@ -1501,7 +1499,7 @@ export default function App() {
         doc.text('Digital Scan Loaded', margin + 4, currentY + 17)
       }
 
-      // Metadata alongside Fig 1A
+
       const imgTextX = margin + imgSize + 5
       doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
@@ -1516,7 +1514,7 @@ export default function App() {
       doc.text('• Aperture & Vessels: Verified', imgTextX, currentY + 23)
       doc.text('• Ephemeral Buffer', imgTextX, currentY + 26.5)
 
-      // Fig 1B: Grad-CAM Heatmap
+
       const rightCardX = margin + imgCardWidth + 4
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
@@ -1543,7 +1541,7 @@ export default function App() {
         doc.text('Grad-CAM Generated', rightCardX + 4, currentY + 17)
       }
 
-      // Metadata alongside Fig 1B
+
       const hmTextX = rightCardX + imgSize + 5
       doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
@@ -1558,7 +1556,7 @@ export default function App() {
       doc.text('• Weighted Gradient', hmTextX, currentY + 23)
       doc.text('• Colormap: Turbo Spectrum', hmTextX, currentY + 26.5)
 
-      // Caption below images
+
       doc.setFontSize(5.5)
       doc.setFont('helvetica', 'italic')
       doc.setTextColor(100, 116, 139)
@@ -1568,7 +1566,7 @@ export default function App() {
 
       currentY += 37.5
 
-      // --- 4. ENSEMBLE CONSENSUS & AW-CRC CONFORMAL STRIP ---
+
       doc.setFillColor(241, 245, 249)
       doc.roundedRect(margin, currentY, contentWidth, 7, 1, 1, 'F')
       doc.setFontSize(5.6)
@@ -1591,10 +1589,10 @@ export default function App() {
 
       currentY += 9.0
 
-      // --- 5. SIDE-BY-SIDE TABLES (PROBABILITIES & BIOMARKERS) ---
+
       const tablesStartY = currentY
 
-      // Left Table: Top 5 Differential Probabilities
+
       const sortedProbs = Object.entries(result.probabilities || {})
         .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
@@ -1624,7 +1622,7 @@ export default function App() {
       })
       const leftTableFinalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tablesStartY + 25
 
-      // Right Table: Systemic Biomarkers & Symptoms (Compact 6 items)
+
       autoTable(doc, {
         startY: tablesStartY,
         margin: { left: rightCardX, right: margin },
@@ -1653,7 +1651,7 @@ export default function App() {
 
       currentY = Math.max(leftTableFinalY, rightTableFinalY) + 2.5
 
-      // --- 6. PRIMARY CLINICAL FINDINGS & PATHOPHYSIOLOGY CARD ---
+
       const findingsCardH = 34
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(203, 213, 225)
@@ -1672,12 +1670,12 @@ export default function App() {
       const splitPatho = doc.splitTextToSize(pathoText, contentWidth - 5).slice(0, 2)
       doc.text(splitPatho, margin + 2.5, currentY + 7.8)
 
-      // Two Sub-panels side-by-side inside this card
-      const subPanelW = (contentWidth - 6) / 2 // 92 mm
+
+      const subPanelW = (contentWidth - 6) / 2
       const subPanelH = 18.5
       const subPanelY = currentY + 13.5
 
-      // Subpanel 1: Diagnostic Workup Pathway
+
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(226, 232, 240)
       doc.roundedRect(margin + 1.5, subPanelY, subPanelW, subPanelH, 1, 1, 'FD')
@@ -1689,7 +1687,7 @@ export default function App() {
       const workupItems = (result.condition_details?.diagnostic_workup && result.condition_details.diagnostic_workup.length > 0)
         ? result.condition_details.diagnostic_workup.slice(0, 3)
         : ['Optical Coherence Tomography (OCT) macula & RNFL', 'Comprehensive dilated slit-lamp fundus biomicroscopy', 'Fluorescein angiography (FA) if neovascularization suspected']
-      
+
       workupItems.forEach((w, idx) => {
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(5.3)
@@ -1698,7 +1696,7 @@ export default function App() {
         doc.text(txt, margin + 3.5, subPanelY + 7.6 + (idx * 3.6))
       })
 
-      // Subpanel 2: Clinical Management Strategy
+
       const subPanel2X = margin + 1.5 + subPanelW + 3
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(226, 232, 240)
@@ -1722,7 +1720,7 @@ export default function App() {
 
       currentY += findingsCardH + 2.5
 
-      // --- 7. RECOMMENDED CLINICAL PROTOCOL & EMERGENCY CALLOUT CARD ---
+
       const protocolCardH = 43
       doc.setFillColor(240, 253, 250)
       doc.setDrawColor(153, 246, 228)
@@ -1741,7 +1739,7 @@ export default function App() {
       const splitAdvice = doc.splitTextToSize(advice, contentWidth - 5).slice(0, 2)
       doc.text(splitAdvice, margin + 2.5, currentY + 7.8)
 
-      // Precautions Line
+
       doc.setFontSize(5.8)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(180, 83, 9)
@@ -1759,7 +1757,7 @@ export default function App() {
         doc.text(pTxt, margin + 4, currentY + 18.5 + (idx * 3.4))
       })
 
-      // Emergency Callout inside card
+
       const emH = 14
       const emY = currentY + 26
       doc.setFillColor(254, 242, 242)
@@ -1779,7 +1777,7 @@ export default function App() {
 
       currentY += protocolCardH + 2.5
 
-      // --- 8. DOCTOR CONSULTATION QUESTIONS ---
+
       const questCardH = 24.5
       doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
@@ -1811,7 +1809,7 @@ export default function App() {
 
       currentY += questCardH + 2.5
 
-      // --- 9. REGULATORY SaMD NOTICE & CLINICIAN ATTESTATION BLOCK ---
+
       doc.setDrawColor(226, 232, 240)
       doc.setLineWidth(0.3)
       doc.line(margin, currentY, pageWidth - margin, currentY)
@@ -1824,7 +1822,7 @@ export default function App() {
       doc.text(doc.splitTextToSize(disclaimer, contentWidth), margin, currentY)
       currentY += 7.5
 
-      // Attestation Box (Clean 2x2 Grid)
+
       const attBoxH = 19
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(203, 213, 225)
@@ -1836,21 +1834,21 @@ export default function App() {
       doc.setTextColor(15, 23, 42)
       doc.text('CLINICIAN REVIEW & SIGN-OFF ATTESTATION', margin + 3, currentY + 3.8)
 
-      // Row 1: Clinician Name & License
+
       doc.setFontSize(5.4)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(71, 85, 105)
       doc.text('Attending Clinician / Reviewer: _____________________________________', margin + 3, currentY + 8.2)
       doc.text('Medical License / NPI Number: ________________________________', margin + 98, currentY + 8.2)
 
-      // Row 2: Signature & Date
+
       doc.text('Clinician Signature & Official Stamp: ____________________________', margin + 3, currentY + 13.2)
       doc.text('Examination Date & Time: ___________________________________', margin + 98, currentY + 13.2)
 
       if (overrideSubmitted) {
         doc.setFontSize(5.1)
         doc.setFont('helvetica', 'bold')
-        doc.setTextColor(13, 148, 136) // teal-600
+        doc.setTextColor(13, 148, 136)
         const verdictStr = overrideVerdict === 'agree'
           ? 'CONCUR (AGREED WITH AI FINDINGS)'
           : overrideVerdict === 'disagree'
@@ -1865,8 +1863,7 @@ export default function App() {
         doc.text('[X] Ophthalmic findings verified and correlated with patient clinical presentation.', margin + 3, currentY + 17.2)
       }
 
-      // --- 10. RUNNING FOOTER (PAGE 1 OF 1 GUARANTEE) ---
-      // Strictly enforce exactly 1 single page by removing any extra pages that autoTable might have created
+
       while (doc.internal.getNumberOfPages() > 1) {
         doc.deletePage(doc.internal.getNumberOfPages())
       }
@@ -1908,7 +1905,7 @@ export default function App() {
       (c.icd10 && c.icd10.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (c.snomed && c.snomed.includes(searchQuery)) ||
       (c.symptoms && c.symptoms.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
-    
+
     const matchesGroup = conditionGroup === 'All'
       ? true
       : conditionGroup === 'Healthy' || conditionGroup === 'Healthy Fundus'
@@ -1920,14 +1917,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-[#F8FAFC] text-slate-900 transition-all duration-300 relative">
-      {/* Ambient Chromatic Orbs Background (libraries.dev/orbs & bookofshapes.com) */}
+
       <AmbientOrbs />
 
-      {/* Light Clinical Sticky Header */}
+
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}>
               <div className="flex items-center justify-center w-10 h-10 rounded-xl text-white shadow-md bg-gradient-to-tr from-cyan-600 via-teal-500 to-blue-600 shadow-cyan-500/20">
                 <Eye className="w-5 h-5" />
@@ -1942,7 +1939,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Desktop Navigation & Controls */}
+
             <div className="hidden md:flex items-center gap-3">
               <nav className="flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80">
                 <TabButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home className="w-4 h-4" />} label="Home" />
@@ -1964,7 +1961,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Mobile Hamburger Button */}
+
             <div className="flex md:hidden items-center gap-2">
               <button
                 type="button"
@@ -1987,7 +1984,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Responsive Mobile Navigation Drawer */}
+
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-200 bg-white/98 backdrop-blur-xl px-4 py-3 space-y-1 shadow-lg animate-fade-in">
             {[
@@ -2047,9 +2044,9 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column: Image Upload & Symptoms Intake */}
+
               <div className="space-y-6">
-                {/* 1. Upload Card */}
+
                 <div className="glass-panel p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
@@ -2060,10 +2057,10 @@ export default function App() {
                     </span>
                   </div>
 
-                  {/* 1-Click Test Samples & Quality Guide (cuedesign.space & shotbase.com) */}
+
                   <SampleScansCue onSelectSample={handleSelectSample} />
 
-                  {/* If results with heatmap are ready, render the SplitSenseSlider directly here on the uploaded image! */}
+
                   {result && result.heatmap ? (
                     <div className="space-y-3">
                       <SplitSenseSlider
@@ -2139,7 +2136,7 @@ export default function App() {
                   )}
                 </div>
 
-                {/* 2. Structured Symptoms & Health Context */}
+
                 <div className="glass-panel p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 flex items-center gap-2">
@@ -2150,7 +2147,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  {/* Common Quick Presets (All 6 Classes) */}
+
                   <div className="space-y-1.5">
                     <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase block">Quick Clinical Scenarios:</span>
                     <div className="flex flex-wrap gap-1.5">
@@ -2199,7 +2196,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Intake Category Subtabs */}
+
                   <div className="flex border-b border-slate-200 gap-2 pt-1">
                     <button
                       type="button"
@@ -2236,7 +2233,7 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* Tab 1: Symptoms */}
+
                   {activeQuestionTab === 'symptoms' && (
                     <div className="grid grid-cols-2 gap-3 animate-fade-in">
                       <SymptomSelect
@@ -2274,7 +2271,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Tab 2: Vision & Duration */}
+
                   {activeQuestionTab === 'phenomena' && (
                     <div className="grid grid-cols-2 gap-3 animate-fade-in">
                       <SymptomSelect
@@ -2304,7 +2301,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Tab 3: General Health & Vitals (Optional) */}
+
                   {activeQuestionTab === 'vitals' && (
                     <div className="space-y-3 animate-fade-in">
                       <div className="grid grid-cols-2 gap-3">
@@ -2463,10 +2460,10 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Left Column: Technical Diagnostics & Clinician Feedback */}
+
                 {result && (
                   <div className="space-y-6 animate-fade-up">
-                    {/* Clinician Attestation & HITL Review / Feedback Override */}
+
                     <div className="glass-panel p-5 rounded-2xl border border-indigo-200 bg-indigo-50/40 shadow-2xs space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-2">
@@ -2553,7 +2550,7 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Camera Sensor Domain Adaptation & Color Constancy (Technical) */}
+
                     {result.domain_adaptation && (
                       <div className="glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2">
                         <div className="flex items-center justify-between">
@@ -2579,7 +2576,7 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Similar Historical Reference Cases (CBMIR 512-d Vector Retrieval - Technical) */}
+
                     <div className="glass-panel p-6 rounded-2xl border border-indigo-200 bg-indigo-50/20 space-y-4 shadow-2xs animate-fade-in">
                       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 pb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -2672,7 +2669,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Right Column: Diagnostic Results & Specialist Guidance */}
+
               <div className="space-y-6">
                 {error && (
                   (() => {
@@ -2695,7 +2692,7 @@ export default function App() {
                                 Fundus Domain Guardrail Active
                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono font-bold">Rejected (HTTP 422)</span>
                               </span>
-                              <button 
+                              <button
                                 onClick={() => { setError(null); setSelectedFile(null); setPreviewUrl(null); }}
                                 className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-amber-100/50 transition-colors"
                                 title="Dismiss and clear upload"
@@ -2725,7 +2722,7 @@ export default function App() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <p className="font-bold">Screening Notice</p>
-                            <button 
+                            <button
                               onClick={() => setError(null)}
                               className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-red-100 transition-colors"
                             >
@@ -2741,7 +2738,7 @@ export default function App() {
 
                 {result ? (
                     <div className="space-y-6 animate-fade-up">
-                      {/* Multimodal Clinical Decision & Bayesian Fusion Card */}
+
                       <div className="glass-panel p-6 rounded-3xl border border-cyan-300 bg-gradient-to-br from-cyan-50/50 via-white to-teal-50/40 shadow-xs space-y-5">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyan-100 pb-3">
                           <div className="flex items-center gap-2.5">
@@ -2774,7 +2771,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Visual vs Multimodal Posterior Diagnosis Comparison */}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-2xs">
                             <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
@@ -2803,7 +2800,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* AW-CRC Urgency Conformal Set Guarantee */}
+
                         <div className="p-4 rounded-2xl bg-white border border-indigo-200 space-y-2.5 shadow-2xs">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
@@ -2848,7 +2845,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Active Clinical Discordance Flags */}
+
                         {result.multimodal_evaluation?.clinical_flags && result.multimodal_evaluation.clinical_flags.length > 0 && (
                           <div className="space-y-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
@@ -2867,11 +2864,11 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Diagnostic Result Master Card */}
+
                       <div className="glass-card p-6 rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300 border border-slate-200 bg-white">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-500"></div>
 
-                        {/* Edge Screening Clinical Warning Disclaimer */}
+
                         {(result.edge_mode || result.isEdgeModel) && (
                           <div className="mb-6 p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-950 text-xs flex items-start gap-3 shadow-2xs">
                             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -2967,7 +2964,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Visual Findings & Pathology Analysis */}
+
                       <div className="glass-panel p-6 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -3055,7 +3052,7 @@ export default function App() {
                         )}
                       </div>
 
-                      {/* Important Everyday Precautions & Doctor Notes */}
+
                       <div className="glass-panel p-6 rounded-2xl border border-amber-200 bg-amber-50/20 space-y-5 shadow-2xs">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {result.condition_details?.precautions && (
@@ -3073,7 +3070,7 @@ export default function App() {
                               </ul>
                             </div>
                           )}
-                          
+
                           {result.condition_details?.doctor_notes && (
                             <div className="space-y-3">
                               <h4 className="text-sm font-bold text-cyan-900 flex items-center gap-2">
@@ -3114,7 +3111,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* Patient Action Plan & Friendly Guidance */}
+
                       <div className="glass-panel p-6 rounded-2xl border border-cyan-200 bg-cyan-50/25 space-y-4 shadow-2xs animate-fade-in">
                         <div className="flex items-center justify-between border-b border-cyan-200 pb-3">
                           <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -3155,7 +3152,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Doctor Questions & Save/Export Panel */}
+
                       <div className="flex flex-col lg:flex-row gap-4">
                         <div className="flex-1 glass-panel p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-3">
                           <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
@@ -3244,7 +3241,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Category Filter Chips */}
+
             <div className="flex flex-wrap items-center gap-2">
               {[
                 { id: 'All', label: 'All Pathologies (6)' },
@@ -3269,7 +3266,7 @@ export default function App() {
               ))}
             </div>
 
-            {/* Conditions Grid */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredConditions.map(c => {
                 return (
@@ -3334,12 +3331,12 @@ export default function App() {
         )}
 
         {activeTab === 'workflow' && (
-          <ArchitectureTelemetryPage 
-            edgeMode={edgeMode} 
+          <ArchitectureTelemetryPage
+            edgeMode={edgeMode}
             setEdgeMode={setEdgeMode}
-            asyncStreamingMode={asyncStreamingMode} 
+            asyncStreamingMode={asyncStreamingMode}
             setAsyncStreamingMode={setAsyncStreamingMode}
-            fetchAndShowBenchmarks={fetchAndShowBenchmarks} 
+            fetchAndShowBenchmarks={fetchAndShowBenchmarks}
             fetchAndShowHitl={fetchAndShowHitl}
             fetchAndShowFairness={fetchAndShowFairness}
           />
@@ -3354,7 +3351,7 @@ export default function App() {
         {activeTab === 'privacy' && <PrivacyPolicyPage onNavigate={setActiveTab} />}
       </main>
 
-      {/* Cropping Modal */}
+
       {cropping && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="glass-panel w-full max-w-lg p-6 rounded-3xl border border-slate-200 bg-white shadow-2xl space-y-4">
@@ -3378,14 +3375,14 @@ export default function App() {
         </div>
       )}
 
-      {/* Embedded Doctor AI Chatbot */}
+
       <ChatBot diagnosisContext={result ? { diagnosis: result.diagnosis, confidence: result.confidence, group_name: result.group_name, details: result.details } : null} />
 
-      {/* Modern Public & Clinical Footer */}
+
       <footer className="border-t border-slate-200 bg-slate-100/90 pt-12 pb-8 text-slate-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8">
-            {/* Column 1: Brand & Mission */}
+
             <div className="md:col-span-4 space-y-3">
               <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 via-teal-500 to-blue-600 text-white shadow-md shadow-cyan-500/20">
@@ -3404,7 +3401,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Column 2: Quick Navigation */}
+
             <div className="md:col-span-3 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Explore & Screen
@@ -3438,7 +3435,7 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Column 3: Live Hosts & Cloud Mirrors */}
+
             <div className="md:col-span-3 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Live Deployments
@@ -3483,7 +3480,7 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Column 4: Privacy, Legal & Contact */}
+
             <div className="md:col-span-2 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Privacy & Legal
@@ -3527,12 +3524,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* Clinical Advisory Alert */}
+
           <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center text-xs text-slate-600 leading-relaxed shadow-2xs">
             <strong className="text-slate-900">Medical Notice:</strong> OphthalmoAI is an educational screening aid designed to assist, not replace, an in-person medical evaluation. If you experience sudden vision loss, intense eye pain, or an eye injury, please consult an eye doctor or emergency medical center immediately.
           </div>
 
-          {/* Copyright & Disclaimer Bar */}
+
           <div className="border-t border-slate-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div>
               &copy; {new Date().getFullYear()} OphthalmoAI. Free Eye Health Screening Platform. All rights reserved.
@@ -3550,7 +3547,7 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ONNX Inference Benchmarks Modal */}
+
       {showBenchmarkModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 relative max-h-[90vh] overflow-y-auto">
@@ -3613,7 +3610,7 @@ export default function App() {
         </div>
       )}
 
-      {/* HITL Discrepancy Analytics Modal */}
+
       {showHitlModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 relative max-h-[90vh] overflow-y-auto">
@@ -3689,7 +3686,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Fairness & Demographic Bias Audit Modal */}
+
       {showFairnessModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 relative max-h-[90vh] overflow-y-auto">

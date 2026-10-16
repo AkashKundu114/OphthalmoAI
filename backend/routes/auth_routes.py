@@ -1,17 +1,9 @@
-"""
-Authentication & Access Control Route Handlers.
-
-Endpoints:
-- POST /auth/register: Secure patient/clinician registration with password strength gating
-- POST /auth/token: OAuth2 password flow with JWT token issuance
-- POST /auth/logout: Token revocation and blacklisting
-- GET /auth/me: Active session user identity and role claims
-"""
+"""Authentication & Access Control Route Handlers."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -38,7 +30,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 _auth_limit = make_rate_limit_decorator(AUTH_RATE_LIMIT)
 
 
-def _client_ip(request: Request) -> Optional[str]:
+def _client_ip(request: Request) -> str | None:
     xff = request.headers.get("X-Forwarded-For")
     if xff:
         return xff.split(",")[0].strip()
@@ -49,9 +41,9 @@ async def _log_audit_async(
     db: AsyncSession,
     action: str,
     success: bool = True,
-    user_id: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    error_detail: Optional[str] = None,
+    user_id: str | None = None,
+    ip_address: str | None = None,
+    error_detail: str | None = None,
 ) -> None:
     log_fn = logger.info if success else logger.warning
     log_fn("audit.event", action=action, success=success, user_id=user_id, ip=ip_address)
@@ -73,7 +65,7 @@ async def _log_audit_async(
 class RegisterRequest(BaseModel):
     email: str
     password: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -160,7 +152,7 @@ async def login(
 @router.post("/logout", status_code=204)
 async def logout(
     request: Request,
-    token: Optional[str] = Depends(oauth2_scheme),
+    token: str | None = Depends(oauth2_scheme),
 ):
     if token:
         revoke_token(token)

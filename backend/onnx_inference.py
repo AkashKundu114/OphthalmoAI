@@ -1,10 +1,4 @@
-"""
-ONNX Runtime Low-Latency Inference Engine and Micro-Benchmarking Suite.
-
-Provides optimized session management with execution provider selection (CUDA -> CPU),
-strict input tensor shape and dtype validation, real time.perf_counter() micro-benchmarks,
-and explicit labeling of synthetic fallbacks to guarantee benchmark integrity.
-"""
+"""ONNX Runtime Low-Latency Inference Engine and Micro-Benchmarking Suite."""
 
 from __future__ import annotations
 
@@ -13,10 +7,10 @@ import logging
 import os
 import platform
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 
@@ -42,7 +36,7 @@ SYNTHETIC_WARNING_MESSAGE = (
 )
 
 
-def get_hardware_info(execution_provider: Optional[str] = None) -> Dict[str, Any]:
+def get_hardware_info(execution_provider: str | None = None) -> Dict[str, Any]:
     """Captures host hardware and runtime environment metadata."""
     info: Dict[str, Any] = {
         "platform": platform.platform(),
@@ -87,7 +81,7 @@ class BenchmarkMetrics:
     is_synthetic: bool = False
     synthetic: bool = False
     mode: str = "REAL BENCHMARK"
-    warning: Optional[str] = None
+    warning: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -105,9 +99,9 @@ class BenchmarkResult:
     is_synthetic: bool
     synthetic: bool
     mode: str
-    warning: Optional[str]
+    warning: str | None
     hardware_info: Dict[str, Any]
-    model_path: Optional[str]
+    model_path: str | None
     pytorch_eager: Dict[str, Any]
     onnx_runtime: Dict[str, Any]
     onnx_quantized_fp16: Dict[str, Any]
@@ -119,7 +113,7 @@ class BenchmarkResult:
 
 def save_benchmark_results(
     results: Dict[str, Any],
-    filepath: Optional[Union[str, Path]] = None,
+    filepath: str | Path | None = None,
 ) -> str:
     """Persists benchmark results to JSON file with directory creation."""
     target_path = Path(filepath) if filepath else DEFAULT_BENCHMARK_RESULTS_PATH
@@ -134,18 +128,15 @@ def save_benchmark_results(
 
 
 class ONNXInferenceEngine:
-    """
-    Manages ONNX Runtime inference sessions with execution provider fallback,
-    tensor shape/dtype validation, and graceful error handling.
-    """
+    """Manages ONNX Runtime inference sessions with execution provider fallback,"""
 
-    def __init__(self, model_path: Optional[str] = None):
-        self.model_path: Optional[str] = model_path
-        self.session: Optional[Any] = None
-        self.input_name: Optional[str] = None
-        self.output_name: Optional[str] = None
+    def __init__(self, model_path: str | None = None):
+        self.model_path: str | None = model_path
+        self.session: Any | None = None
+        self.input_name: str | None = None
+        self.output_name: str | None = None
         self.execution_provider: str = "CPUExecutionProvider"
-        self.init_error: Optional[str] = None
+        self.init_error: str | None = None
         self.is_synthetic: bool = True
 
         if model_path:
@@ -197,15 +188,11 @@ class ONNXInferenceEngine:
             self.init_error = f"Failed to load ONNX model ({type(exc).__name__}): {exc}"
             logger.error("ONNX model corrupted or invalid: %s", self.init_error)
 
-    def validate_input_tensor(self, tensor: Union[np.ndarray, Any]) -> np.ndarray:
-        """
-        Validates input tensor geometry, dtype, and numerical bounds.
-        Accepts 3D (C, H, W) or 4D (N, C, H, W) arrays and casts to float32.
-        """
+    def validate_input_tensor(self, tensor: np.ndarray | Any) -> np.ndarray:
+        """Validates input tensor geometry, dtype, and numerical bounds."""
         if tensor is None:
             raise ValueError("Input tensor cannot be None.")
 
-        # Convert torch tensor if necessary
         if TORCH_AVAILABLE and isinstance(tensor, torch.Tensor):
             arr = tensor.detach().cpu().numpy()
         elif isinstance(tensor, np.ndarray):
@@ -219,7 +206,6 @@ class ONNXInferenceEngine:
         if not np.all(np.isfinite(arr)):
             raise ValueError("Input tensor contains non-finite numerical values (NaN or Inf).")
 
-        # Normalize 3D tensor to 4D batch tensor: (C, H, W) -> (1, C, H, W)
         if arr.ndim == 3:
             arr = np.expand_dims(arr, axis=0)
 
@@ -240,13 +226,10 @@ class ONNXInferenceEngine:
 
     def run(
         self,
-        input_tensor: Union[np.ndarray, Any],
-        fallback_fn: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        input_tensor: np.ndarray | Any,
+        fallback_fn: Callable[[np.ndarray], np.ndarray] | None = None,
     ) -> np.ndarray:
-        """
-        Executes forward inference on preprocessed tensor.
-        Falls back gracefully if session is unavailable and fallback_fn is supplied.
-        """
+        """Executes forward inference on preprocessed tensor."""
         valid_tensor = self.validate_input_tensor(input_tensor)
 
         if self.session is None:
@@ -262,10 +245,7 @@ class ONNXInferenceEngine:
 
 
 class LatencyBenchmarkSuite:
-    """
-    Micro-benchmarking harness measuring latency percentiles (p50, p95, p99),
-    throughput (QPS), and execution speedup across inference backends.
-    """
+    """Micro-benchmarking harness measuring latency percentiles (p50, p95, p99),"""
 
     @staticmethod
     def benchmark_numpy_or_torch(
@@ -274,7 +254,7 @@ class LatencyBenchmarkSuite:
         warmup_runs: int = 5,
         test_runs: int = 25,
         is_synthetic: bool = False,
-        warning: Optional[str] = None,
+        warning: str | None = None,
     ) -> Dict[str, Any]:
         """Runs warmup and test iterations using time.perf_counter(), returning percentile latencies."""
         safe_warmup = max(1, warmup_runs)
@@ -317,23 +297,18 @@ class LatencyBenchmarkSuite:
     @classmethod
     def run_comprehensive_benchmark(
         cls,
-        pytorch_model: Optional[Any] = None,
-        onnx_engine: Optional[ONNXInferenceEngine] = None,
+        pytorch_model: Any | None = None,
+        onnx_engine: ONNXInferenceEngine | None = None,
         input_shape: Tuple[int, int, int, int] = (1, 3, 380, 380),
         iterations: int = 20,
         warmup_iterations: int = 5,
         save_results: bool = True,
-        output_path: Optional[Union[str, Path]] = None,
+        output_path: str | Path | None = None,
     ) -> Dict[str, Any]:
-        """
-        Runs comparative micro-benchmark between PyTorch and ONNX Runtime backends.
-        When ONNX model is missing, explicitly labels results as SYNTHETIC MODE with warning.
-        When ONNX model is present, runs actual time.perf_counter() benchmarks and saves to JSON.
-        """
+        """Runs comparative micro-benchmark between PyTorch and ONNX Runtime backends."""
         safe_iterations = max(5, iterations)
         safe_warmup = max(1, warmup_iterations)
 
-        # Check if default onnx model exists if none provided
         if onnx_engine is None and DEFAULT_ONNX_MODEL_PATH.exists():
             try:
                 candidate = ONNXInferenceEngine(str(DEFAULT_ONNX_MODEL_PATH))
@@ -353,7 +328,6 @@ class LatencyBenchmarkSuite:
         provider_name = onnx_engine.execution_provider if onnx_engine else "CPUExecutionProvider"
         hardware_info = get_hardware_info(execution_provider=provider_name)
 
-        # 1. PyTorch Eager Baseline
         if TORCH_AVAILABLE and pytorch_model is not None:
             try:
                 device = next(pytorch_model.parameters()).device
@@ -373,7 +347,6 @@ class LatencyBenchmarkSuite:
         else:
             pt_metrics = cls._reference_pytorch_metrics()
 
-        # 2. ONNX Runtime Engine
         if is_real_onnx and onnx_engine is not None:
             try:
                 ort_shape = list(input_shape)
@@ -403,7 +376,6 @@ class LatencyBenchmarkSuite:
         else:
             ort_metrics = cls._estimate_onnx_metrics(pt_metrics, speedup=2.15, warning=warning)
 
-        # 3. ONNX FP16 Profile (Analytical projection unless separate quantized model loaded)
         quant_speedup = 3.20
         quant_p50 = round(pt_metrics["p50_latency_ms"] / quant_speedup, 2)
         quant_metrics = BenchmarkMetrics(
@@ -457,7 +429,6 @@ class LatencyBenchmarkSuite:
 
         results_dict = report.to_dict()
 
-        # If running with a real ONNX model, save results to JSON file
         if save_results and not is_synthetic:
             save_benchmark_results(results_dict, output_path)
 
@@ -485,7 +456,7 @@ class LatencyBenchmarkSuite:
     def _estimate_onnx_metrics(
         pt_metrics: Dict[str, float],
         speedup: float = 2.15,
-        warning: Optional[str] = None,
+        warning: str | None = None,
     ) -> Dict[str, Any]:
         metrics = BenchmarkMetrics(
             mean_latency_ms=round(pt_metrics["mean_latency_ms"] / speedup, 2),
@@ -504,7 +475,7 @@ class LatencyBenchmarkSuite:
         return metrics.to_dict()
 
 
-_benchmark_cache: Optional[Dict[str, Any]] = None
+_benchmark_cache: Dict[str, Any] | None = None
 
 
 def get_cached_benchmark_results(force_refresh: bool = False) -> Dict[str, Any]:

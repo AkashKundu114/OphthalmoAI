@@ -1,18 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-OphthalmoAI - Multimodal Clinical Fusion Service
-=================================================
-Fuses deep visual features from color fundus photography with patient
-biometric parameters (HbA1c %, BP, IOP, Age, Visual Acuity) to compute
-composite posterior disease risks, detect clinical discordance, and
-generate an ophthalmologist-grade structured clinical triage report.
-"""
+"""OphthalmoAI - Multimodal Clinical Fusion Service"""
 
-from typing import Dict, Any, Optional, List
-import numpy as np
+from typing import Any, Dict
 
-# Target 6-class posterior pole taxonomy
 CLASSES = [
     "Normal",
     "Diabetic Retinopathy",
@@ -23,22 +12,18 @@ CLASSES = [
 ]
 
 def compute_multimodal_clinical_prior(
-    age: Optional[int] = None,
-    sex: Optional[str] = None,
-    hba1c: Optional[float] = None,
-    sbp: Optional[int] = None,
-    dbp: Optional[int] = None,
-    iop: Optional[float] = None,
-    va_logmar: Optional[float] = None,
-    dm_duration: Optional[float] = None,
+    age: int | None = None,
+    sex: str | None = None,
+    hba1c: float | None = None,
+    sbp: int | None = None,
+    dbp: int | None = None,
+    iop: float | None = None,
+    va_logmar: float | None = None,
+    dm_duration: float | None = None,
 ) -> Dict[str, float]:
-    """
-    Computes epidemiological likelihood multipliers based on systemic clinical biomarkers.
-    Values > 1.0 indicate elevated prior risk; values < 1.0 indicate protective / low risk.
-    """
+    """Computes epidemiological likelihood multipliers based on systemic clinical biomarkers."""
     weights = {c: 1.0 for c in CLASSES}
 
-    # 1. Diabetic Retinopathy: Driven by HbA1c, Diabetes Duration, and SBP
     if hba1c is not None:
         if hba1c >= 9.0:
             weights["Diabetic Retinopathy"] *= 3.8
@@ -53,7 +38,6 @@ def compute_multimodal_clinical_prior(
     if dm_duration is not None and dm_duration > 10.0:
         weights["Diabetic Retinopathy"] *= 2.0
 
-    # 2. Glaucoma: Strongly driven by Intraocular Pressure (IOP) and Age
     if iop is not None:
         if iop >= 25.0:
             weights["Glaucoma"] *= 4.5
@@ -69,7 +53,6 @@ def compute_multimodal_clinical_prior(
         weights["Cataract"] *= 2.5
         weights["Age-related Macular Degeneration"] *= 2.8
 
-    # 3. Hypertensive Retinopathy: Driven by SBP / DBP
     if sbp is not None and dbp is not None:
         if sbp >= 160 or dbp >= 100:
             weights["Hypertensive Retinopathy / Pathological Myopia"] *= 4.0
@@ -78,7 +61,6 @@ def compute_multimodal_clinical_prior(
             weights["Hypertensive Retinopathy / Pathological Myopia"] *= 2.2
             weights["Normal"] *= 0.7
 
-    # 4. Cataract: Visual acuity drop + age
     if va_logmar is not None and va_logmar >= 0.5:
         weights["Cataract"] *= 1.8
 
@@ -88,10 +70,7 @@ def fuse_image_and_biodata(
     image_probs: Dict[str, float],
     patient_biodata: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Bayesian integration of visual posterior with systemic biomarkers:
-      P(C | Image, Bio) proportional to P(C | Image) * Weight(C | Bio)
-    """
+    """Bayesian integration of visual posterior with systemic biomarkers:"""
     age = patient_biodata.get("patient_age") or patient_biodata.get("age")
     sex = patient_biodata.get("sex")
     hba1c = patient_biodata.get("hba1c") or patient_biodata.get("hba1c_pct")
@@ -114,7 +93,6 @@ def fuse_image_and_biodata(
     fused_probs = {c: round((val / total) * 100.0, 2) for c, val in unnorm_probs.items()}
     top_diagnosis = max(fused_probs, key=fused_probs.get)
 
-    # Detect Clinical Discordance
     clinical_flags = []
     if (iop and iop >= 24.0) and top_diagnosis == "Normal":
         clinical_flags.append("Ocular Hypertension Flag: Elevated IOP (>= 24 mmHg) detected despite normal posterior pole view. Slit-lamp gonioscopy recommended.")

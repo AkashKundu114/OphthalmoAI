@@ -1,11 +1,4 @@
-/**
- * Legacy heuristic pre-filter - NOT for clinical use.
- * 
- * Historical pixel-statistics heuristic pre-filter kept solely as an offline fallback
- * if the real ONNX neural runtime cannot be initialized by the client browser.
- * 
- * WARNING: This is NOT real ML inference and must never be used for clinical decisions.
- */
+
 
 export const TARGET_CLASSES = [
   "Normal",
@@ -55,24 +48,20 @@ export const CLINICAL_METADATA = {
   },
 };
 
-/**
- * Calculates the red-to-blue chromophore backscatter ratio with division-by-zero protection.
- */
+
 export function calculateChromophoreRatio(meanRed, meanBlue) {
   const safeRed = Math.max(0, Number.isFinite(meanRed) ? meanRed : 0);
   const safeBlue = Math.max(0, Number.isFinite(meanBlue) ? meanBlue : 0);
   return (safeRed + 1.0) / (safeBlue + 1.0);
 }
 
-/**
- * Computes spatial lag-1 horizontal and vertical autocorrelation to reject uncorrelated noise.
- */
+
 export function calculateSpatialAutocorrelation(luminanceGrid, width, height) {
   if (!luminanceGrid || width < 2 || height < 2 || luminanceGrid.length < width * height) {
     return 0.0;
   }
 
-  // 1. Horizontal lag-1 correlation
+
   let sumH1 = 0, sumH2 = 0, sumH1Sq = 0, sumH2Sq = 0, sumHProd = 0;
   const numHorizontalPairs = height * (width - 1);
 
@@ -95,7 +84,7 @@ export function calculateSpatialAutocorrelation(luminanceGrid, width, height) {
   const denomH = Math.sqrt(varH1 * varH2);
   const corrH = denomH > 1e-6 ? Math.max(-1.0, Math.min(1.0, covH / denomH)) : 0.0;
 
-  // 2. Vertical lag-1 correlation
+
   let sumV1 = 0, sumV2 = 0, sumV1Sq = 0, sumV2Sq = 0, sumVProd = 0;
   const numVerticalPairs = (height - 1) * width;
 
@@ -123,9 +112,7 @@ export function calculateSpatialAutocorrelation(luminanceGrid, width, height) {
   return Math.max(0.0, Math.min(1.0, meanAutocorr));
 }
 
-/**
- * Extracts channel averages, center quadrant luminance, and spatial arrays from raw pixels.
- */
+
 export function extractRetinalPixelStats(pixelData, width, height) {
   if (!pixelData || pixelData.length < 4 || width <= 0 || height <= 0) {
     throw new Error("Invalid pixel data array or non-positive dimensions.");
@@ -189,9 +176,7 @@ export function extractRetinalPixelStats(pixelData, width, height) {
   };
 }
 
-/**
- * Helper to load HTMLImageElement from element, File, or Blob.
- */
+
 export async function loadImageElement(sourceImage) {
   if (!sourceImage) {
     throw new Error("No image source provided for edge optical validation.");
@@ -238,10 +223,7 @@ export async function loadImageElement(sourceImage) {
   throw new Error("Unsupported image source: expected HTMLImageElement, File, or Blob.");
 }
 
-/**
- * Runs legacy heuristic triage inference.
- * Renamed to runHeuristicInference for fallback use when ONNX runtime is unavailable.
- */
+
 export async function runHeuristicInference(sourceImage) {
   const startTime = performance.now();
 

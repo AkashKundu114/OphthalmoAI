@@ -5,7 +5,7 @@ import hmac
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from typing import Tuple
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -22,17 +22,14 @@ try:
     import jwt
     JWT_AVAILABLE = True
 except ImportError:
-    try:
-        from jose import jwt  
-        JWT_AVAILABLE = True
-    except ImportError:
-        JWT_AVAILABLE = False
+    jwt = None
+    JWT_AVAILABLE = False
 
 from .db import User
 from .db_async import get_async_db
 from .logging_config import get_logger
 from .security import login_tracker, token_blacklist
-from .validators import validate_email, validate_password_strength, validate_role_claim
+from .validators import validate_email, validate_role_claim
 
 logger = get_logger("auth")
 
@@ -81,8 +78,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(
     subject: str,
     role: str,
-    extra_claims: Optional[dict] = None,
-    expires_minutes: Optional[int] = None,
+    extra_claims: dict | None = None,
+    expires_minutes: int | None = None,
 ) -> str:
     if not JWT_AVAILABLE:
         raise RuntimeError("JWT library (PyJWT or python-jose) is not installed.")
@@ -133,9 +130,9 @@ def decode_token(token: str) -> dict:
 
 
 async def get_current_user(
-    token: Optional[str] = Depends(oauth2_scheme),
+    token: str | None = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_async_db),
-) -> Optional[User]:
+) -> User | None:
     if not token:
         return None
     try:
@@ -144,7 +141,7 @@ async def get_current_user(
         if not user_id:
             return None
         result = await db.execute(
-            select(User).where(User.id == user_id, User.is_active == True)  
+            select(User).where(User.id == user_id, User.is_active == True)
         )
         return result.scalar_one_or_none()
     except HTTPException:
@@ -157,7 +154,7 @@ def require_role(*roles: str):
     min_rank = min(ROLE_HIERARCHY.get(r, 0) for r in roles)
 
     async def _dep(
-        token: Optional[str] = Depends(oauth2_scheme),
+        token: str | None = Depends(oauth2_scheme),
         db: AsyncSession = Depends(get_async_db),
     ) -> User:
         if not token:
@@ -174,7 +171,7 @@ def require_role(*roles: str):
                 detail="Token is missing the subject claim.",
             )
         result = await db.execute(
-            select(User).where(User.id == user_id, User.is_active == True)  
+            select(User).where(User.id == user_id, User.is_active == True)
         )
         user = result.scalar_one_or_none()
         if not user:
@@ -215,7 +212,7 @@ async def authenticate_user(
     db: AsyncSession,
     email: str,
     password: str,
-) -> Tuple[Optional[User], Optional[str]]:
+) -> Tuple[User | None, str | None]:
     email_valid, email_normalised = validate_email(email)
     if not email_valid:
         return None, "Invalid email or password."

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 
 const PAPERS_DATABASE = [
-  // --- arXiv & AI Preprints ---
+
   {
     id: 'arxiv-2409-08312',
     title: 'RETFound-Green: Resource-Efficient Ophthalmic Foundation Models for Clinical Edge Triage',
@@ -144,7 +144,7 @@ const PAPERS_DATABASE = [
     tags: ['Bayesian AI', 'Monte Carlo', 'Out-of-Distribution', 'Patient Safety'],
   },
 
-  // --- Peer-Reviewed Landmark Journal Publications ---
+
   {
     id: 'nature-med-2025',
     title: 'AI Outperforms Junior Doctors in Multi-Center Diabetic Retinopathy Screening',
@@ -251,7 +251,7 @@ const PAPERS_DATABASE = [
 
 export default function ClinicalResearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedType, setSelectedType] = useState('All') // 'All' | 'arXiv Preprint' | 'Peer-Reviewed Journal'
+  const [selectedType, setSelectedType] = useState('All')
   const [selectedCategory, setSelectedCategory] = useState('All')
 
   const categories = [
@@ -265,15 +265,15 @@ export default function ClinicalResearchPage() {
   ]
 
   const filteredPapers = PAPERS_DATABASE.filter(paper => {
-    // Type filter
+
     if (selectedType !== 'All' && paper.type !== selectedType) {
       return false
     }
-    // Category filter
+
     if (selectedCategory !== 'All' && paper.category !== selectedCategory) {
       return false
     }
-    // Search query
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       const matchTitle = paper.title?.toLowerCase().includes(q)
@@ -311,7 +311,7 @@ export default function ClinicalResearchPage() {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-      {/* Header Banner */}
+
       <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 mb-2">
@@ -325,7 +325,7 @@ export default function ClinicalResearchPage() {
           </p>
         </div>
 
-        {/* Search Bar */}
+
         <div className="relative w-full md:w-80">
           <input
             type="text"
@@ -338,7 +338,7 @@ export default function ClinicalResearchPage() {
         </div>
       </div>
 
-      {/* Highlights Metric Bar */}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="glass-card p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-1">
           <div className="flex items-center justify-between">
@@ -383,7 +383,7 @@ export default function ClinicalResearchPage() {
         </div>
       </div>
 
-      {/* Main Publication Type Tabs */}
+
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200">
           <button
@@ -425,7 +425,7 @@ export default function ClinicalResearchPage() {
         </div>
       </div>
 
-      {/* Category Pills Filter */}
+
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-mono uppercase text-slate-500 mr-1 flex items-center gap-1 font-bold">
           <Filter className="w-3 h-3" /> Topic:
@@ -445,7 +445,7 @@ export default function ClinicalResearchPage() {
         ))}
       </div>
 
-      {/* Publications Grid */}
+
       {filteredPapers.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredPapers.map(paper => {
@@ -458,7 +458,7 @@ export default function ClinicalResearchPage() {
                 }`}
               >
                 <div className="space-y-3">
-                  {/* Top Metadata Strip */}
+
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-lg border ${getCategoryColor(paper.category)}`}>
@@ -484,7 +484,7 @@ export default function ClinicalResearchPage() {
                     </div>
                   </div>
 
-                  {/* Title & Featured Badge */}
+
                   <div className="space-y-1.5">
                     {paper.highlight && (
                       <div className="flex items-center gap-1 text-[11px] font-bold text-cyan-700">
@@ -500,12 +500,12 @@ export default function ClinicalResearchPage() {
                     </h2>
                   </div>
 
-                  {/* Summary */}
+
                   <p className="text-xs text-slate-600 leading-relaxed">
                     {paper.summary}
                   </p>
 
-                  {/* Architecture & Metrics Strip */}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                     <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
                       <span className="text-slate-500 block uppercase font-mono text-[9px] font-bold">Model Architecture</span>
@@ -518,7 +518,7 @@ export default function ClinicalResearchPage() {
                   </div>
                 </div>
 
-                {/* Footer Strip */}
+
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="text-[11px] text-slate-500 space-y-0.5">
@@ -564,7 +564,7 @@ export default function ClinicalResearchPage() {
         </div>
       )}
 
-      {/* Academic Advisory Note */}
+
       <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3 shadow-2xs">
         <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <p className="text-[11px] text-amber-900 leading-relaxed">

@@ -1,21 +1,14 @@
-"""
-Screening Anomaly Detection Engine.
-
-Directly models advertising technology / ad-tech analytics patterns:
-- Volume Anomaly (Z-Score) <-> Impression volume anomaly in campaign monitoring
-- Quality Anomaly (Moving Average) <-> CTR / conversion rate decline from ad fatigue
-- Performance Anomaly (SLA Breach) <-> RTB bid response latency timeout
-- Distribution Shift (Chi-Square) <-> Audience composition drift in programmatic targeting
-"""
+"""Screening Anomaly Detection Engine."""
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import date, datetime, timezone
 import math
-from typing import Any, Dict, List, Optional, Sequence, Union
+from dataclasses import dataclass
+from datetime import date, datetime, timezone
+from typing import Any, Dict, List, Sequence
 
 import numpy as np
+
 try:
     from scipy import stats
     SCIPY_AVAILABLE = True
@@ -30,15 +23,15 @@ def _utcnow() -> datetime:
 @dataclass
 class ScreeningAnomaly:
     tenant_id: str
-    anomaly_type: str  # "volume", "quality", "sla_breach", "distribution_shift"
-    severity: str  # "info", "warning", "critical"
+    anomaly_type: str
+    severity: str
     metric_name: str
     current_value: float
     baseline_value: float
     deviation_percent: float
     detected_at: datetime
     recommendation: str
-    ad_tech_parallel: str  # explain the ad-tech equivalent
+    ad_tech_parallel: str
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -56,10 +49,7 @@ class ScreeningAnomaly:
 
 
 class ScreeningAnomalyDetector:
-    """
-    Detects time-series and distributional anomalies on multi-tenant screening metrics.
-    Employs statistical and operational heuristics mirrored from ad-tech telemetry.
-    """
+    """Detects time-series and distributional anomalies on multi-tenant screening metrics."""
 
     def __init__(
         self,
@@ -78,12 +68,9 @@ class ScreeningAnomalyDetector:
         tenant_id: str,
         current_volume: float,
         history_volumes: Sequence[float],
-        detected_at: Optional[datetime] = None,
-    ) -> Optional[ScreeningAnomaly]:
-        """
-        Z-Score volume anomaly detection over 7-day rolling baseline.
-        Maps to: impression volume anomaly in ad-tech campaign telemetry.
-        """
+        detected_at: datetime | None = None,
+    ) -> ScreeningAnomaly | None:
+        """Z-Score volume anomaly detection over 7-day rolling baseline."""
         if not history_volumes or len(history_volumes) < 2:
             return None
 
@@ -92,7 +79,6 @@ class ScreeningAnomalyDetector:
         std_val = float(np.std(arr, ddof=1)) if len(arr) > 1 else float(np.std(arr))
 
         if std_val < 1e-4:
-            # Low or zero variance historical window
             if abs(current_volume - mean_val) > max(5.0, mean_val * 0.5):
                 deviation_pct = ((current_volume - mean_val) / max(1.0, mean_val)) * 100.0
                 z_score = 3.5 if current_volume > mean_val else -3.5
@@ -106,7 +92,7 @@ class ScreeningAnomalyDetector:
             is_spike = z_score > 0
             severity = "critical" if abs(z_score) >= 3.0 or abs(deviation_pct) >= 60.0 else "warning"
             direction_desc = "surge" if is_spike else "drop"
-            
+
             rec = (
                 f"High screening volume {direction_desc} detected ({current_volume:.0f} vs {mean_val:.1f} baseline). "
                 + ("Verify if regional camp occurred; prepare edge cache for burst processing."
@@ -133,27 +119,21 @@ class ScreeningAnomalyDetector:
         tenant_id: str,
         current_confidence: float,
         history_confidences: Sequence[float],
-        detected_at: Optional[datetime] = None,
-    ) -> Optional[ScreeningAnomaly]:
-        """
-        Moving average confidence decline detection.
-        Maps to: CTR/conversion rate decline in ad-tech from creative fatigue.
-        """
+        detected_at: datetime | None = None,
+    ) -> ScreeningAnomaly | None:
+        """Moving average confidence decline detection."""
         if not history_confidences or len(history_confidences) < 1:
             return None
 
-        # Take up to the last 3 days
         window = list(history_confidences[-3:])
         ma3 = float(np.mean(window))
 
-        # Normalize confidences if supplied on 0-100 scale vs 0-1
         norm_curr = current_confidence if current_confidence <= 1.0 else current_confidence / 100.0
         norm_ma3 = ma3 if ma3 <= 1.0 else ma3 / 100.0
 
         if norm_ma3 <= 0.0:
             return None
 
-        # Drop percentage
         drop_pct = ((norm_ma3 - norm_curr) / norm_ma3) * 100.0
 
         if drop_pct >= self.quality_drop_threshold_pct:
@@ -181,13 +161,10 @@ class ScreeningAnomalyDetector:
         self,
         tenant_id: str,
         current_latency_ms: float,
-        threshold_ms: Optional[float] = None,
-        detected_at: Optional[datetime] = None,
-    ) -> Optional[ScreeningAnomaly]:
-        """
-        Inference latency SLA breach detection.
-        Maps to: bid response latency in ad-tech RTB exchanges exceeding auction timeout.
-        """
+        threshold_ms: float | None = None,
+        detected_at: datetime | None = None,
+    ) -> ScreeningAnomaly | None:
+        """Inference latency SLA breach detection."""
         sla_limit = threshold_ms or self.latency_sla_ms
         if current_latency_ms > sla_limit:
             overage_pct = ((current_latency_ms - sla_limit) / sla_limit) * 100.0
@@ -215,20 +192,16 @@ class ScreeningAnomalyDetector:
         tenant_id: str,
         current_diagnoses: Dict[str, int],
         historical_diagnoses: List[Dict[str, int]],
-        detected_at: Optional[datetime] = None,
-    ) -> Optional[ScreeningAnomaly]:
-        """
-        Chi-Square goodness of fit / distribution shift test.
-        Maps to: audience composition drift in ad-tech programmatic targeting.
-        """
+        detected_at: datetime | None = None,
+    ) -> ScreeningAnomaly | None:
+        """Chi-Square goodness of fit / distribution shift test."""
         if not current_diagnoses or not historical_diagnoses:
             return None
 
         total_current = sum(current_diagnoses.values())
-        if total_current < 5:  # Insufficient sample for statistical shift
+        if total_current < 5:
             return None
 
-        # Aggregate historical counts
         hist_agg: Dict[str, int] = {}
         for h in historical_diagnoses:
             for k, v in h.items():
@@ -242,7 +215,6 @@ class ScreeningAnomalyDetector:
         if len(all_categories) < 2:
             return None
 
-        # Build observed and expected frequencies with Laplace smoothing
         smoothing = 0.5
         observed = []
         expected = []
@@ -259,7 +231,6 @@ class ScreeningAnomalyDetector:
             observed.append(obs)
             expected.append(max(0.1, exp_count))
 
-            # Track individual class shift percentage
             curr_prop = obs / total_current
             hist_prop = hist_agg.get(cat, 0) / total_hist
             shift = abs(curr_prop - hist_prop)
@@ -270,7 +241,6 @@ class ScreeningAnomalyDetector:
         p_value = 1.0
         if SCIPY_AVAILABLE:
             try:
-                # Normalize expected array so sum matches observed sum exactly
                 exp_arr = np.array(expected, dtype=float)
                 exp_arr = exp_arr * (sum(observed) / sum(exp_arr))
                 chi2_stat, p_val = stats.chisquare(f_obs=observed, f_exp=exp_arr)
@@ -278,14 +248,11 @@ class ScreeningAnomalyDetector:
             except Exception:
                 p_value = 1.0
         else:
-            # Fallback simple Chi-Square approximation
             chi2_stat = sum(((o - e) ** 2) / e for o, e in zip(observed, expected))
-            # Rough critical value for df = len(all_categories) - 1 at alpha=0.05
             df = max(1, len(all_categories) - 1)
             critical_val = df * 2.0 + 3.0
             p_value = 0.01 if chi2_stat > critical_val else 0.5
 
-        # Flag if p-value < threshold OR max class proportion shifted by > 30%
         if (not math.isnan(p_value) and p_value < self.distribution_p_value_threshold) or max_class_shift > 0.35:
             severity = "critical" if p_value < 0.01 or max_class_shift > 0.50 else "warning"
             deviation_pct = max_class_shift * 100.0
@@ -314,15 +281,10 @@ class ScreeningAnomalyDetector:
         metrics: Sequence[Any],
         scan_days: int = 14,
     ) -> List[ScreeningAnomaly]:
-        """
-        Runs comprehensive anomaly detection across recent metrics in a time-series.
-        metrics can be a list of TenantDailyMetric objects or dictionaries, ordered chronologically.
-        Scans up to `scan_days` recent points against their respective prior baselines.
-        """
+        """Runs comprehensive anomaly detection across recent metrics in a time-series."""
         if not metrics:
             return []
 
-        # Convert to uniform dict format
         rows = []
         for m in metrics:
             if hasattr(m, "to_dict"):
@@ -342,7 +304,6 @@ class ScreeningAnomalyDetector:
         if not rows:
             return []
 
-        # If scan_days is 1, only check the latest day; otherwise scan the recent window
         num_days_to_scan = max(1, min(scan_days, len(rows)))
         start_idx = max(0, len(rows) - num_days_to_scan)
 
@@ -351,8 +312,7 @@ class ScreeningAnomalyDetector:
         for i in range(start_idx, len(rows)):
             day = rows[i]
             prior_history = rows[:i]
-            
-            # Format detection timestamp
+
             raw_d = day.get("date")
             if isinstance(raw_d, str):
                 try:
@@ -367,33 +327,28 @@ class ScreeningAnomalyDetector:
             else:
                 det_at = _utcnow()
 
-            # 1. Volume Anomaly (7-day rolling window)
             vol_hist = [float(h.get("total_screenings", 0)) for h in prior_history[-7:]]
             day_vol = float(day.get("total_screenings", 0))
             vol_anom = self.detect_volume_anomaly(tenant_id, day_vol, vol_hist, detected_at=det_at)
             if vol_anom:
                 detected_anomalies.append(vol_anom)
 
-            # 2. Quality Anomaly (3-day rolling window)
             conf_hist = [float(h.get("avg_confidence", 0.0)) for h in prior_history[-3:]]
             day_conf = float(day.get("avg_confidence", 0.0))
             qual_anom = self.detect_quality_anomaly(tenant_id, day_conf, conf_hist, detected_at=det_at)
             if qual_anom:
                 detected_anomalies.append(qual_anom)
 
-            # 3. SLA Breach Anomaly
             day_lat = float(day.get("avg_inference_time_ms", 0.0))
             sla_anom = self.detect_sla_breach(tenant_id, day_lat, detected_at=det_at)
             if sla_anom:
                 detected_anomalies.append(sla_anom)
 
-            # 4. Distribution Shift Anomaly
             day_diag = day.get("diagnoses_by_class") or {}
             hist_diags = [h.get("diagnoses_by_class") or {} for h in prior_history[-14:]]
             dist_anom = self.detect_distribution_shift(tenant_id, day_diag, hist_diags, detected_at=det_at)
             if dist_anom:
                 detected_anomalies.append(dist_anom)
 
-        # Sort newest first
         detected_anomalies.sort(key=lambda a: a.detected_at, reverse=True)
         return detected_anomalies

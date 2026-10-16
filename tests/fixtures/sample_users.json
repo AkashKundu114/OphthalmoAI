@@ -1,0 +1,26 @@
+[
+  {
+    "id": "usr-test-clinician-001",
+    "email": "clinician@hospital.org",
+    "full_name": "Dr. Sarah Lin, MD",
+    "role": "clinician",
+    "is_active": true,
+    "tenant_id": "tenant-default-001"
+  },
+  {
+    "id": "usr-test-patient-001",
+    "email": "patient.demo@example.com",
+    "full_name": "Alex Mercer",
+    "role": "patient",
+    "is_active": true,
+    "tenant_id": "tenant-default-001"
+  },
+  {
+    "id": "usr-test-admin-001",
+    "email": "admin@hospital.org",
+    "full_name": "System Administrator",
+    "role": "admin",
+    "is_active": true,
+    "tenant_id": "tenant-default-001"
+  }
+]

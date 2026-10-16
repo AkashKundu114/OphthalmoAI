@@ -4,13 +4,20 @@ import logging
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON,
-    String, Text, create_engine, event,
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    event,
 )
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
 from sqlalchemy.pool import NullPool, StaticPool
 
@@ -24,8 +31,8 @@ DATABASE_URL = os.getenv(
 )
 
 
-def create_db_engine(database_url: Optional[str] = None, **kwargs):
-    raw_url = database_url or os.getenv("DATABASE_URL", "sqlite:///./ophthalmoai.db")
+def create_db_engine(database_url: str | None = None, **kwargs):
+    raw_url: str = database_url or os.getenv("DATABASE_URL") or "sqlite:///./ophthalmoai.db"
     db_type = get_database_type(raw_url)
 
     if db_type == "sqlite":
@@ -57,9 +64,9 @@ def create_db_engine(database_url: Optional[str] = None, **kwargs):
         resolved_url = raw_url
         if resolved_url.startswith("postgresql://") or resolved_url.startswith("postgres://"):
             try:
-                import psycopg  # noqa: F401
+                import psycopg
                 try:
-                    import psycopg2  # noqa: F401
+                    import psycopg2
                 except ImportError:
                     resolved_url = resolved_url.replace("postgresql://", "postgresql+psycopg://", 1)
                     resolved_url = resolved_url.replace("postgres://", "postgresql+psycopg://", 1)
@@ -324,7 +331,7 @@ class PatientAppointment(Base):
     clinic_name = Column(String(255), nullable=False)
     appointment_time = Column(DateTime(timezone=True), nullable=False)
     purpose = Column(String(255), nullable=False)
-    status = Column(String(32), nullable=False, default="scheduled")  
+    status = Column(String(32), nullable=False, default="scheduled")
     sms_reminder_sent = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
 
@@ -336,7 +343,7 @@ class PatientAppointment(Base):
 
 def create_tables() -> None:
     try:
-        from .analytics import TenantDailyMetric  # noqa: F401
+        from .analytics import TenantDailyMetric
     except ImportError:
         pass
     Base.metadata.create_all(bind=engine)

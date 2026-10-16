@@ -1,21 +1,14 @@
-"""
-Asynchronous Screening Task Coordinator and Real-Time WebSocket Streaming Engine.
-
-Provides decoupled execution for compute-intensive multi-backbone inference,
-bounded job state retention to prevent memory leaks, and real-time WebSocket stage
-broadcasting.
-"""
+"""Asynchronous Screening Task Coordinator and Real-Time WebSocket Streaming Engine."""
 
 from __future__ import annotations
 
 import asyncio
+import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Coroutine, Dict, List, Optional, Set
-import uuid
+from typing import Any, Callable, Coroutine, Dict, List, Set
 
 from fastapi import WebSocket
-
 
 MAX_RETAINED_JOBS = 1000
 
@@ -84,10 +77,7 @@ class WebSocketJobNotifier:
 
 
 class ScreeningJobManager:
-    """
-    Task coordinator maintaining bounded job state history and orchestrating
-    pipeline workers.
-    """
+    """Task coordinator maintaining bounded job state history and orchestrating"""
 
     def __init__(self, max_retained_jobs: int = MAX_RETAINED_JOBS):
         self.jobs: Dict[str, Dict[str, Any]] = {}
@@ -95,13 +85,12 @@ class ScreeningJobManager:
         self._max_jobs = max(50, max_retained_jobs)
         self._lock = asyncio.Lock()
 
-    def create_job(self, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def create_job(self, metadata: Dict[str, Any] | None = None) -> str:
         """Instantiates a new queued job, pruning stale records if limit exceeded."""
         job_id = f"job_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc).isoformat()
 
         if len(self.jobs) >= self._max_jobs:
-            # Prune oldest completed or failed jobs
             prune_candidates = [
                 k for k, v in self.jobs.items()
                 if v.get("status") in {JobStatus.COMPLETED.value, JobStatus.FAILED.value}
@@ -122,18 +111,18 @@ class ScreeningJobManager:
         }
         return job_id
 
-    def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+    def get_job(self, job_id: str) -> Dict[str, Any] | None:
         """Retrieves current job record by ID."""
         return self.jobs.get(job_id)
 
     async def update_job(
         self,
         job_id: str,
-        status: Optional[JobStatus] = None,
-        progress_percent: Optional[int] = None,
-        stage: Optional[ScreeningStage] = None,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
+        status: JobStatus | None = None,
+        progress_percent: int | None = None,
+        stage: ScreeningStage | None = None,
+        result: Dict[str, Any] | None = None,
+        error: str | None = None,
     ) -> None:
         """Updates job state attributes and broadcasts snapshot to active subscribers."""
         if job_id not in self.jobs:
@@ -205,5 +194,4 @@ class ScreeningJobManager:
             )
 
 
-# Global singleton manager
 screening_queue = ScreeningJobManager()

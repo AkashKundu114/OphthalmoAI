@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import random
 import time
-from typing import Dict, Any, List
+from typing import Any, Dict
+
 
 class FederatedNode:
     def __init__(self, node_id: str, institution: str):

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
+
 from sqlalchemy import Engine, text
 
 logger = logging.getLogger(__name__)
 
 
-def get_database_type(database_url: Optional[str] = None) -> str:
+def get_database_type(database_url: str | None = None) -> str:
     """Return 'sqlite', 'postgresql', or 'mssql' based on the database connection string."""
     url = database_url
     if url is None:
@@ -30,13 +31,10 @@ def get_database_type(database_url: Optional[str] = None) -> str:
     return "sqlite"
 
 
-def verify_database_connection(engine_or_url: Optional[Union[Engine, str]] = None) -> Dict[str, Any]:
-    """Ping the database and log the backend type and version.
-
-    Returns:
-        Dict[str, Any] with 'status', 'backend_type', 'version', and 'url'.
-    """
-    from .db import create_db_engine, engine as default_engine
+def verify_database_connection(engine_or_url: Engine | str | None = None) -> Dict[str, Any]:
+    """Ping the database and log the backend type and version."""
+    from .db import create_db_engine
+    from .db import engine as default_engine
 
     if engine_or_url is None:
         target_engine = default_engine

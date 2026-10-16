@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use OphthalmoAI in your research or clinical evaluation, please cite the manuscript in preparation."
+title: "OphthalmoAI: Point-of-Care Retinal Disease Screening Research Prototype"
+authors:
+  - family-names: "Kundu"
+    given-names: "Akash"
+    orcid: "https://orcid.org/0009-0000-0000-0000"
+    email: "akashkundu114@gmail.com"
+version: 0.1.0-alpha
+date-released: "2026-10-17"
+license: "Apache-2.0"
+repository-code: "https://github.com/AkashKundu114/OphthalmoAI"
+keywords:
+  - "ophthalmology"
+  - "retinal screening"
+  - "deep learning"
+  - "conformal prediction"
+  - "explainable ai"
+  - "grad-cam"
+preferred-citation:
+  type: article
+  title: "Uncertainty-Aware Multi-Class Fundus Screening with Conformal Risk Sets and Evidential Bounds"
+  authors:
+    - family-names: "Kundu"
+      given-names: "Akash"
+  journal: "Peer-reviewed biomedical informatics manuscript (in preparation)"
+  year: 2026

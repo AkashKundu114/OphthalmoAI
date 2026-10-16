@@ -1,8 +1,12 @@
 from __future__ import annotations
-import json, os
+
+import json
+import os
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Any, List
+
 from sqlalchemy.orm import Session
+
 from .db import ModelVersion
 from .logging_config import get_logger
 
@@ -19,7 +23,9 @@ def register_model(db: Session, group_key, version_tag, architecture, weights_pa
                        val_sensitivity=val_sensitivity, val_specificity=val_specificity,
                        val_set_description=val_set_description, calibration_temperature=calibration_temperature,
                        calibration_ece=calibration_ece, active=False, registered_by=registered_by)
-    db.add(mv); db.commit(); db.refresh(mv)
+    db.add(mv)
+    db.commit()
+    db.refresh(mv)
     logger.info("model_registry.registered", group=group_key, version=version_tag, architecture=architecture, id=mv.id)
     _sync_json(db)
     return mv
@@ -31,17 +37,18 @@ def set_active(db: Session, version_id: str) -> ModelVersion:
         raise ValueError(f"ModelVersion id={version_id!r} not found")
     db.query(ModelVersion).filter(ModelVersion.group_key == target.group_key, ModelVersion.id != version_id).update({"active": False})
     target.active = True
-    db.commit(); db.refresh(target)
+    db.commit()
+    db.refresh(target)
     logger.info("model_registry.activated", group=target.group_key, version=target.version_tag, id=target.id)
     _sync_json(db)
     return target
 
 
-def get_active(db: Session, group_key: str) -> Optional[ModelVersion]:
+def get_active(db: Session, group_key: str) -> ModelVersion | None:
     return db.query(ModelVersion).filter(ModelVersion.group_key == group_key, ModelVersion.active == True).first()
 
 
-def rollback(db: Session, group_key: str) -> Optional[ModelVersion]:
+def rollback(db: Session, group_key: str) -> ModelVersion | None:
     current = get_active(db, group_key)
     if not current:
         logger.warning("model_registry.rollback_no_active", group=group_key)
@@ -61,7 +68,7 @@ def rollback(db: Session, group_key: str) -> Optional[ModelVersion]:
     return current
 
 
-def list_versions(db: Session, group_key: Optional[str] = None) -> List[ModelVersion]:
+def list_versions(db: Session, group_key: str | None = None) -> List[ModelVersion]:
     q = db.query(ModelVersion)
     if group_key:
         q = q.filter(ModelVersion.group_key == group_key)
@@ -71,15 +78,22 @@ def list_versions(db: Session, group_key: Optional[str] = None) -> List[ModelVer
 def _sync_json(db: Session) -> None:
     try:
         active_versions = db.query(ModelVersion).filter(ModelVersion.active == True).all()
-        data = {"last_updated": datetime.now(timezone.utc).isoformat(), "active_versions": {}, "calibration_temperatures": {}}
+        active_dict: dict[str, Any] = {}
+        calib_dict: dict[str, Any] = {}
         for mv in active_versions:
-            data["active_versions"][mv.group_key] = {
+            gk = str(mv.group_key)
+            active_dict[gk] = {
                 "id": mv.id, "version_tag": mv.version_tag, "architecture": mv.architecture,
                 "weights_path": mv.weights_path, "val_accuracy": mv.val_accuracy, "val_auc": mv.val_auc,
                 "calibration_temperature": mv.calibration_temperature,
                 "registered_at": mv.registered_at.isoformat() if mv.registered_at else None,
             }
-            data["calibration_temperatures"][mv.group_key] = mv.calibration_temperature or 1.0
+            calib_dict[gk] = mv.calibration_temperature or 1.0
+        data: dict[str, Any] = {
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "active_versions": active_dict,
+            "calibration_temperatures": calib_dict,
+        }
         os.makedirs(os.path.dirname(os.path.abspath(REGISTRY_JSON_PATH)), exist_ok=True)
         with open(REGISTRY_JSON_PATH, "w") as f:
             json.dump(data, f, indent=2)

@@ -9,6 +9,4 @@ resources:
   - frontend-service.yaml
   - ingress.yaml
   - hpa.yaml
-  # Note: Apply secrets separately (e.g. kubectl apply -f secret.yaml or kubectl create secret)
-  # to prevent overwriting production credentials with example templates.
-  # Migration job: Run on demand using `kubectl apply -f migration-job.yaml`
+  - networkpolicy.yaml

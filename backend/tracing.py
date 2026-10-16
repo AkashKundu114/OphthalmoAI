@@ -1,9 +1,4 @@
-"""
-OpenTelemetry-Compatible Distributed Tracing Engine.
-=============================================================================
-Provides lightweight distributed span context tracing for end-to-end clinical
-pipelines (auth -> IQA pre-check -> domain adaptation -> ONNX inference -> CBMIR retrieval).
-"""
+"""OpenTelemetry-Compatible Distributed Tracing Engine."""
 
 from __future__ import annotations
 
@@ -11,7 +6,7 @@ import collections
 import contextlib
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 def generate_trace_id() -> str:
@@ -26,9 +21,9 @@ class TraceSpan:
     def __init__(
         self,
         name: str,
-        trace_id: Optional[str] = None,
-        parent_span_id: Optional[str] = None,
-        attributes: Optional[Dict[str, Any]] = None,
+        trace_id: str | None = None,
+        parent_span_id: str | None = None,
+        attributes: Dict[str, Any] | None = None,
     ):
         self.name = name
         self.trace_id = trace_id or generate_trace_id()
@@ -39,7 +34,7 @@ class TraceSpan:
         self.end_time: float = 0.0
         self.duration_ms: float = 0.0
         self.status: str = "OK"
-        self.error_message: Optional[str] = None
+        self.error_message: str | None = None
 
     def set_attribute(self, key: str, value: Any) -> TraceSpan:
         self.attributes[key] = value
@@ -88,16 +83,15 @@ class TracingBuffer:
         return list(self._traces)[:limit]
 
 
-# Global tracing buffer
 tracer_buffer = TracingBuffer(capacity=200)
 
 
 @contextlib.contextmanager
 def trace_pipeline_span(
     name: str,
-    trace_id: Optional[str] = None,
-    parent_span_id: Optional[str] = None,
-    attributes: Optional[Dict[str, Any]] = None,
+    trace_id: str | None = None,
+    parent_span_id: str | None = None,
+    attributes: Dict[str, Any] | None = None,
 ):
     """Context manager for tracing execution blocks and automatically committing to tracer_buffer."""
     span = TraceSpan(name=name, trace_id=trace_id, parent_span_id=parent_span_id, attributes=attributes)

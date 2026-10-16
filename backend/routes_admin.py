@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -12,7 +12,6 @@ from .auth import require_role
 from .db import AuditLog, ClinicianOverride, ModelVersion, ScanResult, User
 from .db_async import get_async_db
 from .logging_config import get_logger
-from .model_registry import list_versions, set_active
 
 logger = get_logger("routes_admin")
 
@@ -23,16 +22,13 @@ VALID_VERDICTS = {"agree", "disagree", "inconclusive", "insufficient_image_quali
 
 class OverrideRequest(BaseModel):
     verdict: str
-    corrected_diagnosis: Optional[str] = None
-    corrected_icd10: Optional[str] = None
-    notes: Optional[str] = None
+    corrected_diagnosis: str | None = None
+    corrected_icd10: str | None = None
+    notes: str | None = None
 
 
 class ActivateModelRequest(BaseModel):
     version_id: str
-
-
-
 
 
 @router.post("/scans/{scan_id}/override", status_code=201)
@@ -105,16 +101,13 @@ async def create_scan_override(
     }
 
 
-
-
-
 @router.get("/admin/audit-logs")
 async def list_audit_logs(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_role("admin")),
-    action: Optional[str] = Query(default=None, description="Filter by action, e.g. 'predict', 'login'"),
-    user_id: Optional[str] = Query(default=None),
-    success: Optional[bool] = Query(default=None),
+    action: str | None = Query(default=None, description="Filter by action, e.g. 'predict', 'login'"),
+    user_id: str | None = Query(default=None),
+    success: bool | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
 ):
@@ -152,19 +145,12 @@ async def list_audit_logs(
     }
 
 
-
-
-
 @router.post("/admin/model-registry/activate")
 async def activate_model_version(
     payload: ActivateModelRequest,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_role("admin")),
 ):
-
-
-
-
 
 
     target_result = await db.execute(
@@ -218,10 +204,7 @@ async def get_hitl_discrepancy_analytics(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_role("clinician", "admin")),
 ):
-    """
-    Computes Human-in-the-Loop (HITL) concordance/discordance analytics between
-    clinician overrides and ensemble AI predictions.
-    """
+    """Computes Human-in-the-Loop (HITL) concordance/discordance analytics between"""
     stmt = select(ClinicianOverride, ScanResult).join(
         ScanResult, ClinicianOverride.scan_id == ScanResult.id, isouter=True
     )
@@ -266,10 +249,7 @@ async def get_active_learning_candidates(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_role("clinician", "admin")),
 ):
-    """
-    Extracts high-value discrepancy cases (AI vs. Doctor) prioritized for
-    active learning retraining candidate pools.
-    """
+    """Extracts high-value discrepancy cases (AI vs. Doctor) prioritized for"""
     stmt = (
         select(ClinicianOverride, ScanResult)
         .join(ScanResult, ClinicianOverride.scan_id == ScanResult.id)

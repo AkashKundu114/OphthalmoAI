@@ -1,11 +1,14 @@
 from __future__ import annotations
+
 import os
 import uuid
+
 import numpy as np
 from PIL import Image, ImageDraw
 
-def generate_synthetic_fundus(condition: str, severity: str = "moderate") -> Tuple[str, str]:
-    
+
+def generate_synthetic_fundus(condition: str, severity: str = "moderate") -> tuple[str, str]:
+
 
     img = Image.new("RGB", (512, 512), color=(10, 10, 10))
     draw = ImageDraw.Draw(img)

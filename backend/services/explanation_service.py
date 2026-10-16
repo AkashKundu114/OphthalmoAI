@@ -1,22 +1,16 @@
-"""
-Clinical Explainability & Visual Grounding Service.
-
-Implements:
-- Class Activation Mapping (Grad-CAM) targeting penultimate convolutional feature maps.
-- Diagnostic heatmap blending with color-preserved fundus photography.
-- Spatial lesion pathology description synthesis for clinical reports.
-"""
+"""Clinical Explainability & Visual Grounding Service."""
 
 from __future__ import annotations
 
 import base64
 import io
 import random
-from typing import Optional, Tuple
+from typing import Tuple
+
 import numpy as np
-from PIL import Image
 import torch
 import torch.nn as nn
+from PIL import Image
 
 from backend.logging_config import get_logger
 
@@ -41,28 +35,21 @@ def generate_gradcam(
     input_tensor: torch.Tensor,
     class_idx: int,
     model_input_image: Image.Image,
-) -> Tuple[Optional[str], Optional[np.ndarray]]:
-    """
-    Computes class activation map with Grad-CAM and returns:
-    1. Base64-encoded JPEG image of the heatmap overlay
-    2. Raw 2D normalized grayscale array (for biomarker extraction)
-    """
+) -> Tuple[str | None, np.ndarray | None]:
+    """Computes class activation map with Grad-CAM and returns:"""
     if not GRADCAM_AVAILABLE or model is None:
         return None, None
 
     try:
-        # Determine target layer (features[-1] for EfficientNet architectures)
         if hasattr(model, "features"):
-            target_layers = [model.features[-1]]
+            target_layers = [getattr(model, "features")[-1]]
         else:
-            # Fallback to last child module if architecture differs
             children = list(model.children())
             target_layers = [children[-2] if len(children) >= 2 else children[-1]]
 
         cam = GradCAM(model=model, target_layers=target_layers)
         grayscale = cam(input_tensor=input_tensor, targets=[ClassifierOutputTarget(class_idx)])
 
-        # Prepare normalized RGB background image
         rgb_img = np.float32(model_input_image.resize((384, 384))) / 255.0
         vis = show_cam_on_image(rgb_img, grayscale[0, :], use_rgb=True)
 
@@ -77,9 +64,7 @@ def generate_gradcam(
 
 
 def generate_spatial_description(diagnosis: str) -> str:
-    """
-    Synthesizes anatomical lesion localization description based on condition.
-    """
+    """Synthesizes anatomical lesion localization description based on condition."""
     quadrants = [
         "superotemporal macular arcade",
         "inferonasal quadrant near optic disc",

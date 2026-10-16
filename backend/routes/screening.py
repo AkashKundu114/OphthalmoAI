@@ -1,13 +1,4 @@
-"""
-Retinal Screening & Prediction Route Handlers.
-
-Endpoints:
-- POST /predict, POST /api/predict: Primary synchronous clinical screening pipeline
-- POST /api/v1/screen/async: Decoupled asynchronous screening job submission
-- GET /api/v1/jobs/{job_id}: Screening task status and outcome retrieval
-- WebSocket /ws/jobs/{job_id}: Real-time pipeline progress streaming
-- POST /scans/compress: Lossless/near-lossless retinal image bandwidth optimization
-"""
+"""Retinal Screening & Prediction Route Handlers."""
 
 from __future__ import annotations
 
@@ -15,10 +6,9 @@ import asyncio
 import base64
 import gc
 import io
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
+
 import numpy as np
-from PIL import Image
 import torch
 from fastapi import (
     APIRouter,
@@ -32,6 +22,7 @@ from fastapi import (
     WebSocketDisconnect,
     status,
 )
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from backend.async_screening import JobStatus, ScreeningStage, screening_queue
@@ -41,8 +32,6 @@ from backend.biomarker_extractor import extract_visual_biomarkers
 from backend.calibration import apply_temperature
 from backend.clinical_codes import get_clinical_code
 from backend.config import (
-    CALIBRATION_PATH,
-    CONFORMAL_CALIBRATION_PATH,
     DEVICE,
     ENABLE_IQA,
     ENABLE_UNCERTAINTY,
@@ -88,7 +77,7 @@ router = APIRouter(tags=["Screening"])
 _predict_limit = make_rate_limit_decorator(PREDICT_RATE_LIMIT)
 
 
-def _client_ip(request: Request) -> Optional[str]:
+def _client_ip(request: Request) -> str | None:
     xff = request.headers.get("X-Forwarded-For")
     if xff:
         return xff.split(",")[0].strip()
@@ -109,17 +98,17 @@ async def predict(
     light_sens: str = Form(default="No"),
     floaters: str = Form(default="No"),
     duration: str = Form(default="Not Sure"),
-    hba1c: Optional[float] = Form(default=None),
-    systolic_bp: Optional[int] = Form(default=None),
-    diastolic_bp: Optional[int] = Form(default=None),
-    patient_age: Optional[int] = Form(default=None),
-    iop: Optional[float] = Form(default=None),
-    eye_side: Optional[str] = Form(default="OD"),
-    visual_acuity_logmar: Optional[float] = Form(default=None),
-    is_smoker: Optional[bool] = Form(default=None),
+    hba1c: float | None = Form(default=None),
+    systolic_bp: int | None = Form(default=None),
+    diastolic_bp: int | None = Form(default=None),
+    patient_age: int | None = Form(default=None),
+    iop: float | None = Form(default=None),
+    eye_side: str | None = Form(default="OD"),
+    visual_acuity_logmar: float | None = Form(default=None),
+    is_smoker: bool | None = Form(default=None),
     apply_domain_adaptation: bool = Form(default=True),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     import backend.main as bm
 
@@ -179,14 +168,14 @@ async def predict(
     except Exception:
         raise HTTPException(422, detail="File could not be decoded as an image.")
 
-    iqa_acceptable, iqa_warnings = (True, [])
+    iqa_acceptable: bool = True
+    iqa_warnings: list[str] = []
     if ENABLE_IQA:
         try:
             iqa_acceptable, iqa_warnings = assess_image_quality(image)
         except Exception as iqa_err:
             logger.warning("predict.iqa_failed", error=str(iqa_err))
 
-    # Retinal Fundus Domain Verification Guardrail
     try:
         is_fundus, fundus_score, fundus_reason, fundus_metrics = validate_fundus_image(image)
         if not is_fundus:
@@ -242,7 +231,6 @@ async def predict(
 
         with torch.no_grad():
             if len(ensemble_models) >= 3:
-                # Tri-Backbone Calibrated Soft-Voting Ensemble
                 probs_list = []
                 for arch_name in ["densenet201", "convnext_small", "efficientnet_v2_m"]:
                     model = ensemble_models[arch_name]
@@ -258,7 +246,6 @@ async def predict(
                 is_calibrated = True
                 model_group_name = "Tri-Backbone Ensemble (85.2% Test Accuracy)"
             elif monolithic_model is not None:
-                # Graceful Fallback: Single-Model (EfficientNet-B4)
                 out = monolithic_model(input_tensor)
                 calibration_temperature = (
                     CALIBRATION_REGISTRY.get("efficientnet_b4")
@@ -282,11 +269,10 @@ async def predict(
         confidence = float(probs[class_idx].item()) * 100
         probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item()) for i in range(len(MONOLITHIC_CLASSES))}
 
-        heatmap_base64: Optional[str] = None
-        uncertainty_value: Optional[float] = None
-        grayscale: Optional[np.ndarray] = None
+        heatmap_base64: str | None = None
+        uncertainty_value: float | None = None
+        grayscale: np.ndarray | None = None
 
-        # Dirichlet evidential single-pass vacuity calculation
         evidence_vec = torch.nn.functional.softplus(calibrated_out)
         alpha_vec = evidence_vec + 1.0
         total_strength = float(torch.sum(alpha_vec).item())
@@ -381,7 +367,6 @@ async def predict(
 
         spatial_desc = generate_spatial_description(diagnosis)
 
-        # Multimodal clinical data fusion
         patient_bio = {
             "patient_age": patient_age,
             "sex": "Female" if str(request.query_params.get("sex", "")).lower() == "female" else "Male",
@@ -561,10 +546,7 @@ async def screen_async(
     duration: str = Form(default="Not Sure"),
     apply_domain_adaptation: bool = Form(default=True),
 ):
-    """
-    Decoupled asynchronous screening submission.
-    Pushes job to queue and returns HTTP 202 with job_id for WebSocket or polling tracking.
-    """
+    """Decoupled asynchronous screening submission."""
     import backend.main as bm
 
     if file.content_type and file.content_type.lower() not in ALLOWED_MIMES | {"application/octet-stream"}:
@@ -587,7 +569,6 @@ async def screen_async(
 
     async def _process_pipeline(report_progress: Any):
         try:
-            # Stage 1: Decode & Domain Validation
             await report_progress(15, ScreeningStage.DOMAIN_VALIDATION)
             raw_img = Image.open(io.BytesIO(contents))
             img = strip_image_metadata(raw_img)
@@ -600,11 +581,9 @@ async def screen_async(
                 r_c, g_c, b_c = img.split()
                 img = Image.merge("RGB", (b_c, g_c, r_c))
 
-            # Stage 2: Optical Domain Adaptation
             await report_progress(35, ScreeningStage.DOMAIN_ADAPTATION)
             img, domain_info = adapt_fundus_domain(img, apply_color_constancy=apply_domain_adaptation)
 
-            # Stage 3: Concurrent Ensemble Forward Pass
             await report_progress(60, ScreeningStage.ENSEMBLE_INFERENCE)
             model_input_img = ben_graham_preprocess(img, target_size=384)
             input_tensor = preprocess(model_input_img).to(DEVICE).unsqueeze(0)
@@ -637,7 +616,6 @@ async def screen_async(
             confidence = float(probs[class_idx].item()) * 100
             probs_dict = {MONOLITHIC_CLASSES[i]: float(probs[i].item()) for i in range(len(MONOLITHIC_CLASSES))}
 
-            # Stage 4: Grad-CAM Explainability
             await report_progress(80, ScreeningStage.EXPLAINABILITY_GRADCAM)
             heatmap_base64, _ = generate_gradcam(
                 model=monolithic_model,
@@ -646,7 +624,6 @@ async def screen_async(
                 model_input_image=model_input_img,
             )
 
-            # Stage 5: Conformal Triage & Clinical Coding
             await report_progress(95, ScreeningStage.CALIBRATION_TRIAGE)
             probs_np = probs.cpu().numpy()
             conformal_set, conformal_probs, stratum, guarantee = CONFORMAL_CALIBRATOR.predict_set(probs_np, diagnosis)

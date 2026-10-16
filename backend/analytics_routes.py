@@ -1,30 +1,22 @@
-"""
-Tenant Analytics & Observability API Routes.
-
-Exposes endpoints for tenant KPI dashboards, time-series trends,
-anomaly detection alerts (with ad-tech engineering parallels),
-cross-tenant admin benchmarking, and automated reporting.
-"""
+"""Tenant Analytics & Observability API Routes."""
 
 from __future__ import annotations
 
-import datetime
-from datetime import date, datetime as dt, timedelta, timezone
-import json
 import uuid
-from typing import Any, Dict, List, Optional
+from datetime import datetime as dt
+from datetime import timedelta, timezone
+from typing import Dict, List
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from .analytics import TenantDailyMetric, compute_daily_metrics
 from .auth import get_current_user
-from .db import ScanResult, Tenant, User, get_db
+from .db import Tenant, User, get_db
 from .logging_config import get_logger
-from .screening_anomaly_detector import ScreeningAnomaly, ScreeningAnomalyDetector
-from .tenancy import apply_tenant_filter, get_current_tenant_id
+from .screening_anomaly_detector import ScreeningAnomalyDetector
+from .tenancy import get_current_tenant_id
 
 logger = get_logger("analytics_routes")
 
@@ -32,17 +24,17 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 detector = ScreeningAnomalyDetector()
 
 COLOR_PALETTE = {
-    "Normal": "#10B981",  # Emerald
+    "Normal": "#10B981",
     "Healthy Fundus": "#10B981",
-    "Diabetic Retinopathy": "#EF4444",  # Red
+    "Diabetic Retinopathy": "#EF4444",
     "DR": "#EF4444",
-    "Glaucoma": "#6366F1",  # Indigo
-    "Cataract": "#F59E0B",  # Amber
-    "Age-Related Macular Degeneration": "#06B6D4",  # Cyan
+    "Glaucoma": "#6366F1",
+    "Cataract": "#F59E0B",
+    "Age-Related Macular Degeneration": "#06B6D4",
     "AMD": "#06B6D4",
-    "Hypertensive Retinopathy": "#EC4899",  # Pink
-    "Retinal Vein Occlusion": "#8B5CF6",  # Violet
-    "Other / Unclassified": "#64748B",  # Slate
+    "Hypertensive Retinopathy": "#EC4899",
+    "Retinal Vein Occlusion": "#8B5CF6",
+    "Other / Unclassified": "#64748B",
 }
 
 
@@ -78,21 +70,12 @@ def _get_metrics_for_period(
 async def get_tenant_dashboard(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Returns tenant-specific KPI summary:
-    - Total screenings (today, 7d, 30d)
-    - Screening trend (direction, percentage)
-    - Average confidence score
-    - Average inference latency
-    - Diagnosis distribution breakdown
-    - Active anomalies with ad-tech parallels
-    """
+    """Returns tenant-specific KPI summary:"""
     metrics_30d = _get_metrics_for_period(db, tenant_id, days=30)
-    
-    # If no pre-aggregated metrics exist, try on-demand aggregation for today
+
     if not metrics_30d:
         today_date = dt.now(timezone.utc).date()
         try:
@@ -106,7 +89,6 @@ async def get_tenant_dashboard(
     today_metric = next((m for m in reversed(metrics_30d) if m.date == today_date), None)
     today_screenings = today_metric.total_screenings if today_metric else (metrics_30d[-1].total_screenings if metrics_30d else 0)
 
-    # 7-day and 30-day totals
     last_7d_metrics = metrics_30d[-7:] if len(metrics_30d) >= 7 else metrics_30d
     prev_7d_metrics = metrics_30d[-14:-7] if len(metrics_30d) >= 14 else []
 
@@ -114,7 +96,6 @@ async def get_tenant_dashboard(
     total_30d = sum(m.total_screenings for m in metrics_30d)
     total_patients_30d = sum(m.total_patients for m in metrics_30d)
 
-    # Trend calculation
     prev_7d_sum = sum(m.total_screenings for m in prev_7d_metrics)
     if prev_7d_sum > 0:
         pct_change = ((total_7d - prev_7d_sum) / prev_7d_sum) * 100.0
@@ -128,12 +109,10 @@ async def get_tenant_dashboard(
     else:
         trend_direction = "stable"
 
-    # Averages
     if metrics_30d:
         weighted_conf_sum = sum(m.avg_confidence * max(1, m.total_screenings) for m in metrics_30d)
         total_weight = sum(max(1, m.total_screenings) for m in metrics_30d)
         avg_confidence = weighted_conf_sum / max(1, total_weight)
-        # Normalize to percentage scale (e.g., 94.2)
         if avg_confidence <= 1.0:
             avg_confidence *= 100.0
 
@@ -144,7 +123,6 @@ async def get_tenant_dashboard(
         avg_inference_time = 85.0
         high_risk_total = 0
 
-    # Diagnosis distribution aggregation
     diag_counts: Dict[str, int] = {}
     for m in metrics_30d:
         for k, v in (m.diagnoses_by_class or {}).items():
@@ -160,7 +138,6 @@ async def get_tenant_dashboard(
             "color": COLOR_PALETTE.get(k, "#64748B"),
         })
 
-    # Run anomaly detection
     anomalies = detector.analyze_tenant_metrics(tenant_id, metrics_30d)
 
     return {
@@ -198,14 +175,10 @@ async def get_tenant_trends(
     metric: str = Query("screenings", pattern="^(screenings|confidence|inference_time|high_risk_count)$"),
     period: str = Query("30d", pattern="^(7d|30d|90d)$"),
     tenant_id: str = Depends(get_current_tenant_id),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Returns time-series data for charting:
-    - Supports metrics: screenings, confidence, inference_time, high_risk_count
-    - Supports periods: 7d, 30d, 90d
-    """
+    """Returns time-series data for charting:"""
     days = 7 if period == "7d" else (90 if period == "90d" else 30)
     metrics = _get_metrics_for_period(db, tenant_id, days=days)
 
@@ -225,12 +198,10 @@ async def get_tenant_trends(
             val = 0.0
 
         values_so_far.append(val)
-        
-        # 7-day rolling baseline for trendline
+
         window = values_so_far[-7:]
         baseline = float(sum(window) / len(window))
 
-        # Check if point is an anomaly day
         is_anomaly = False
         anomaly_reason = None
 
@@ -274,12 +245,10 @@ async def get_tenant_trends(
 async def get_tenant_anomalies(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Returns all active anomalies for current tenant with ad-tech parallel descriptions.
-    """
+    """Returns all active anomalies for current tenant with ad-tech parallel descriptions."""
     metrics = _get_metrics_for_period(db, tenant_id, days=30)
     anomalies = detector.analyze_tenant_metrics(tenant_id, metrics)
 
@@ -294,13 +263,10 @@ async def get_tenant_anomalies(
 async def get_cross_tenant_comparison(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Cross-tenant comparison metrics (Admin Only).
-    Useful for platform-wide health monitoring and multi-tenant performance comparisons.
-    """
+    """Cross-tenant comparison metrics (Admin Only)."""
     user_role = getattr(current_user, "role", None)
     if user_role not in ("admin", "platform_admin", "superadmin"):
         raise HTTPException(
@@ -308,7 +274,6 @@ async def get_cross_tenant_comparison(
             detail="Admin role required for cross-tenant comparison.",
         )
 
-    # Fetch distinct tenants from TenantDailyMetric
     distinct_tenant_ids = [
         r[0] for r in db.query(TenantDailyMetric.tenant_id).distinct().all()
     ]
@@ -338,7 +303,6 @@ async def get_cross_tenant_comparison(
 
         anomalies = detector.analyze_tenant_metrics(t_id, t_metrics)
 
-        # Anonymized label for privacy
         tenant_obj = db.query(Tenant).filter(Tenant.id == t_id).first()
         label = tenant_obj.name if tenant_obj else f"Clinic Tenant #{idx}"
 
@@ -376,13 +340,10 @@ async def generate_analytics_report(
     payload: ReportRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Generate an executive clinical analytics report (JSON or downloadable structure).
-    Includes trends, anomalies, recommendations, and ad-tech operational mappings.
-    """
+    """Generate an executive clinical analytics report (JSON or downloadable structure)."""
     days = 7 if payload.period == "7d" else (90 if payload.period == "90d" else 30)
     metrics = _get_metrics_for_period(db, tenant_id, days=days)
     anomalies = detector.analyze_tenant_metrics(tenant_id, metrics)

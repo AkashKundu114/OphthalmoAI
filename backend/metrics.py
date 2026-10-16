@@ -1,20 +1,14 @@
-"""
-Prometheus Metrics Engine and Telemetry Exporter.
-
-Tracks inference latencies, request throughput, GPU allocations, and domain shift
-events in Prometheus exposition format (text/plain; version=0.0.4).
-"""
+"""Prometheus Metrics Engine and Telemetry Exporter."""
 
 from __future__ import annotations
 
 import collections
 import math
-import os
 import re
 import threading
-from typing import Deque, Dict, List, Optional, Tuple
-import numpy as np
+from typing import Deque, Dict, List, Tuple
 
+import numpy as np
 
 MAX_RING_BUFFER_SAMPLES = 1000
 _LABEL_SANITIZE_PATTERN = re.compile(r"[^a-zA-Z0-9_\-]")
@@ -27,16 +21,12 @@ def _sanitize_metric_label(label: str) -> str:
 
 
 class PrometheusMetricsCollector:
-    """
-    Thread-safe Prometheus telemetry collector utilizing bounded ring buffers
-    to guarantee fixed memory bounds and prevent leakage.
-    """
+    """Thread-safe Prometheus telemetry collector utilizing bounded ring buffers"""
 
     def __init__(self, max_samples: int = MAX_RING_BUFFER_SAMPLES):
         self._lock = threading.Lock()
         self._max_samples = max(10, max_samples)
 
-        # Counters: (model, status) -> count
         self._inference_requests: Dict[Tuple[str, str], int] = {
             ("resnet50_fp32", "success"): 1420,
             ("resnet50_onnx", "success"): 2890,
@@ -44,7 +34,6 @@ class PrometheusMetricsCollector:
             ("resnet50_onnx", "error"): 4,
         }
 
-        # Bounded ring buffers for latencies: model -> deque(maxlen=max_samples)
         self._inference_durations: Dict[str, Deque[float]] = {
             "resnet50_fp32": collections.deque(
                 [0.045, 0.052, 0.048, 0.051, 0.063, 0.047, 0.049],
@@ -56,7 +45,6 @@ class PrometheusMetricsCollector:
             ),
         }
 
-        # Counters for optical domain shifts
         self._domain_shifts: Dict[str, int] = {
             "reinhard_corrected": 184,
             "out_of_distribution": 19,
@@ -65,10 +53,7 @@ class PrometheusMetricsCollector:
         self._active_tenants: int = 1
 
     def record_inference(self, model: str, duration_s: float, success: bool = True) -> None:
-        """
-        Records latency and completion status for an inference request.
-        Safeguards against negative or non-finite duration measurements.
-        """
+        """Records latency and completion status for an inference request."""
         clean_model = _sanitize_metric_label(model)
         status = "success" if success else "error"
 
@@ -107,10 +92,7 @@ class PrometheusMetricsCollector:
         return 1024 * 1024 * 480
 
     def generate_prometheus_text(self) -> str:
-        """
-        Renders telemetry metrics in Prometheus exposition format.
-        Gracefully handles zero-request states without NaN/Inf outputs.
-        """
+        """Renders telemetry metrics in Prometheus exposition format."""
         with self._lock:
             requests_snapshot = dict(self._inference_requests)
             durations_snapshot = {k: list(v) for k, v in self._inference_durations.items()}
@@ -168,5 +150,4 @@ class PrometheusMetricsCollector:
         return "\n".join(lines) + "\n"
 
 
-# Global singleton instance
 metrics_collector = PrometheusMetricsCollector()

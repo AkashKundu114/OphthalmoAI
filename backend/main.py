@@ -1,11 +1,4 @@
-"""
-OphthalmoAI Clinical Screening API & Diagnostic Engine.
-
-Entrypoint for the OphthalmoAI FastAPI service:
-- Manages application lifespan, database connection, and model loading
-- Registers security middleware (CORS, Request ID, Content-Security-Policy headers)
-- Mounts modular routers for screening, clinical workflows, tele-ophthalmology, and system telemetry
-"""
+"""OphthalmoAI Clinical Screening API & Diagnostic Engine."""
 
 from __future__ import annotations
 
@@ -13,7 +6,8 @@ import gc
 import os
 import warnings
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Dict
+
 import torch
 import torch.nn as nn
 import uvicorn
@@ -25,15 +19,16 @@ from fastapi.responses import JSONResponse
 from backend.analytics_routes import router as analytics_router
 from backend.auth import JWT_SECRET_KEY
 from backend.config import (
+    _ENV,
+    _IS_PROD,
     DEVICE,
     FORCE_CPU,
     MODELS_DIR,
     MONOLITHIC_CLASSES,
-    _ENV,
-    _IS_PROD,
 )
 from backend.db import create_tables
 from backend.logging_config import configure_logging, get_logger
+from backend.onnx_inference import LatencyBenchmarkSuite, get_cached_benchmark_results
 from backend.routes.auth_routes import router as auth_router
 from backend.routes.clinical import router as clinical_router
 from backend.routes.screening import router as screening_router
@@ -57,7 +52,6 @@ from backend.services.inference_service import (
     analyze_symptoms_structured,
     get_inference_semaphore,
 )
-from backend.onnx_inference import LatencyBenchmarkSuite, get_cached_benchmark_results
 from backend.services.model_loader import (
     build_convnext_small,
     build_densenet201,
@@ -67,17 +61,14 @@ from backend.services.model_loader import (
 )
 from backend.validators import validate_ollama_url_from_env
 
-# Configure structured JSON/Console logging
 configure_logging(json_output=os.getenv("LOG_FORMAT", "json").lower() == "json")
 logger = get_logger("ophthalmoai.main")
 
-# Module-level model state (re-exported and accessible by routers and tests)
-MONOLITHIC_MODEL: Optional[nn.Module] = None
+MONOLITHIC_MODEL: nn.Module | None = None
 ENSEMBLE_MODELS: Dict[str, nn.Module] = {}
-ROUTER_MODEL: Optional[nn.Module] = None
-SPECIALIST_MODELS: Optional[dict] = None
+ROUTER_MODEL: nn.Module | None = None
+SPECIALIST_MODELS: dict | None = None
 
-# SlowAPI rate limiter setup if installed
 try:
     from slowapi import Limiter, _rate_limit_exceeded_handler
     from slowapi.errors import RateLimitExceeded
@@ -90,13 +81,7 @@ except ImportError:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Application lifecycle manager:
-    1. Validates cryptographic secret keys and external service URLs
-    2. Initializes SQLite/PostgreSQL schema tables
-    3. Loads primary monolithic model and calibrated tri-backbone ensemble
-    4. Handles graceful cleanup on shutdown
-    """
+    """Application lifecycle manager:"""
     global MONOLITHIC_MODEL, ENSEMBLE_MODELS
 
     logger.info("startup.begin", device=str(DEVICE), environment=_ENV)
@@ -120,7 +105,6 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.error("startup.db_failed", error=str(exc))
 
-    # Load neural models via dedicated model loader service
     loaded_mono, loaded_ens = load_all_models(models_dir=MODELS_DIR, device=DEVICE)
     MONOLITHIC_MODEL = loaded_mono
     ENSEMBLE_MODELS = loaded_ens
@@ -133,11 +117,10 @@ async def lifespan(app: FastAPI):
         torch.cuda.empty_cache()
 
 
-# Create FastAPI application instance
 app = FastAPI(
     lifespan=lifespan,
     title="OphthalmoAI API",
-    version="2.1.0",
+    version="0.1.0-alpha",
     docs_url=None if _IS_PROD else "/docs",
     redoc_url=None if _IS_PROD else "/redoc",
 )
@@ -162,7 +145,6 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Middlewares
 app.add_middleware(SecurityHeadersMiddleware, is_production=_IS_PROD)
 app.add_middleware(RequestIDMiddleware)
 
@@ -202,7 +184,6 @@ if SLOWAPI_AVAILABLE:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Include Modular Routers
 app.include_router(admin_router)
 app.include_router(analytics_router)
 app.include_router(screening_router)
@@ -211,9 +192,6 @@ app.include_router(telehealth_router)
 app.include_router(auth_router)
 app.include_router(system_router)
 
-# ---------------------------------------------------------------------------
-# Backward Compatibility Re-Exports for Test Suites & External Callers
-# ---------------------------------------------------------------------------
 __all__ = [
     "app",
     "lifespan",

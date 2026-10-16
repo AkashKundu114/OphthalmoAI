@@ -1,14 +1,4 @@
-/**
- * Client-Side Edge ML Inference Engine using ONNX Runtime Web (WASM Backend).
- * 
- * Replaces legacy heuristic pixel-average screening with an authentic quantized INT8
- * MobileNetV3-Small neural network (<10MB) executed entirely in the client's browser.
- * 
- * MEDICAL DISCLAIMER: SaMD Decision Support Only.
- * Edge screening results are preliminary and computationally lightweight.
- * Full diagnostic evaluation requires server-side tri-backbone ensemble.
- * This is NOT a diagnosis.
- */
+
 
 import * as ort from 'onnxruntime-web';
 import {
@@ -37,40 +27,28 @@ export const MEDICAL_DISCLAIMER_EDGE =
   'Edge screening - confirm with full pipeline. Warning: Preliminary screening (edge model). ' +
   'Full server-side analysis recommended for clinical decisions. This is not a diagnosis.';
 
-// Singleton session cache and loading state
+
 let inferenceSession = null;
 let sessionLoadingPromise = null;
 
-// Initialize ONNX runtime configuration for optimal browser performance
+
 if (typeof ort !== 'undefined' && ort?.env?.wasm) {
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
 }
 
-/**
- * Checks whether the ONNX edge model session is currently loaded and ready in memory.
- * @returns {boolean}
- */
+
 export function isEdgeModelLoaded() {
   return inferenceSession !== null;
 }
 
-/**
- * Resets the session cache (useful for tests or force reloads).
- */
+
 export function resetEdgeModelSession() {
   inferenceSession = null;
   sessionLoadingPromise = null;
 }
 
-/**
- * Loads the quantized ONNX edge model into memory using ONNX Runtime Web.
- * Caches the active InferenceSession across multiple inference calls.
- * 
- * @param {string | ArrayBuffer | Uint8Array} [modelSource=EDGE_MODEL_PATH]
- * @param {Object} [options={}]
- * @returns {Promise<ort.InferenceSession>}
- */
+
 export async function loadEdgeModel(modelSource = EDGE_MODEL_PATH, options = {}) {
   if (inferenceSession) {
     return inferenceSession;
@@ -107,18 +85,7 @@ export async function loadEdgeModel(modelSource = EDGE_MODEL_PATH, options = {})
   return sessionLoadingPromise;
 }
 
-/**
- * In-browser Ben Graham retinal preprocessing matching the server-side pipeline:
- * 1. Aspect-ratio-preserved aperture crop with symmetric square padding
- * 2. High-dimensional resize to 224x224
- * 3. Luminance-isolated contrast normalization (preserves diagnostic chrominance)
- * 4. Anti-aliased circular aperture boundary masking
- * 5. Standard ImageNet [mean, std] tensor normalization in NCHW layout
- * 
- * @param {ImageData | HTMLImageElement | File | Blob | HTMLCanvasElement} sourceImage 
- * @param {number} [targetSize=EDGE_INPUT_SIZE]
- * @returns {Promise<{ tensor: ort.Tensor, canvas: HTMLCanvasElement, stats: Object }>}
- */
+
 export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPUT_SIZE) {
   let imgElement = null;
   let rawWidth = 0;
@@ -148,7 +115,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
     throw new Error('Invalid image dimensions (zero width or height).');
   }
 
-  // Step 1: Scan for retinal aperture bounding box (rejecting black border padding)
+
   const scanCanvas = document.createElement('canvas');
   const scanDim = 128;
   scanCanvas.width = scanDim;
@@ -185,7 +152,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
     }
   }
 
-  // Calculate actual source crop coordinates
+
   let srcX = 0, srcY = 0, srcW = rawWidth, srcH = rawHeight;
   if (fgCount > 100 && maxX > minX && maxY > minY) {
     srcX = Math.floor((minX / scanDim) * rawWidth);
@@ -194,7 +161,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
     srcH = Math.ceil(((maxY - minY) / scanDim) * rawHeight);
   }
 
-  // Step 2: Symmetric aspect-ratio-preserved square padding to targetSize
+
   const targetCanvas = document.createElement('canvas');
   targetCanvas.width = targetSize;
   targetCanvas.height = targetSize;
@@ -217,7 +184,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
     targetCtx.drawImage(imgElement, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
   }
 
-  // Step 3: Anti-aliased circular aperture mask & central luminance contrast enhancement
+
   const imgData = targetCtx.getImageData(0, 0, targetSize, targetSize);
   const pixels = imgData.data;
   const numPixels = targetSize * targetSize;
@@ -259,8 +226,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
   const meanG = fgPixels > 0 ? totalG / fgPixels : 0;
   const meanB = fgPixels > 0 ? totalB / fgPixels : 0;
 
-  // Step 4: Normalization into NCHW Float32Array
-  // Standard PyTorch ImageNet statistics: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+
   const MEAN = [0.485, 0.456, 0.406];
   const STD = [0.229, 0.224, 0.225];
 
@@ -293,12 +259,7 @@ export async function preprocessRetinalImage(sourceImage, targetSize = EDGE_INPU
   };
 }
 
-/**
- * Computes numerically stable Softmax over output logits.
- * @param {number[]} logits 
- * @param {number} [temperature=1.0]
- * @returns {number[]} Probabilities summing to ~1.0
- */
+
 export function softmax(logits, temperature = 1.0) {
   if (!logits || logits.length === 0) return [];
   const safeTemp = Math.max(0.01, temperature);
@@ -308,13 +269,7 @@ export function softmax(logits, temperature = 1.0) {
   return exps.map((val) => (sumExp > 0 ? val / sumExp : 1.0 / logits.length));
 }
 
-/**
- * Runs authentic client-side ML edge inference using ONNX Runtime Web.
- * Automatically falls back to legacy heuristic if ONNX runtime is unavailable.
- * 
- * @param {ImageData | HTMLImageElement | File | Blob} sourceImage 
- * @returns {Promise<Object>} EdgeResult
- */
+
 export async function runEdgeInference(sourceImage) {
   const startTime = performance.now();
 
@@ -326,7 +281,7 @@ export async function runEdgeInference(sourceImage) {
     };
   }
 
-  // Attempt ONNX Neural Inference First
+
   let session = null;
   try {
     session = await loadEdgeModel();
@@ -335,7 +290,7 @@ export async function runEdgeInference(sourceImage) {
   }
 
   if (!session) {
-    // Graceful fallback to legacy heuristic
+
     const heuristicResult = await runHeuristicInference(sourceImage);
     return {
       ...heuristicResult,
@@ -350,10 +305,10 @@ export async function runEdgeInference(sourceImage) {
   }
 
   try {
-    // Step 1: Ben Graham Optical Preprocessing
+
     const { tensor, stats } = await preprocessRetinalImage(sourceImage, EDGE_INPUT_SIZE);
 
-    // Step 2: Quality & Optical Guardrails
+
     const { meanRed, meanGreen, meanBlue } = stats;
     if (meanRed < 10 && meanGreen < 10 && meanBlue < 10) {
       return {
@@ -363,7 +318,7 @@ export async function runEdgeInference(sourceImage) {
       };
     }
 
-    // Step 3: Run ONNX WASM Inference
+
     const inputName = session.inputNames?.[0] || 'input';
     const outputName = session.outputNames?.[0] || 'output';
 
@@ -378,7 +333,7 @@ export async function runEdgeInference(sourceImage) {
     const rawLogits = Array.from(outputTensor.data);
     const probs = softmax(rawLogits, 1.0);
 
-    // Step 4: Map predictions and clinical metadata
+
     const probabilities = {};
     const predictions = [];
 

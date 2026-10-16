@@ -1,13 +1,4 @@
-"""
-Cross-Dataset Generalization & Camera Sensor Domain Shift Adaptation.
-
-Provides:
-1. Reinhard Color Constancy Normalization (LAB color space moment transfer)
-   to harmonize illumination variance across different fundus camera manufacturers
-   (Zeiss, Topcon, Canon, smartphone-attached lenses).
-2. Optical Domain Shift Detector that assesses sensor chromatic distribution and
-   emits a confidence score and clinical advisory if camera optics diverge from training baseline.
-"""
+"""Cross-Dataset Generalization & Camera Sensor Domain Shift Adaptation."""
 
 from __future__ import annotations
 
@@ -23,24 +14,17 @@ except ImportError:
     CV2_AVAILABLE = False
 
 
-# Canonical reference moments in LAB color space for high-quality standard retinal fundus
-# Derived empirically from high-resolution gold-standard posterior pole fundus scans
 CANONICAL_LAB_MEANS = np.array([128.5, 142.0, 153.2], dtype=np.float32)
 CANONICAL_LAB_STDS  = np.array([32.4,  11.2,  14.8], dtype=np.float32)
 
 
 def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
-    """
-    Applies Reinhard color constancy normalization in LAB space.
-    Aligns the mean and standard deviation of L, A, and B channels to the canonical
-    retinal target distribution, mitigating inter-camera illumination and white-balance shifts.
-    """
+    """Applies Reinhard color constancy normalization in LAB space."""
     img_np = np.array(image.convert("RGB"))
 
     if CV2_AVAILABLE:
         lab = cv2.cvtColor(img_np, cv2.COLOR_RGB2LAB).astype(np.float32)
     else:
-        # Fallback manual approximate RGB to LAB conversion
         r = img_np[:, :, 0].astype(np.float32)
         g = img_np[:, :, 1].astype(np.float32)
         b = img_np[:, :, 2].astype(np.float32)
@@ -49,12 +33,10 @@ def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
         b_chan = 0.5 * (g - b) + 128.0
         lab = np.stack([l_chan, a_chan, b_chan], axis=-1)
 
-    # Calculate source moments
     src_means = np.mean(lab, axis=(0, 1))
     src_stds = np.std(lab, axis=(0, 1))
     src_stds = np.maximum(src_stds, 1e-4)
 
-    # Transfer moments
     norm_lab = np.zeros_like(lab)
     for c in range(3):
         norm_lab[:, :, c] = (
@@ -66,7 +48,6 @@ def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
     if CV2_AVAILABLE:
         norm_rgb = cv2.cvtColor(norm_lab, cv2.COLOR_LAB2RGB)
     else:
-        # Fallback invert
         l_c = norm_lab[:, :, 0].astype(np.float32)
         a_c = norm_lab[:, :, 1].astype(np.float32) - 128.0
         b_c = norm_lab[:, :, 2].astype(np.float32) - 128.0
@@ -86,13 +67,9 @@ def is_already_ben_graham(img_np: np.ndarray) -> bool:
 
 
 def detect_sensor_domain_shift(image: Image.Image) -> Dict[str, Any]:
-    """
-    Evaluates retinal image chromatic distribution, contrast entropy, and
-    vascular balance to detect camera sensor and illumination domain shifts.
-    """
+    """Evaluates retinal image chromatic distribution, contrast entropy, and"""
     img_np = np.array(image.convert("RGB"))
 
-    # If the image is already Ben Graham preprocessed or normalized, it is already in canonical model space
     if is_already_ben_graham(img_np):
         return {
             "domain_shift_detected": False,
@@ -113,14 +90,9 @@ def detect_sensor_domain_shift(image: Image.Image) -> Dict[str, Any]:
     mean_r, mean_g, mean_b = float(np.mean(r)), float(np.mean(g)), float(np.mean(b))
     std_r, std_g, std_b    = float(np.std(r)), float(np.std(g)), float(np.std(b))
 
-    # Standard mydriatic/non-mydriatic fundus cameras have high R/G dominance due to choroid
     rg_ratio = (mean_r + 1.0) / (mean_g + 1.0)
     rb_ratio = (mean_r + 1.0) / (mean_b + 1.0)
 
-    # Domain shift criteria:
-    # 1. rb_ratio < 1.15 indicates extreme blue tint (smartphone lens adapter or cold LED sensor)
-    # 2. rg_ratio < 0.95 indicates inverted/atypical chromatic spectrum
-    # 3. std_g < 10.0 indicates severe over/underexposure flattening vascular contrast
     is_shift = False
     shift_reasons = []
 
@@ -134,7 +106,6 @@ def detect_sensor_domain_shift(image: Image.Image) -> Dict[str, Any]:
         is_shift = True
         shift_reasons.append("Severe contrast compression; inadequate illumination dynamic range.")
 
-    # Calculate domain confidence: 1.0 is canonical Zeiss/Topcon bench, drops if shift detected
     penalty = len(shift_reasons) * 0.28
     sensor_domain_confidence = max(0.20, min(1.0, 0.96 - penalty))
 
@@ -161,11 +132,7 @@ def adapt_fundus_domain(
     image: Image.Image,
     apply_color_constancy: bool = True,
 ) -> Tuple[Image.Image, Dict[str, Any]]:
-    """
-    End-to-end domain adaptation pipeline:
-    Analyzes optical sensor properties, detects domain shift, and optionally applies
-    Reinhard color constancy to stabilize feature extractor activations.
-    """
+    """End-to-end domain adaptation pipeline:"""
     domain_eval = detect_sensor_domain_shift(image)
 
     if apply_color_constancy and domain_eval["domain_shift_detected"]:

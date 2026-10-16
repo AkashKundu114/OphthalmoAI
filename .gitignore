@@ -112,6 +112,8 @@ models/*
 *.pt
 *.onnx
 !frontend/public/models/*.onnx
+!tests/fixtures/*.pth
+!tests/fixtures/*.onnx
 *.keras
 *.h5
 *.tflite

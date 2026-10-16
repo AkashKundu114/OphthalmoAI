@@ -5,7 +5,7 @@ import os
 import re
 import socket
 import urllib.parse
-from typing import Optional, Tuple
+from typing import Tuple
 
 from .logging_config import get_logger
 
@@ -170,7 +170,6 @@ _EMERGENCY_PATTERNS = [
     r"punctured\s+(?:my\s+)?eye",
     r"unbearable\s+(?:eye\s+)?pain\s+with\s+vomiting",
     r"foreign\s+object\s+stuck\s+in\s+eye",
-    # Indic / Hinglish acute emergency triggers
     r"(?:achanak|sudden)\s+(?:andha|dikhna\s+band|vision\s+loss)",
     r"(?:aankh|ankh)\s+me\s+(?:acid|tezaab|chemical|chot)",
     r"अचानक\s+(?:दिखना\s+बंद|अंधापन)",
@@ -179,8 +178,8 @@ _EMERGENCY_PATTERNS = [
 _EMERGENCY_RE = re.compile("|".join(_EMERGENCY_PATTERNS), re.IGNORECASE)
 
 
-def detect_medical_emergency(text: str) -> Tuple[bool, Optional[str]]:
-    
+def detect_medical_emergency(text: str) -> Tuple[bool, str | None]:
+
     if not text or not isinstance(text, str):
         return False, None
     match = _EMERGENCY_RE.search(text)
@@ -258,7 +257,7 @@ def sanitise_chat_message(message: str) -> Tuple[bool, str]:
 ALLOWED_ROLES = frozenset({"patient", "technician", "clinician", "admin"})
 
 
-def validate_role_claim(role: Optional[str]) -> Tuple[bool, str]:
+def validate_role_claim(role: str | None) -> Tuple[bool, str]:
     if not role or role not in ALLOWED_ROLES:
         return False, f"Unknown or missing role claim: '{role}'"
     return True, role

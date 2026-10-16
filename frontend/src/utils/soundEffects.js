@@ -1,5 +1,4 @@
-// Web Audio API procedural sound synthesizer inspired by uisfx.com
-// Zero external audio files or network requests required.
+
 
 let audioCtx = null
 
@@ -31,9 +30,7 @@ export function setSoundEnabled(enabled) {
   }
 }
 
-/**
- * Tactile micro-click sound (inspired by evilbuttons and tactile UI)
- */
+
 export function playClickSound() {
   if (!isSoundEnabled()) return
   try {
@@ -57,13 +54,11 @@ export function playClickSound() {
     osc.start(now)
     osc.stop(now + 0.04)
   } catch {
-    // Ignore audio errors gracefully
+
   }
 }
 
-/**
- * Medical laser / radar sweep sound when scanning initiates
- */
+
 export function playScanStartSound() {
   if (!isSoundEnabled()) return
   try {
@@ -88,20 +83,18 @@ export function playScanStartSound() {
     osc.start(now)
     osc.stop(now + 0.32)
   } catch {
-    // Ignore audio errors gracefully
+
   }
 }
 
-/**
- * Crystal medical diagnostic success chime (C5 -> E5 -> G5 harmonic triad)
- */
+
 export function playSuccessChime() {
   if (!isSoundEnabled()) return
   try {
     const ctx = getAudioContext()
     if (!ctx) return
     const now = ctx.currentTime
-    const notes = [523.25, 659.25, 783.99] // C5, E5, G5
+    const notes = [523.25, 659.25, 783.99]
 
     notes.forEach((freq, index) => {
       const startTime = now + index * 0.07
@@ -121,13 +114,11 @@ export function playSuccessChime() {
       osc.stop(startTime + 0.35)
     })
   } catch {
-    // Ignore audio errors gracefully
+
   }
 }
 
-/**
- * Micro toggle pop
- */
+
 export function playToggleSound() {
   if (!isSoundEnabled()) return
   try {
@@ -151,6 +142,6 @@ export function playToggleSound() {
     osc.start(now)
     osc.stop(now + 0.05)
   } catch {
-    // Ignore audio errors gracefully
+
   }
 }

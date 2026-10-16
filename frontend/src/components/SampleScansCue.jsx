@@ -53,9 +53,7 @@ const FUNDUS_SAMPLES = [
   },
 ]
 
-/**
- * Interactive clinical fundus reference loader and photography quality guide.
- */
+
 export default function SampleScansCue({ onSelectSample }) {
   const handleSelect = async (sample) => {
     playClickSound()
@@ -81,7 +79,7 @@ export default function SampleScansCue({ onSelectSample }) {
 
   return (
     <div className="space-y-4">
-      {/* Quick Test Fundus Samples */}
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
@@ -123,7 +121,7 @@ export default function SampleScansCue({ onSelectSample }) {
         </div>
       </div>
 
-      {/* Visual Quality Cue Cards */}
+
       <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
         <div className="flex items-center gap-1.5 font-bold text-slate-800 mb-2">
           <Info className="w-3.5 h-3.5 text-cyan-600" />

@@ -1,22 +1,15 @@
-"""
-Post-Hoc Probability Calibration via Temperature Scaling (Guo et al.).
-
-Scales logits by a learned or configured temperature parameter T > 0 to align
-predicted model softmax confidences with true empirical accuracy (ECE optimization).
-Includes safeguards against numerical overflow, zero division, and non-positive temperatures.
-"""
+"""Post-Hoc Probability Calibration via Temperature Scaling (Guo et al.)."""
 
 from __future__ import annotations
 
 import json
 import math
 import os
-from typing import Dict, Optional, Union
+from typing import Any, Dict
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 DEFAULT_TEMPERATURE: float = 1.0
 MIN_TEMPERATURE: float = 1e-3
@@ -24,11 +17,8 @@ MAX_TEMPERATURE: float = 50.0
 EPSILON: float = 1e-7
 
 
-def sanitize_temperature(temperature: Optional[Union[float, int]]) -> float:
-    """
-    Sanitizes temperature scalar, ensuring strictly positive bounded float T in (0, MAX_TEMPERATURE].
-    Falls back to DEFAULT_TEMPERATURE if input is null, non-numeric, or non-finite.
-    """
+def sanitize_temperature(temperature: float | int | None) -> float:
+    """Sanitizes temperature scalar, ensuring strictly positive bounded float T in (0, MAX_TEMPERATURE]."""
     if temperature is None:
         return DEFAULT_TEMPERATURE
     try:
@@ -41,12 +31,9 @@ def sanitize_temperature(temperature: Optional[Union[float, int]]) -> float:
 
 
 class TemperatureScaler(nn.Module):
-    """
-    Learns a scalar temperature parameter on validation holdout logits
-    using Negative Log-Likelihood (NLL) minimization via L-BFGS.
-    """
+    """Learns a scalar temperature parameter on validation holdout logits"""
 
-    def __init__(self, model: Optional[nn.Module] = None):
+    def __init__(self, model: nn.Module | None = None):
         super().__init__()
         self.model = model
         self.temperature = nn.Parameter(torch.ones(1) * 1.5)
@@ -68,15 +55,12 @@ class TemperatureScaler(nn.Module):
 
     def fit(
         self,
-        val_loader_or_logits: Union[torch.Tensor, Any],
-        device_or_labels: Optional[Any] = None,
+        val_loader_or_logits: torch.Tensor | Any,
+        device_or_labels: Any | None = None,
         max_iter: int = 50,
         lr: float = 0.01,
     ) -> float:
-        """
-        Fits temperature parameter to validation holdout set.
-        Guarantees final temperature remains strictly within [MIN_TEMPERATURE, MAX_TEMPERATURE].
-        """
+        """Fits temperature parameter to validation holdout set."""
         if isinstance(val_loader_or_logits, torch.Tensor):
             logits = val_loader_or_logits
             labels = device_or_labels
@@ -134,29 +118,20 @@ class TemperatureScaler(nn.Module):
         return float(self.temperature.item())
 
 
-def apply_temperature(logits: torch.Tensor, temperature: Optional[float]) -> torch.Tensor:
-    """
-    Applies temperature scaling to raw logits with strictly enforced T > 0 bounds
-    and numerical safeguards against division by zero.
-    """
+def apply_temperature(logits: torch.Tensor, temperature: float | None) -> torch.Tensor:
+    """Applies temperature scaling to raw logits with strictly enforced T > 0 bounds"""
     t_safe = sanitize_temperature(temperature)
     return logits / max(t_safe, EPSILON)
 
 
-def calibrated_softmax(logits: torch.Tensor, temperature: Optional[float], dim: int = -1) -> torch.Tensor:
-    """
-    Computes numerically stable softmax on temperature-scaled logits.
-    Subtracts max before exponentiation to prevent overflow.
-    """
+def calibrated_softmax(logits: torch.Tensor, temperature: float | None, dim: int = -1) -> torch.Tensor:
+    """Computes numerically stable softmax on temperature-scaled logits."""
     scaled = apply_temperature(logits, temperature)
     return F.softmax(scaled, dim=dim)
 
 
 class CalibrationRegistry:
-    """
-    In-memory registry for per-disease / per-model calibration temperatures
-    with persistent JSON backing.
-    """
+    """In-memory registry for per-disease / per-model calibration temperatures"""
 
     def __init__(self, path: str):
         self.path = path
@@ -167,7 +142,7 @@ class CalibrationRegistry:
         """Loads and validates temperature parameters from disk."""
         if os.path.exists(self.path):
             try:
-                with open(self.path, "r", encoding="utf-8") as f:
+                with open(self.path, encoding="utf-8") as f:
                     data = json.load(f)
                 self._temperatures = {
                     k: sanitize_temperature(v)

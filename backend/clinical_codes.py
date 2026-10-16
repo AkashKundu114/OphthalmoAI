@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Dict, List, Optional, TypedDict
+
+from typing import Dict, List, TypedDict
+
 
 class ClinicalCodeEntry(TypedDict):
     icd10: str
@@ -7,7 +9,7 @@ class ClinicalCodeEntry(TypedDict):
     urgency: str
     urgency_rank: int
     referral: str
-    escalation_message: Optional[str]
+    escalation_message: str | None
 
 CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
     "Diabetic Retinopathy": {
@@ -71,7 +73,6 @@ CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
         "referral": "Routine annual dilated retinal screening",
         "escalation_message": None
     },
-    # Secondary and historical ocular conditions for comprehensive clinical triage
     "Uveitis": {
         "icd10": "H20.9",
         "snomed_ct": "128473001",
@@ -109,7 +110,6 @@ CLINICAL_CODES: Dict[str, ClinicalCodeEntry] = {
 }
 
 def get_clinical_code(diagnosis: str) -> ClinicalCodeEntry:
-    # Normalize diagnosis strings
     diag_clean = diagnosis.strip()
     for key in CLINICAL_CODES:
         if key.lower() == diag_clean.lower():

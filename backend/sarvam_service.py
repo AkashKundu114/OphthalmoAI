@@ -1,21 +1,15 @@
-"""
-Sarvam AI Service Module for OphthalmoAI.
+"""Sarvam AI Service Module for OphthalmoAI."""
 
-Provides Indic speech-to-text (Saaras:v1), translation (Mayura:v1),
-and text-to-speech (Bulbul:v1) capabilities tailored for Indian clinics,
-Primary Health Centres (PHCs), and visually impaired patient accessibility.
-"""
-
-import os
 import logging
-from typing import Optional, Tuple
+import os
+from typing import Tuple
+
 import httpx
 
 logger = logging.getLogger("ophthalmoai.sarvam")
 
 SARVAM_API_BASE = "https://api.sarvam.ai"
 
-# Supported Indic languages mapping
 SUPPORTED_INDIC_LANGUAGES = {
     "en-IN": {"name": "English (India)", "native": "English"},
     "hi-IN": {"name": "Hindi", "native": "हिन्दी"},
@@ -50,12 +44,7 @@ async def transcribe_speech(
     language_code: str = "hi-IN",
     timeout: float = 30.0,
 ) -> Tuple[bool, str, str]:
-    """
-    Transcribe audio bytes to text using Sarvam Saaras STT API.
-
-    Returns:
-        (success: bool, transcript_or_error: str, detected_language: str)
-    """
+    """Transcribe audio bytes to text using Sarvam Saaras STT API."""
     api_key = get_sarvam_api_key()
     if not api_key:
         return False, "Sarvam API key not configured.", language_code
@@ -101,16 +90,10 @@ async def translate_text(
     mode: str = "formal",
     timeout: float = 20.0,
 ) -> Tuple[bool, str]:
-    """
-    Translate text between Indic languages and English using Sarvam Mayura Translate API.
-
-    Returns:
-        (success: bool, translated_text: str)
-    """
+    """Translate text between Indic languages and English using Sarvam Mayura Translate API."""
     if not text or not text.strip():
         return True, ""
 
-    # No translation needed if source and target match or both are English
     if source_lang == target_lang or (source_lang.startswith("en") and target_lang.startswith("en")):
         return True, text
 
@@ -158,13 +141,8 @@ async def text_to_speech(
     target_lang: str = "hi-IN",
     speaker: str = DEFAULT_SPEAKER,
     timeout: float = 30.0,
-) -> Tuple[bool, Optional[str], Optional[str]]:
-    """
-    Convert text to natural Indic speech using Sarvam Bulbul TTS API.
-
-    Returns:
-        (success: bool, base64_audio_wav: Optional[str], error_message: Optional[str])
-    """
+) -> Tuple[bool, str | None, str | None]:
+    """Convert text to natural Indic speech using Sarvam Bulbul TTS API."""
     if not text or not text.strip():
         return False, None, "Empty text for TTS."
 
@@ -177,7 +155,6 @@ async def text_to_speech(
         "api-subscription-key": api_key,
     }
 
-    # Bulbul supports inputs up to ~500 chars per entry. Clean and trim safely.
     clean_text = text.replace("*", "").replace("#", "").replace("`", "").strip()
     if len(clean_text) > 480:
         cut = clean_text[:480].rfind(".")

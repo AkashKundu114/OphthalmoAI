@@ -1,39 +1,23 @@
-"""
-System Health, Telemetry, Benchmarking, Multitenancy & PACS Administration.
-
-Endpoints:
-- GET /: Deployment environment status and chat backend metadata
-- GET /health, GET /api/health: Lightweight liveness probe
-- GET /ready, GET /api/ready: Model readiness probe
-- GET /metrics: Real-time Prometheus exposition telemetry
-- GET /api/v1/benchmarks/inference, POST /api/v1/benchmarks/run: ONNX vs PyTorch latency benchmarks
-- POST /api/v1/cases/similar: Content-Based Medical Image Retrieval (CBMIR)
-- GET /api/v1/audit/fairness: Demographic slice parity and equalized odds audit
-- GET /api/v1/traces/recent: Distributed tracing buffer
-- POST /api/v1/tenants, GET /api/v1/tenants/current: Clinic multi-tenancy onboarding
-- POST /admin/pacs-import: Simulated PACS DICOM ingestion
-- GET /admin/triage-queue: Pending clinician sign-off queue
-- POST /admin/federated/sync: Multi-hospital federated weight aggregation
-- POST /admin/synthetic/generate: Synthetic retinal fundus case generator
-"""
+"""System Health, Telemetry, Benchmarking, Multitenancy & PACS Administration."""
 
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
+
 import numpy as np
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend.auth import get_current_user, require_role
-from backend.config import DEVICE, GEMINI_MODEL, MONOLITHIC_CLASSES, _ENV
+from backend.config import DEVICE, GEMINI_MODEL, MONOLITHIC_CLASSES
 from backend.db import ScanResult, Tenant, User, get_db
 from backend.fairness_audit import get_fairness_audit_report
 from backend.logging_config import get_logger
 from backend.metrics import metrics_collector
 from backend.onnx_inference import LatencyBenchmarkSuite, get_cached_benchmark_results
-from backend.tenancy import apply_tenant_filter, create_new_tenant, ensure_default_tenant, get_current_tenant_id
+from backend.tenancy import create_new_tenant, ensure_default_tenant, get_current_tenant_id
 from backend.tracing import tracer_buffer
 from backend.vector_search import vector_index
 
@@ -42,8 +26,8 @@ router = APIRouter(tags=["System"])
 
 
 class SimilarCasesRequest(BaseModel):
-    probabilities: Optional[Dict[str, float]] = None
-    embedding: Optional[List[float]] = None
+    probabilities: Dict[str, float] | None = None
+    embedding: List[float] | None = None
     top_k: int = 3
 
 
@@ -195,7 +179,7 @@ async def get_current_tenant_info(
 @router.post("/admin/pacs-import")
 def pacs_import_dicom(
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ):
     """Simulates DICOM ingestion from hospital PACS and syncs to EHR."""
     from backend.pacs_middleware import parse_simulated_dicom

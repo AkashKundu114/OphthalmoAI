@@ -34,9 +34,9 @@ step "Preflight checks"
 command -v az     >/dev/null || die "Azure CLI not found. Install: https://aka.ms/InstallAzureCLIDeb"
 command -v docker >/dev/null || die "Docker not found. Install Docker Desktop."
 
-[ -f "models/router.pth" ]              || die "models/router.pth not found. Run train_router.py first."
-[ -f "models/specialist_anterior.pth" ] || die "models/specialist_anterior.pth not found."
-[ -f "models/specialist_surface.pth" ]  || die "models/specialist_surface.pth not found."
+if [ ! -f "models/efficientnet_b4.pth" ]; then
+    warn "models/efficientnet_b4.pth not found. The app will run in fallback / edge mode."
+fi
 
 az account show >/dev/null 2>&1 || die "Not logged in to Azure. Run: az login"
 

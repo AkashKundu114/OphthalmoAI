@@ -1,18 +1,12 @@
-"""
-Retinal Fundus Domain Guardrail and Optical Admissibility Validator.
-
-Validates whether an input image satisfies physiological, chromatic, and morphological
-criteria of an authentic color fundus photograph. Rejects non-retinal imagery, documents,
-synthetic noise, corrupted files, and external photographs.
-"""
+"""Retinal Fundus Domain Guardrail and Optical Admissibility Validator."""
 
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
+
 import numpy as np
 from PIL import Image
-
 
 MIN_DIMENSION_PX = 128
 MAX_ASPECT_RATIO = 3.5
@@ -22,7 +16,7 @@ MIN_SPATIAL_CORRELATION = 0.35
 MIN_ACTIVE_TISSUE_RATIO = 0.12
 
 
-def _validate_image_geometry(image: Any) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+def _validate_image_geometry(image: Any) -> Tuple[bool, str | None, Dict[str, Any]]:
     """Checks basic image geometry, dimensions, and aspect ratio boundaries."""
     if image is None:
         return False, "Input image object is None.", {"failure_stage": "null_input"}
@@ -47,7 +41,7 @@ def _validate_image_geometry(image: Any) -> Tuple[bool, Optional[str], Dict[str,
     return True, None, {"width": w, "height": h, "aspect_ratio": round(aspect_ratio, 2)}
 
 
-def _extract_and_validate_tensor(image: Image.Image) -> Tuple[Optional[np.ndarray], Optional[str], Dict[str, Any]]:
+def _extract_and_validate_tensor(image: Image.Image) -> Tuple[np.ndarray | None, str | None, Dict[str, Any]]:
     """Converts image to RGB numpy array and verifies shape and finite numerical values."""
     try:
         rgb_image = image.convert("RGB")
@@ -76,11 +70,7 @@ def _calculate_luminance(arr: np.ndarray) -> Tuple[np.ndarray, float, float]:
 
 
 def _evaluate_spatial_autocorrelation(lum: np.ndarray) -> float:
-    """
-    Evaluates spatial continuity across adjacent pixels.
-    Natural retinal photography exhibits high neighbor correlation (r > 0.60);
-    pure synthetic noise or static yields near-zero correlation.
-    """
+    """Evaluates spatial continuity across adjacent pixels."""
     try:
         h_left = lum[:, :-1].ravel()
         h_right = lum[:, 1:].ravel()
@@ -109,10 +99,7 @@ def _evaluate_spatial_autocorrelation(lum: np.ndarray) -> float:
 def _analyze_optical_aperture(
     lum: np.ndarray, w: int, h: int
 ) -> Tuple[bool, float, float, np.ndarray, float]:
-    """
-    Identifies characteristic circular aperture masking of retinal fundus cameras.
-    Returns (has_circular_mask, corner_mean, center_mean, active_mask, active_ratio).
-    """
+    """Identifies characteristic circular aperture masking of retinal fundus cameras."""
     corner_w = max(int(w * 0.08), 2)
     corner_h = max(int(h * 0.08), 2)
 
@@ -162,11 +149,8 @@ def _evaluate_chromatic_profile(
     has_circular_mask: bool,
     active_ratio: float,
     vessel_gradient: float,
-) -> Tuple[bool, float, float, float, bool, Optional[str]]:
-    """
-    Evaluates retinal chromophore profile (chorioretinal hemoglobin & melanin reflection).
-    Also detects and handles BGR channel reversals from external video capture frames.
-    """
+) -> Tuple[bool, float, float, float, bool, str | None]:
+    """Evaluates retinal chromophore profile (chorioretinal hemoglobin & melanin reflection)."""
     if r_act.size == 0 or g_act.size == 0 or b_act.size == 0:
         return False, 0.0, 0.0, 0.0, False, "No active tissue pixels detected."
 
@@ -207,24 +191,13 @@ def _evaluate_chromatic_profile(
 
 
 def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dict[str, Any]]:
-    """
-    Analyzes physical, chromatic, and morphological features of an image to verify
-    it is an authentic color fundus photograph of the posterior pole.
-
-    Returns:
-        is_valid (bool): True if verified as an admissible retinal fundus image.
-        confidence (float): Verification confidence score in [0.0, 1.0].
-        reason (str): Clinical and technical explanation.
-        metrics (dict): Extracted physical measurements.
-    """
-    # 1. Structural and geometric validation
+    """Analyzes physical, chromatic, and morphological features of an image to verify"""
     geom_ok, geom_err, geom_meta = _validate_image_geometry(image_pil)
     if not geom_ok:
         return False, 0.0, geom_err or "Geometric validation failed.", geom_meta
 
     w, h = geom_meta["width"], geom_meta["height"]
 
-    # 2. Tensor conversion and numerical checks
     arr, tensor_err, tensor_meta = _extract_and_validate_tensor(image_pil)
     if arr is None:
         return False, 0.0, tensor_err or "Array conversion failed.", tensor_meta
@@ -233,38 +206,32 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
     g = arr[:, :, 1]
     b = arr[:, :, 2]
 
-    # 3. Luminance and variance analysis
     lum, mean_lum, std_lum = _calculate_luminance(arr)
     if std_lum < MIN_LUMINANCE_STD:
         return False, 0.0, "Image has near-zero visual variance (blank or solid color). Not a fundus photograph.", {
             "std_luminance": round(std_lum, 2), "failure_stage": "zero_variance"
         }
 
-    # 4. White document / screenshot rejection
     white_pixel_ratio = float(np.mean(lum > 238))
     if white_pixel_ratio > MAX_WHITE_PIXEL_RATIO:
         return False, 0.0, "Image appears to be a white document, chart, or screenshot. Not a fundus photograph.", {
             "white_ratio": round(white_pixel_ratio, 3), "failure_stage": "document_pattern"
         }
 
-    # 5. Spatial autocorrelation (rejects synthetic static/noise)
     spatial_corr = _evaluate_spatial_autocorrelation(lum)
     if spatial_corr < MIN_SPATIAL_CORRELATION:
         return False, 0.0, "Image contains uncorrelated random noise or static artifacts without anatomical coherence.", {
             "spatial_autocorrelation": round(spatial_corr, 3), "failure_stage": "random_noise"
         }
 
-    # 6. Optical aperture and illuminated field analysis
     has_circular_mask, corner_mean, center_mean, active_mask, active_ratio = _analyze_optical_aperture(lum, w, h)
     if active_ratio < MIN_ACTIVE_TISSUE_RATIO:
         return False, 0.0, "Image is predominantly dark with no identifiable retinal tissue area.", {
             "active_ratio": round(active_ratio, 3), "failure_stage": "dark_field"
         }
 
-    # 7. Vascular gradient
     vessel_gradient = _compute_vessel_gradient(g, active_mask)
 
-    # 8. Retinal chromophore spectroscopy
     chroma_ok, rb_ratio, rg_ratio, channel_variance, is_bgr_inverted, chroma_err = _evaluate_chromatic_profile(
         r[active_mask], g[active_mask], b[active_mask], has_circular_mask, active_ratio, vessel_gradient
     )
@@ -276,7 +243,6 @@ def validate_fundus_image(image_pil: Image.Image) -> Tuple[bool, float, str, Dic
             "failure_stage": "chromatic_profile",
         }
 
-    # Composite score computation
     score = 0.0
     if has_circular_mask:
         score += 0.35

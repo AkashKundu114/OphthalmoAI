@@ -1,6 +1,9 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional
+
+from typing import Any, Dict
+
 from sqlalchemy.orm import Session
+
 from .db import AuditLog
 from .logging_config import get_logger
 
@@ -9,7 +12,7 @@ logger = get_logger("audit")
 
 def log_event(db: Session, action: str, success: bool = True, user_id=None, resource_id=None,
               resource_type=None, ip_address=None, user_agent=None, error_detail=None,
-              metadata: Optional[Dict[str, Any]] = None) -> None:
+              metadata: Dict[str, Any] | None = None) -> None:
     log_fn = logger.info if success else logger.warning
     log_fn("audit.event", action=action, success=success, user_id=user_id, resource_id=resource_id,
            resource_type=resource_type, ip=ip_address, **(metadata or {}))

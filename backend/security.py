@@ -5,7 +5,7 @@ import ipaddress
 import os
 import time
 import uuid
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -109,12 +109,12 @@ MAX_IMAGE_ASPECT_RATIO = 4.0
 
 def validate_magic_bytes(
     data: bytes,
-    declared_mime: Optional[str] = None,
+    declared_mime: str | None = None,
 ) -> Tuple[bool, str]:
     if len(data) < 12:
         return False, "File too small to be a valid image"
 
-    detected: Optional[str] = None
+    detected: str | None = None
 
     for mime, sigs in _MAGIC.items():
         if mime == "image/gif":
@@ -154,6 +154,7 @@ def validate_magic_bytes(
 def validate_image_dimensions(data: bytes) -> Tuple[bool, str]:
     try:
         import io
+
         from PIL import Image
 
         Image.MAX_IMAGE_PIXELS = _MAX_PIXELS
@@ -189,7 +190,7 @@ def validate_image_dimensions(data: bytes) -> Tuple[bool, str]:
         return False, f"Image dimension check failed: {exc}"
 
 
-def sanitize_filename(raw_filename: Optional[str]) -> str:
+def sanitize_filename(raw_filename: str | None) -> str:
     """Sanitizes user-supplied filenames, stripping path traversal and dangerous characters."""
     import re
     if not raw_filename or not isinstance(raw_filename, str):
@@ -215,7 +216,7 @@ def strip_image_metadata(img: Any) -> Any:
     return clean_img
 
 
-def anonymise_ip(ip: Optional[str]) -> Optional[str]:
+def anonymise_ip(ip: str | None) -> str | None:
     if not ip:
         return None
     try:
@@ -230,7 +231,7 @@ def anonymise_ip(ip: Optional[str]) -> Optional[str]:
         return None
 
 
-def safe_error_detail(exc: Exception, *, request_id: Optional[str] = None) -> str:
+def safe_error_detail(exc: Exception, *, request_id: str | None = None) -> str:
     logger.error(
         "unhandled_exception",
         exc_type=type(exc).__name__,
