@@ -64,7 +64,7 @@ def calibrate_model(model_name: str, device: torch.device):
     )
 
     model = build_model(model_name, NUM_CLASSES)
-    model.load_state_dict(torch.load(ckpt_path, map_location=device))
+    model.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
     model.to(device).eval()
 
     all_logits = []

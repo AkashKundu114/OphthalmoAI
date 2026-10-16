@@ -60,21 +60,21 @@ class FundusMetaEnsemble(nn.Module):
         c.classifier[2] = nn.Linear(c.classifier[2].in_features, num_classes)
         ckpt_c = models_dir / "convnext_small.pth"
         if ckpt_c.exists():
-            c.load_state_dict(torch.load(ckpt_c, map_location=device))
+            c.load_state_dict(torch.load(ckpt_c, map_location=device, weights_only=True))
         self.convnext = c.to(device).eval()
 
         d = models.densenet201(weights=None)
         d.classifier = nn.Linear(d.classifier.in_features, num_classes)
         ckpt_d = models_dir / "densenet201.pth"
         if ckpt_d.exists():
-            d.load_state_dict(torch.load(ckpt_d, map_location=device))
+            d.load_state_dict(torch.load(ckpt_d, map_location=device, weights_only=True))
         self.densenet = d.to(device).eval()
 
         e = models.efficientnet_v2_m(weights=None)
         e.classifier[1] = nn.Linear(e.classifier[1].in_features, num_classes)
         ckpt_e = models_dir / "efficientnet_v2_m.pth"
         if ckpt_e.exists():
-            e.load_state_dict(torch.load(ckpt_e, map_location=device))
+            e.load_state_dict(torch.load(ckpt_e, map_location=device, weights_only=True))
         self.efficientnet = e.to(device).eval()
 
         self.meta_classifier = nn.Sequential(
@@ -132,12 +132,13 @@ def main():
     parser.add_argument("--mode", type=str, default="soft_voting", choices=["soft_voting", "meta_classifier"])
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"])
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--manifest", type=str, default="test.csv", help="Test manifest CSV filename (e.g. test.csv, test_patient_clean.csv)")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
     print("=" * 70)
     print("RETINAL ENSEMBLE EVALUATION ON TEST SET")
-    print(f"Device: {device} | Mode: {args.mode}")
+    print(f"Device: {device} | Mode: {args.mode} | Manifest: {args.manifest}")
     print("=" * 70)
 
     # Load calibration temperatures if available
@@ -155,14 +156,15 @@ def main():
         batch_size=args.batch_size,
         img_size=384,
         num_workers=2 if device.type == "cuda" else 0,
-        pin_memory=(device.type == "cuda")
+        pin_memory=(device.type == "cuda"),
+        test_manifest=args.manifest,
     )
 
     ensemble = FundusMetaEnsemble(NUM_CLASSES, models_dir=MODELS_DIR, device=device)
     if args.checkpoint:
         ckpt_path = Path(args.checkpoint)
         if ckpt_path.exists():
-            state = torch.load(ckpt_path, map_location=device)
+            state = torch.load(ckpt_path, map_location=device, weights_only=True)
             # Filter if state_dict has full model or just meta_classifier
             if "meta_classifier.0.weight" in state:
                 ensemble.load_state_dict(state, strict=False)

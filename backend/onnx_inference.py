@@ -376,7 +376,20 @@ class LatencyBenchmarkSuite:
         # 2. ONNX Runtime Engine
         if is_real_onnx and onnx_engine is not None:
             try:
-                dummy_np = np.random.randn(*input_shape).astype(np.float32)
+                ort_shape = list(input_shape)
+                if hasattr(onnx_engine, "session") and onnx_engine.session is not None:
+                    try:
+                        ort_inputs = onnx_engine.session.get_inputs()
+                        if ort_inputs and hasattr(ort_inputs[0], "shape"):
+                            s = ort_inputs[0].shape
+                            if len(s) == 4:
+                                if isinstance(s[2], int) and s[2] > 0:
+                                    ort_shape[2] = s[2]
+                                if isinstance(s[3], int) and s[3] > 0:
+                                    ort_shape[3] = s[3]
+                    except Exception:
+                        pass
+                dummy_np = np.random.randn(*ort_shape).astype(np.float32)
                 ort_metrics = cls.benchmark_numpy_or_torch(
                     onnx_engine.run, dummy_np, warmup_runs=safe_warmup, test_runs=safe_iterations,
                     is_synthetic=False, warning=None

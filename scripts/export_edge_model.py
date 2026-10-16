@@ -30,11 +30,15 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import models, transforms
 
 try:
-    import onnx
     import onnxruntime as ort
     from onnxruntime.quantization import QuantType, quantize_dynamic
 except ImportError:
-    raise ImportError("onnx and onnxruntime are required. Run: uv pip install onnx onnxruntime")
+    raise ImportError("onnxruntime is required. Run: uv pip install onnxruntime")
+
+try:
+    import onnx
+except Exception:
+    onnx = None
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = ROOT_DIR / "models"

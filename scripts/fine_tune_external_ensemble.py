@@ -57,7 +57,7 @@ def build_backbone(arch: str, device: torch.device):
         m = models.convnext_small(weights=None)
         m.classifier[2] = nn.Linear(m.classifier[2].in_features, NUM_CLASSES)
         if ckpt_path.exists():
-            m.load_state_dict(torch.load(ckpt_path, map_location=device))
+            m.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
         # Freeze early stages (0, 1), train stages (2, 3, 4, 5, 6, 7) and classifier
         for param in m.features[:4].parameters():
             param.requires_grad = False
@@ -65,7 +65,7 @@ def build_backbone(arch: str, device: torch.device):
         m = models.densenet201(weights=None)
         m.classifier = nn.Linear(m.classifier.in_features, NUM_CLASSES)
         if ckpt_path.exists():
-            m.load_state_dict(torch.load(ckpt_path, map_location=device))
+            m.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
         # Freeze early dense blocks, fine-tune denseblock4 and norm5 + classifier
         for param in m.features[:8].parameters():
             param.requires_grad = False
@@ -73,7 +73,7 @@ def build_backbone(arch: str, device: torch.device):
         m = models.efficientnet_v2_m(weights=None)
         m.classifier[1] = nn.Linear(m.classifier[1].in_features, NUM_CLASSES)
         if ckpt_path.exists():
-            m.load_state_dict(torch.load(ckpt_path, map_location=device))
+            m.load_state_dict(torch.load(ckpt_path, map_location=device, weights_only=True))
         # Freeze first 4 stages, fine-tune stages 5, 6, 7 and classifier
         for param in m.features[:5].parameters():
             param.requires_grad = False

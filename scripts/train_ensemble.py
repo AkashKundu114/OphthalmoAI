@@ -138,7 +138,7 @@ def build_models(device: Any) -> Optional[Any]:
     if not ckpt_convnext.exists():
         ckpt_convnext = MODELS_DIR / "convnext_small.pth"
     if ckpt_convnext.exists():
-        convnext_model.load_state_dict(torch.load(ckpt_convnext, map_location=device, weights_only=False))
+        convnext_model.load_state_dict(torch.load(ckpt_convnext, map_location=device, weights_only=True))
         print(f"[OK] Loaded fine-tuned ConvNeXt-Small from {ckpt_convnext.name}")
     else:
         print(f"Notice: Checkpoint {ckpt_convnext.name} not found; initializing randomly.")
@@ -150,7 +150,7 @@ def build_models(device: Any) -> Optional[Any]:
     if not ckpt_densenet.exists():
         ckpt_densenet = MODELS_DIR / "densenet201.pth"
     if ckpt_densenet.exists():
-        densenet_model.load_state_dict(torch.load(ckpt_densenet, map_location=device, weights_only=False))
+        densenet_model.load_state_dict(torch.load(ckpt_densenet, map_location=device, weights_only=True))
         print(f"[OK] Loaded fine-tuned DenseNet-201 from {ckpt_densenet.name}")
     else:
         print(f"Notice: Checkpoint {ckpt_densenet.name} not found; initializing randomly.")
@@ -162,7 +162,7 @@ def build_models(device: Any) -> Optional[Any]:
     if not ckpt_effnet.exists():
         ckpt_effnet = MODELS_DIR / "efficientnet_v2_m.pth"
     if ckpt_effnet.exists():
-        efficientnet_model.load_state_dict(torch.load(ckpt_effnet, map_location=device, weights_only=False))
+        efficientnet_model.load_state_dict(torch.load(ckpt_effnet, map_location=device, weights_only=True))
         print(f"[OK] Loaded fine-tuned EfficientNet-V2-M from {ckpt_effnet.name}")
     else:
         print(f"Notice: Checkpoint {ckpt_effnet.name} not found; initializing randomly.")

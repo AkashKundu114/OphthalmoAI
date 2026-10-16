@@ -613,7 +613,7 @@ def main() -> None:
         ensemble = FundusMetaEnsemble(NUM_CLASSES, models_dir=MODELS_DIR, device=device)
         meta_ckpt = MODELS_DIR / "meta_classifier.pth"
         if meta_ckpt.exists():
-            state_dict = torch.load(meta_ckpt, map_location=device, weights_only=False)
+            state_dict = torch.load(meta_ckpt, map_location=device, weights_only=True)
             if "meta_classifier.0.weight" in state_dict:
                 ensemble.load_state_dict(state_dict, strict=False)
         ensemble.eval()

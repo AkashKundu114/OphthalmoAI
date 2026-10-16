@@ -94,8 +94,15 @@ def main() -> None:
     parser.add_argument(
         "--model-path",
         type=str,
-        default=str(DEFAULT_ONNX_MODEL_PATH),
-        help="Path to the target ONNX model artifact (default: models/surface.onnx)",
+        default=None,
+        help="Path to the target ONNX model artifact (default: models/surface.onnx or available model)",
+    )
+    parser.add_argument(
+        "--input-shape",
+        type=int,
+        nargs="+",
+        default=None,
+        help="Custom input shape dimensions (e.g. 1 3 224 224 or 1 3 384 384)",
     )
     parser.add_argument(
         "--warmup",
@@ -138,7 +145,17 @@ def main() -> None:
     if hw.get("gpu_device_name"):
         print(f"  - GPU Device:         {hw['gpu_device_name']}")
 
-    model_path = Path(args.model_path)
+    # Determine target model path with fallback discovery
+    if args.model_path:
+        model_path = Path(args.model_path)
+    else:
+        candidates = [
+            DEFAULT_ONNX_MODEL_PATH,
+            ROOT_DIR / "models" / "edge_model_fp32.onnx",
+            ROOT_DIR / "frontend" / "public" / "models" / "edge_model.onnx",
+        ]
+        model_path = next((c for c in candidates if c.exists()), DEFAULT_ONNX_MODEL_PATH)
+
     onnx_engine = None
 
     if not args.force_synthetic and model_path.exists():
@@ -165,13 +182,17 @@ def main() -> None:
         print(f"  WARNING: {SYNTHETIC_WARNING_MESSAGE}\n")
 
     # Execute comprehensive benchmark
-    results = LatencyBenchmarkSuite.run_comprehensive_benchmark(
-        onnx_engine=onnx_engine,
-        iterations=args.iterations,
-        warmup_iterations=args.warmup,
-        save_results=True,
-        output_path=args.output,
-    )
+    benchmark_kwargs = {
+        "onnx_engine": onnx_engine,
+        "iterations": args.iterations,
+        "warmup_iterations": args.warmup,
+        "save_results": True,
+        "output_path": args.output,
+    }
+    if args.input_shape:
+        benchmark_kwargs["input_shape"] = tuple(args.input_shape)
+
+    results = LatencyBenchmarkSuite.run_comprehensive_benchmark(**benchmark_kwargs)
 
     # In synthetic mode, ensure results are saved to output path explicitly
     if results.get("is_synthetic"):

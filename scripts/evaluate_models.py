@@ -95,7 +95,7 @@ def evaluate_checkpoint(checkpoint_path: Path, arch: str, device: torch.device, 
     )
 
     model = build_model(arch, num_classes=NUM_CLASSES)
-    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=True))
     model.to(device).eval()
 
     all_logits, all_labels = [], []

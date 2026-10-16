@@ -134,7 +134,7 @@ def build_retfound(num_classes=6, img_size=224, checkpoint_path=None):
     model = timm.create_model('vit_large_patch16_224', pretrained=False, num_classes=num_classes)
     
     if checkpoint_path and Path(checkpoint_path).exists():
-        state = torch.load(checkpoint_path, map_location='cpu')
+        state = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
         if 'model' in state:
             state = state['model']
         state = {k: v for k, v in state.items() if not k.startswith('head.')}
@@ -286,7 +286,7 @@ def main():
     # 5. Evaluation
     print("Evaluating on Test Set...")
     if os.path.exists(save_path):
-        model.load_state_dict(torch.load(save_path, map_location=device))
+        model.load_state_dict(torch.load(save_path, map_location=device, weights_only=True))
     
     # Latency test (batch size 4 for Blackwell cuBLAS stability)
     model.eval()
@@ -336,7 +336,7 @@ def main():
         ensemble = FundusMetaEnsemble(num_classes=6, models_dir=MODELS_DIR, device=device)
         meta_ckpt = MODELS_DIR / "meta_classifier.pth"
         if meta_ckpt.exists():
-            state = torch.load(meta_ckpt, map_location=device, weights_only=False)
+            state = torch.load(meta_ckpt, map_location=device, weights_only=True)
             if "meta_classifier.0.weight" in state:
                 ensemble.load_state_dict(state, strict=False)
         ensemble.eval()

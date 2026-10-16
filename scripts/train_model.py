@@ -232,7 +232,7 @@ def main():
     # Evaluation on held-out test split
     print(f"\n[EVALUATION] Evaluating best model ({out_ckpt_name}) on test split...")
     if out_ckpt_path.exists():
-        model.load_state_dict(torch.load(out_ckpt_path, map_location=device))
+        model.load_state_dict(torch.load(out_ckpt_path, map_location=device, weights_only=True))
     test_loss, test_acc, test_f1 = evaluate(model, test_loader, criterion, device, precision_dtype, desc="Evaluating Test")
     print(f"FINAL TEST SET METRICS -> Accuracy: {test_acc*100:.2f}% | Macro F1: {test_f1:.4f}")
     print("=" * 70)

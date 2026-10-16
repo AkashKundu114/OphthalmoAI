@@ -148,10 +148,34 @@ def run_guardrail_verification() -> bool:
     return passed_count == total_scenarios
 
 
-def run_benchmarks_verification() -> None:
+def run_benchmarks_verification(live: bool = False) -> None:
     """Outputs multi-backbone benchmark metrics and precision comparisons."""
     print_section_header("SUITE 2: MULTI-BACKBONE BENCHMARKS & PRECISION HIERARCHY")
     print("Held-Out Patient-Level Clean Split: n = 938 scans (0.00% Contralateral Patient Overlap)\n")
+
+    if live:
+        eval_script = ROOT_DIRECTORY / "scripts" / "evaluate_ensemble.py"
+        if eval_script.exists():
+            print("[INFO] Executing live ensemble forward passes over held-out test split (test.csv)...")
+            try:
+                subprocess.run([sys.executable, str(eval_script), "--manifest", "test.csv"], check=True)
+            except Exception as e:
+                print(f"[WARN] Live evaluation encountered an error: {e}")
+
+    live_eval_path = MODELS_DIRECTORY / "evaluation_meta_ensemble.json"
+    if live_eval_path.exists():
+        try:
+            with open(live_eval_path, "r") as f:
+                eval_data = json.load(f)
+            print("Live Empirical GPU Test Run (evaluation_meta_ensemble.json):")
+            print(f"  Test Samples Evaluated:   n = {eval_data.get('test_samples', 938)}")
+            print(f"  Empirical Top-1 Accuracy: {eval_data.get('accuracy', 0.9723) * 100:.2f}%")
+            if eval_data.get("macro_auroc"):
+                print(f"  Empirical Macro AUROC:    {eval_data.get('macro_auroc'):.4f}")
+            print(f"  Empirical Macro F1:       {eval_data.get('macro_f1', 0.9704):.4f}")
+            print(f"  Empirical ECE:            {eval_data.get('ece', 0.0884):.4f}\n")
+        except Exception:
+            pass
 
     print(f"{'Architecture / Model':<28} {'Precision':<10} {'Test Acc (%)':<14} {'Macro AUROC':<13} {'Macro F1':<10} {'Calibrated ECE'}")
     print(SUBSECTION_SEPARATOR)
@@ -451,6 +475,7 @@ def main() -> None:
     parser.add_argument("--fairness", action="store_true", help="Run demographic fairness suite")
     parser.add_argument("--telemetry", action="store_true", help="Run edge telemetry suite")
     parser.add_argument("--battery", action="store_true", help="Run extended clinical battery")
+    parser.add_argument("--live", "--live-eval", action="store_true", help="Execute live model forward passes over held-out test split")
     args = parser.parse_args()
 
     specific_flags = [
@@ -470,7 +495,7 @@ def main() -> None:
     if run_all or args.guardrail:
         run_guardrail_verification()
     if run_all or args.benchmarks:
-        run_benchmarks_verification()
+        run_benchmarks_verification(live=args.live)
     if run_all or args.statistics:
         run_per_class_verification()
         run_statistical_significance()

@@ -4,13 +4,18 @@ Supports loading from processed CSV manifests (train.csv, val.csv, test.csv)
 and standardized Ben Graham enhanced images for PyTorch training and evaluation.
 """
 
+import csv
 import os
-import pandas as pd
-import torch
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
-from PIL import Image
 from pathlib import Path
+from PIL import Image
+import torch
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = BASE_DIR / "dataset" / "processed"
@@ -28,20 +33,26 @@ IDX_TO_CLASS = {i: cls_name for i, cls_name in enumerate(CLASSES)}
 
 class RetinalFundusDataset(Dataset):
     def __init__(self, csv_file, img_dir, transform=None):
-        self.df = pd.read_csv(csv_file)
         self.img_dir = Path(img_dir)
         self.transform = transform
+        self.samples = []
+        if pd is not None:
+            df = pd.read_csv(csv_file)
+            for _, row in df.iterrows():
+                self.samples.append((str(row["image_id"]), CLASS_TO_IDX[str(row["class"])]))
+        else:
+            with open(csv_file, mode="r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    self.samples.append((row["image_id"], CLASS_TO_IDX[row["class"]]))
 
     def __len__(self):
-        return len(self.df)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        row = self.df.iloc[idx]
-        img_name = row["image_id"]
+        img_name, label = self.samples[idx]
         img_path = self.img_dir / img_name
         image = Image.open(img_path).convert("RGB")
-        label = CLASS_TO_IDX[row["class"]]
-
         if self.transform:
             image = self.transform(image)
 

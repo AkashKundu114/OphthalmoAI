@@ -42,7 +42,7 @@ def main():
 
     if model_path.exists():
         try:
-            model.load_state_dict(torch.load(model_path, map_location=device))
+            model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
             print(f"[OK] Loaded checkpoint: {model_path.name}")
         except Exception as e:
             print(f"[!] Warning: Could not load exact weights ({e}), using backbone.")
