@@ -29,7 +29,7 @@ psycopg[binary]>=3.2.3
 # Postgres in production. Both are lightweight - installing both by default rather than
 # making this conditional keeps `pip install -r requirements.txt` giving a fully working
 # app regardless of which DATABASE_URL an operator points at.
-aiosqlite==0.20.0
+aiosqlite==0.22.1
 asyncpg==0.30.0; sys_platform != "win32" or python_version < "3.14"
 
 # scipy==1.14.1
