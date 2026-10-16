@@ -472,8 +472,21 @@ Supports PostgreSQL (production), MS SQL Server (enterprise), and SQLite (develo
 
 ```text
 OphthalmoAI/
-├── backend/                       # FastAPI backend, ensemble models, routes, services
-│   ├── domain_validator.py        # Optical aperture & chromophore backscatter guardrails
+├── backend/                       # Modular FastAPI screening backend & inference engine
+│   ├── config.py                  # Centralized configuration, class taxonomy, ImageNet constants
+│   ├── main.py                    # Application lifecycle orchestrator & router registration
+│   ├── services/                  # Decoupled core services
+│   │   ├── image_preprocessor.py  # Ben Graham aperture crop, LAB-CLAHE, anti-aliased mask
+│   │   ├── model_loader.py        # Safe model builders & checkpoint loader (weights_only=True)
+│   │   ├── inference_service.py   # Ensemble inference, Platt calibration, symptom discordance
+│   │   └── explanation_service.py # Penultimate feature Grad-CAM and spatial description synthesis
+│   ├── routes/                    # Domain-driven API route handlers
+│   │   ├── screening.py           # Sync/async inference endpoints & image compression
+│   │   ├── clinical.py            # Conditions encyclopedia, FHIR export, clinician overrides
+│   │   ├── telehealth.py          # Multilingual Indic AI doctor chat and Sarvam speech
+│   │   ├── auth_routes.py         # RBAC authentication, password gating, and JWT management
+│   │   └── system.py              # Health, Prometheus metrics, CBMIR search, multi-tenancy
+│   ├── fundus_validator.py        # Optical aperture & chromophore backscatter guardrails
 │   ├── onnx_inference.py          # Low-latency ONNX Runtime FP16 execution engine
 │   ├── async_screening.py         # Asynchronous job queue & WebSocket telemetry
 │   ├── domain_adaptation.py       # Reinhard Lαβ color constancy transfer
@@ -490,19 +503,21 @@ OphthalmoAI/
 ├── models/                        # Trained PyTorch weights & Platt calibration JSONs
 ├── scripts/                       # Standardized 5-pillar operational & automation scripts
 │   ├── README.md                  # Complete operational scripts catalog & usage reference
+│   ├── reproduce_evaluation.py    # Complete deterministic reproduction pipeline
+│   ├── evaluate_ensemble.py       # Tri-backbone ensemble evaluation against held-out test split
 │   ├── evaluate_external_dataset.py # Automated external multi-cohort validation pipeline
 │   ├── generate_external_figures.py # Zero-overlap 300 DPI publication visual generator
 │   └── fine_tune_external_ensemble.py # Layer-selective fine-tuning with AMP FP16
 ├── docs/                          # Comprehensive technical and clinical documentation suite
+│   ├── ARCHITECTURE.md            # Modular system architecture, dataflow, and component interactions
+│   ├── DATA_AND_MODELS.md         # Data provenance, model zoo, and checkpoint integrity
+│   ├── EVALUATION.md              # Empirical metrics, evaluation protocol, and reproduction commands
+│   ├── DEPLOYMENT.md              # Deployment guide for local, Docker, Kubernetes, and offline edge
+│   ├── PRIVACY_AND_SECURITY.md    # In-memory image processing, zero-disk policy, and threat defenses
 │   ├── architecture.html          # Interactive Archify SVG architecture map (pan/zoom, keyboard nav)
 │   ├── images/                    # 29 publication-grade academic figures
 │   ├── benchmarks/                # Benchmark result JSONs (onnx_benchmark_results.json)
-│   ├── clinical/                  # Clinical safety, intended use, and external validation reports
-│   │   ├── CLINICAL_EVALUATION_AND_SAFETY.md # Intended use & risk mitigation
-│   │   └── EXTERNAL_VALIDATION_REPORT.md     # Multi-cohort external validation & generalization study
-│   ├── design/                    # UI/UX brief and user application flow
-│   ├── research/                  # Formal research paper draft and mathematical derivations
-│   └── technical/                 # System architecture, schemas, and security audits
+│   └── clinical/                  # Clinical safety, intended use, and external validation reports
 ├── deploy/                        # Production deployment manifests (Hugging Face, Docker)
 ├── k8s/                           # Production Kubernetes manifests and ingress configs
 └── tests/                         # 335 automated tests (312 backend pytest + 23 frontend vitest)
@@ -512,6 +527,11 @@ OphthalmoAI/
 
 ## Documentation Suite
 
+- **[System Architecture](docs/ARCHITECTURE.md)**: Modular system design, component responsibilities, and end-to-end dataflow.
+- **[Data & Models Provenance](docs/DATA_AND_MODELS.md)**: Dataset provenance, model zoo specifications, and checkpoint security.
+- **[Evaluation & Benchmarks Protocol](docs/EVALUATION.md)**: Empirical evaluation protocol, metric formulas, and reproduction commands.
+- **[Deployment & Operations Guide](docs/DEPLOYMENT.md)**: Deployment guidelines for local, Docker, Kubernetes, and offline edge.
+- **[Privacy & Security Architecture](docs/PRIVACY_AND_SECURITY.md)**: In-memory raster lifecycle, EXIF sanitization, and adversarial defenses.
 - **[Interactive Architecture Map](docs/architecture.html)**: Interactive Archify SVG system architecture map with keyboard shortcuts and flow inspection.
 - **[System Specification](docs/SYSTEM_SPECIFICATION.md)**: Technical architecture, pipeline stages, and QA checklist.
 - **[Performance & Telemetry](docs/PERFORMANCE_METRICS.md)**: Comprehensive empirical metrics, ROC curves, calibration charts, and GPU profiling.

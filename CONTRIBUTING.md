@@ -40,7 +40,7 @@ All pull request descriptions must follow Google's XYZ impact framework:
 
 ### Clinical Safety & HIPAA / PHI Integrity
 - **Strictly Zero Protected Health Information (PHI):** Never commit real patient fundus imagery, hospital medical record numbers (MRNs), patient names, or private clinician credentials.
-- **Domain Guardrail Integrity:** Never weaken the optical aperture, chromophore backscatter, or spatial autocorrelation thresholds in `backend/domain_validator.py`.
+- **Domain Guardrail Integrity:** Never weaken the optical aperture, chromophore backscatter, or spatial autocorrelation thresholds in `backend/fundus_validator.py`.
 - **Tenant Isolation:** Never bypass the multi-tenant Row-Level Security filters in `backend/tenancy.py`.
 
 ---
@@ -70,7 +70,7 @@ source venv/bin/activate
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # Install backend dependencies
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 
 # Install frontend dependencies
 cd frontend
@@ -85,19 +85,19 @@ cd ..
 Before opening a pull request, you **MUST** pass all quality gates locally:
 
 ```bash
-# Gate 1: Full Pytest Backend Test Suite (All 232 tests must pass with 100% pass rate)
+# Gate 1: Full Pytest Backend Test Suite (All 312 tests must pass with 100% pass rate)
 pytest tests -q
 
 # Gate 2: ONNX Runtime & Asynchronous Serving Verification
 pytest tests/backend/test_onnx_inference.py tests/backend/test_async_screening.py -v
 
 # Gate 3: Domain Guardrails & Security Testing
-pytest tests/backend/test_domain_guardrail.py tests/backend/test_security_and_auth.py -v
+pytest tests/backend/test_fundus_validator_and_precision.py tests/backend/test_security_and_auth.py -v
 
 # Gate 4: Boundary Condition Edge-Case Hardening
 pytest tests/test_boundary_conditions.py -v
 
-# Gate 5: Frontend Unit & Edge Inference Test Suite (All 21 Vitest tests must pass)
+# Gate 5: Frontend Unit & Edge Inference Test Suite (All 23 Vitest tests must pass)
 cd frontend && npm test -- --run && npm run build && cd ..
 ```
 

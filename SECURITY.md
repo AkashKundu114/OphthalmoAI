@@ -50,11 +50,12 @@ Please allow sufficient time for verification and patch deployment before any pu
 
 ## Core Security Mechanisms
 
-### 1. Pre-Inference Retinal Optical Domain Validator (`backend/domain_validator.py`)
+### 1. Pre-Inference Retinal Optical Domain Validator (`backend/fundus_validator.py`)
 - Analyzes geometric circular aperture masks ($D_{\text{circular}} \ge 0.70$).
 - Validates chorioretinal red-to-blue optical backscatter ratio ($\bar{R}/\bar{B} \ge 1.05$).
 - Measures structural spatial autocorrelation ($r_{\text{spatial}} \ge 0.35$).
 - Rejects non-fundus images, malicious payloads, everyday objects, and adversarial noise before GPU execution.
+- For complete privacy and threat model architecture, consult [docs/PRIVACY_AND_SECURITY.md](docs/PRIVACY_AND_SECURITY.md).
 
 ### 2. Red-Team Hardened Conversational Assistant
 - 100% defense against prompt injection, jailbreaks, roleplay escapes, and diagnostic hallucination.
