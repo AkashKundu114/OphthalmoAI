@@ -14,7 +14,7 @@
     "axios": "^1.13.2",
     "dompurify": "^3.4.15",
     "jspdf": "^4.2.1",
-    "jspdf-autotable": "^5.0.2",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.554.0",
     "onnxruntime-web": "^1.30.0",
     "react": "^19.2.0",
