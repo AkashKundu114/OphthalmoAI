@@ -19,7 +19,7 @@ slowapi==0.1.9
 bcrypt==4.0.1
 pyjwt>=2.14.0
 
-sqlalchemy==2.0.36
+sqlalchemy==2.0.54
 alembic==1.14.0
 psycopg[binary]>=3.2.3
 
