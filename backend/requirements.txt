@@ -1,27 +1,27 @@
-fastapi>=0.115.8
-uvicorn[standard]==0.32.1
-python-multipart>=0.0.31
-pydantic==2.10.4
-starlette>=0.45.3
+fastapi>=0.162.0
+uvicorn[standard]==0.54.0
+python-multipart>=0.0.32
+pydantic==2.14.1
+starlette>=0.52.1
 
 pillow
 numpy
 opencv-python-headless
 grad-cam
 
-google-generativeai==0.8.3
+google-generativeai==0.8.6
 httpx==0.28.1
 
-python-dotenv>=1.2.2
+python-dotenv>=1.2.4
 
-slowapi==0.1.9
+slowapi==0.1.10
 
-bcrypt==4.0.1
-pyjwt>=2.14.0
+bcrypt==4.3.0
+pyjwt>=2.15.1
 
-sqlalchemy==2.0.36
-alembic==1.14.0
-psycopg[binary]>=3.2.3
+sqlalchemy==2.0.55
+alembic==1.20.1
+psycopg[binary]>=3.3.6
 
 # Added for backend/db_async.py (real async DB access for auth.py + routes_admin.py -
 # see that module's docstring for why a sync engine wasn't sufficient). aiosqlite covers
@@ -29,8 +29,8 @@ psycopg[binary]>=3.2.3
 # Postgres in production. Both are lightweight - installing both by default rather than
 # making this conditional keeps `pip install -r requirements.txt` giving a fully working
 # app regardless of which DATABASE_URL an operator points at.
-aiosqlite==0.20.0
-asyncpg==0.30.0; sys_platform != "win32" or python_version < "3.14"
+aiosqlite==0.22.1
+asyncpg==0.32.0; sys_platform != "win32" or python_version < "3.14"
 
 # scipy==1.14.1
 # scikit-learn==1.6.0
@@ -39,5 +39,5 @@ structlog==24.4.0
 
 # boto3==1.35.99
 
-tqdm==4.67.1
-matplotlib==3.9.3
+tqdm==4.70.1
+matplotlib==3.10.9
