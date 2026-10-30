@@ -1,0 +1,152 @@
+{
+  "meta_classifier": {
+    "accuracy": 0.8977323254779902,
+    "macro_auroc": 0.9913822220273637,
+    "weighted_auroc": 0.9905741334721767,
+    "macro_f1": 0.9034378896403346,
+    "weighted_f1": 0.8979607765420193,
+    "ece_equal_width": 0.02633423510261406,
+    "ece_equal_frequency": 0.05918531539229194,
+    "sensitivities": {
+      "Normal": 0.8186046511627907,
+      "Diabetic Retinopathy": 0.9237113402061856,
+      "Glaucoma": 0.896551724137931,
+      "Cataract": 0.9523809523809523,
+      "Age-related Macular Degeneration": 0.9251336898395722,
+      "Hypertensive Retinopathy / Pathological Myopia": 0.9066339066339066
+    },
+    "specificities": {
+      "Normal": 0.9780098955470038,
+      "Diabetic Retinopathy": 0.9875283446712018,
+      "Glaucoma": 0.9533369506239826,
+      "Cataract": 0.9971455756422455,
+      "Age-related Macular Degeneration": 0.9813333333333333,
+      "Hypertensive Retinopathy / Pathological Myopia": 0.9777415852334419
+    },
+    "confusion_matrix": [
+      [
+        352,
+        12,
+        45,
+        2,
+        10,
+        9
+      ],
+      [
+        17,
+        448,
+        1,
+        1,
+        11,
+        7
+      ],
+      [
+        15,
+        1,
+        364,
+        3,
+        8,
+        15
+      ],
+      [
+        1,
+        1,
+        4,
+        140,
+        0,
+        1
+      ],
+      [
+        2,
+        4,
+        13,
+        0,
+        346,
+        9
+      ],
+      [
+        5,
+        4,
+        23,
+        0,
+        6,
+        369
+      ]
+    ]
+  },
+  "soft_voting": {
+    "accuracy": 0.8955091151622944,
+    "macro_auroc": 0.9921734976063217,
+    "weighted_auroc": 0.9913663981312605,
+    "macro_f1": 0.9008769484328528,
+    "weighted_f1": 0.895314290952631,
+    "ece_equal_width": 0.07867446930051224,
+    "ece_equal_frequency": 0.0752175509426105,
+    "sensitivities": {
+      "Normal": 0.8046511627906977,
+      "Diabetic Retinopathy": 0.9402061855670103,
+      "Glaucoma": 0.9039408866995073,
+      "Cataract": 0.9591836734693877,
+      "Age-related Macular Degeneration": 0.9144385026737968,
+      "Hypertensive Retinopathy / Pathological Myopia": 0.8894348894348895
+    },
+    "specificities": {
+      "Normal": 0.9763606377130292,
+      "Diabetic Retinopathy": 0.9801587301587301,
+      "Glaucoma": 0.9560499186109603,
+      "Cataract": 0.9961941008563273,
+      "Age-related Macular Degeneration": 0.9824,
+      "Hypertensive Retinopathy / Pathological Myopia": 0.9809989142236699
+    },
+    "confusion_matrix": [
+      [
+        346,
+        18,
+        42,
+        4,
+        12,
+        8
+      ],
+      [
+        19,
+        456,
+        0,
+        1,
+        8,
+        1
+      ],
+      [
+        15,
+        2,
+        367,
+        3,
+        1,
+        18
+      ],
+      [
+        1,
+        1,
+        3,
+        141,
+        0,
+        1
+      ],
+      [
+        2,
+        7,
+        16,
+        0,
+        342,
+        7
+      ],
+      [
+        6,
+        7,
+        20,
+        0,
+        12,
+        362
+      ]
+    ]
+  }
+}

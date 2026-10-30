@@ -1,19 +1,19 @@
 {
-  "timestamp": 1792137043.090094,
-  "timestamp_iso": "2026-10-16T07:50:43.090094+00:00",
+  "timestamp": 1793368160.6741445,
+  "timestamp_iso": "2026-10-30T13:49:20.674144+00:00",
   "input_shape": [
     1,
     3,
     380,
     380
   ],
-  "iterations": 5,
+  "iterations": 100,
   "ort_available": true,
   "torch_available": true,
-  "is_synthetic": true,
-  "synthetic": true,
-  "mode": "SYNTHETIC MODE",
-  "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks.",
+  "is_synthetic": false,
+  "synthetic": false,
+  "mode": "REAL BENCHMARK",
+  "warning": null,
   "hardware_info": {
     "platform": "Windows-11-10.0.26300-SP0",
     "system": "Windows",
@@ -30,7 +30,7 @@
       "CPUExecutionProvider"
     ]
   },
-  "model_path": null,
+  "model_path": "models\\edge_model_fp32.onnx",
   "pytorch_eager": {
     "mean_latency_ms": 184.5,
     "std_latency_ms": 12.3,
@@ -46,18 +46,18 @@
     "warning": "PyTorch model not supplied; using standard reference baseline."
   },
   "onnx_runtime": {
-    "mean_latency_ms": 85.81,
-    "std_latency_ms": 6.83,
-    "p50_latency_ms": 84.19,
-    "p95_latency_ms": 95.26,
-    "p99_latency_ms": 101.58,
-    "min_latency_ms": 80.05,
-    "max_latency_ms": 104.47,
-    "throughput_qps": 11.6,
-    "is_synthetic": true,
-    "synthetic": true,
-    "mode": "SYNTHETIC MODE",
-    "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
+    "mean_latency_ms": 2.19,
+    "std_latency_ms": 0.71,
+    "p50_latency_ms": 1.94,
+    "p95_latency_ms": 3.72,
+    "p99_latency_ms": 5.1,
+    "min_latency_ms": 1.71,
+    "max_latency_ms": 5.29,
+    "throughput_qps": 455.6,
+    "is_synthetic": false,
+    "synthetic": false,
+    "mode": "REAL BENCHMARK",
+    "warning": null
   },
   "onnx_quantized_fp16": {
     "mean_latency_ms": 57.66,
@@ -74,13 +74,13 @@
     "warning": "FP16 quantization profile is an analytical projection."
   },
   "summary": {
-    "onnx_speedup_factor": 2.15,
+    "onnx_speedup_factor": 93.3,
     "quantized_speedup_factor": 3.2,
-    "latency_reduction_percent": 53.5,
+    "latency_reduction_percent": 98.9,
     "recommended_production_engine": "ONNX Runtime (FP16 Graph Optimized)",
-    "is_synthetic": true,
-    "synthetic": true,
-    "mode": "SYNTHETIC MODE",
-    "warning": "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
+    "is_synthetic": false,
+    "synthetic": false,
+    "mode": "REAL BENCHMARK",
+    "warning": null
   }
 }
