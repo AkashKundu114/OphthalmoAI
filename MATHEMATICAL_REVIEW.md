@@ -2,7 +2,8 @@
 
 **Document ID:** `MATHEMATICAL_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
-**Target Venue:** ICCECE 2027 (IEEE Conference, Double-Blind)  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Format Standard:** High-resolution scientific publication standards (IEEE format)  
 **Auditor Persona:** Mathematical and Statistical Methodology Auditor  
 **Date:** October 31, 2026  
 **Audited Artifacts:** `research/paper_revised.tex`, `backend/conformal.py`, `backend/validators.py`, `scripts/run_aw_crc_calibration.py`, `models/aw_crc_calibration.json`, `research/results/aw_crc_empirical_benchmark.json`  

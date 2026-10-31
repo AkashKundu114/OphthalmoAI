@@ -3,8 +3,9 @@
 **Reviewer Identity:** Reviewer 1 (Expert in Machine Learning Systems, Deep Learning Ensembles, & Model Serving)  
 **Target Manuscript:** `research/paper_revised.tex`  
 **Title:** *Quality-Aware Conformal Screening for Retinal Fundus Imaging Under Optical Domain Shift*  
-**Venue / Track:** ICCECE 2027 (Biomedical Informatics, Cognitive Computing & Trustworthy AI)  
-**Review Type:** Double-Blind Peer Review  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Review Type:** Pre-Submission Independent Peer Review Panel (Internal Audit)  
+**Target Submission Format:** High-resolution scientific publication standards (IEEE format)  
 **Recommendation:** **STRONG ACCEPT (Score: 8 / 10)**  
 
 ---

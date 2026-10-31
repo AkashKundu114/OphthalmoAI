@@ -2,7 +2,8 @@
 
 **Document ID:** `DATASET_AND_CLINICAL_VALIDITY_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
-**Target Venue:** ICCECE 2027 (IEEE Conference, Double-Blind)  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Format Standard:** High-resolution scientific publication standards (IEEE format)  
 **Auditor Persona:** Dataset Forensics and Clinical AI Validation Specialist  
 **Date:** October 31, 2026  
 **Audited Artifacts:** `dataset/processed/manifest_v2.csv`, `dataset/processed/test_v2.csv`, `dataset/processed/excluded_samples_v2.csv`, `scripts/forensic_deduplication_v2.py`, `scripts/split_patient_level_v2.py`, `research/paper_revised.tex`, `research/LIMITATIONS.md`  

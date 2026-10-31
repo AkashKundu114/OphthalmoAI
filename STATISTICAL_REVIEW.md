@@ -2,7 +2,8 @@
 
 **Document ID:** `STATISTICAL_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
-**Target Venue:** ICCECE 2027 (IEEE Conference, Double-Blind)  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Format Standard:** High-resolution scientific publication standards (IEEE format)  
 **Auditor Persona:** Senior Biostatistician and Statistical Uncertainty Reviewer  
 **Date:** October 31, 2026  
 **Audited Artifacts:** `research/results/canonical_eval_test_v2.json`, `research/results/statistical_significance_v2.json`, `research/results/aw_crc_empirical_benchmark.json`, `models/external_validation_report.json`, `research/numbers_revised.tex`, `research/paper_revised.tex`  

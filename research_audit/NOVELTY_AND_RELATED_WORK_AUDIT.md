@@ -2,7 +2,8 @@
 
 **Document ID:** `NOVELTY_AND_RELATED_WORK_AUDIT.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
-**Target Venue:** ICCECE 2027 (IEEE Conference, Double-Blind)  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Format Standard:** High-resolution scientific publication standards (IEEE format)  
 **Lead Author / Reviewer:** Novelty and Literature Specialist Panel  
 **Date:** October 31, 2026  
 **Audited Manuscript:** `research/paper_revised.tex` (7 Pages, Double-Column IEEE Format)  
@@ -161,4 +162,4 @@ We audited all 16 citations in `research/paper_revised.tex` and confirmed their 
 
 1. **Novelty Standing:** The paper presents a defensible, publication-grade contribution at the intersection of biophysical optical pre-filtering, uncertainty quantification via conformal prediction, and clinical fail-closed safety engineering.
 2. **Reviewer Defense:** Reviewers cannot dismiss this as "just another CNN ensemble" because the paper explicitly proves statistical parity between stacking and soft-voting ($p=0.6875$), highlights catastrophic camera domain shift (16.42% and 1.05%), and proves that conformal triage successfully intercepts 100% of these failure cases.
-3. **Publication Status:** Strict compliance with `GEMINI.md` is maintained. No claims of IEEE publication exist. The paper is ready for submission to double-blind conference review (ICCECE 2027).
+3. **Publication Status:** Strict compliance with `GEMINI.md` is maintained. No claims of IEEE publication exist. The paper is currently an academic research manuscript in preparation (not yet submitted or in review).

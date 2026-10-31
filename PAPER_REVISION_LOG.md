@@ -1,7 +1,8 @@
 # OphthalmoAI Manuscript Master Revision Log
 
 **Document ID:** `PAPER_REVISION_LOG.md`  
-**Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation) / ICCECE 2027  
+**Manuscript Status:** Academic Research Manuscript In Preparation (Not Yet Submitted / Not In Review)  
+**Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
 **Date:** October 31, 2026  
 **Auditor:** Academic Editor, Lead Scientific Editor, & Research Integrity Panel  
 **Status:** ALL REVISIONS VERIFIED, AUDITED & IMPLEMENTED  
@@ -141,7 +142,7 @@ Following the autonomous research engineering and scientific manuscript audit lo
 - **Remediation Implemented:**
   1. Audited all `.tex`, `.md`, and `.py` files across the repository.
   2. Purged all claims of IEEE publication or acceptance dates.
-  3. Neutralized all academic status statements to *"Peer-reviewed biomedical informatics manuscript (in preparation)"* and target conference submission to ICCECE 2027 (double-blind review).
+  3. Neutralized all academic status statements to *"Peer-reviewed biomedical informatics manuscript (in preparation)"*, clarifying that the manuscript is currently under preparation and not yet submitted or in review.
 - **Verification Status:** Automated grep verification confirms zero false publication claims.
 
 ---
