@@ -56,7 +56,7 @@ def test_splits_zero_overlap():
 
 def test_no_synthetic_ehr_in_v2_manifests():
     synthetic_cols = {"hba1c_pct", "systolic_bp", "diastolic_bp", "pulse_pressure", "mean_arterial_pressure", "intraocular_pressure_mmhg", "visual_acuity_logmar", "diabetes_duration_years"}
-    for name in ["train_v2.csv", "validation_v2.csv", "calibration_v2.csv", "test_v2.csv"]:
+    for name in ["manifest_v2.csv", "train_v2.csv", "validation_v2.csv", "calibration_v2.csv", "test_v2.csv"]:
         df = pd.read_csv(PROCESSED_DIR / name)
         present = synthetic_cols.intersection(set(df.columns))
         assert len(present) == 0, f"Synthetic EHR columns {present} must not be present in {name}"

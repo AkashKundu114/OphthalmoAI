@@ -300,7 +300,7 @@ class LatencyBenchmarkSuite:
         cls,
         pytorch_model: Any | None = None,
         onnx_engine: ONNXInferenceEngine | None = None,
-        input_shape: Tuple[int, int, int, int] = (1, 3, 380, 380),
+        input_shape: Tuple[int, int, int, int] = (1, 3, 224, 224),
         iterations: int = 20,
         warmup_iterations: int = 5,
         save_results: bool = True,
