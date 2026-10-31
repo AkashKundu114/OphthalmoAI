@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-31T00:00:00",
+  "source": "empirical_v2_clean",
+  "q_emergency": 0.7017,
+  "q_routine": 0.3055,
+  "alpha_emergency": 0.01,
+  "alpha_routine": 0.05,
+  "is_calibrated": true,
+  "num_samples_calibrated": 1389,
+  "gamma": 1.0,
+  "tau_guard": 0.5
+}

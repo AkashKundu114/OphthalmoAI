@@ -31,6 +31,7 @@ logger = logging.getLogger("ophthalmoai.onnx")
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_BENCHMARK_RESULTS_PATH = ROOT_DIR / "docs" / "benchmarks" / "onnx_benchmark_results.json"
 DEFAULT_ONNX_MODEL_PATH = ROOT_DIR / "models" / "surface.onnx"
+EDGE_ONNX_MODEL_PATH = ROOT_DIR / "models" / "edge_model_fp32.onnx"
 SYNTHETIC_WARNING_MESSAGE = (
     "ONNX model not found - using synthetic estimates. These are NOT real benchmarks."
 )

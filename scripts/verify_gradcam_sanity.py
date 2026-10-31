@@ -108,7 +108,8 @@ def run_sanity_checks(num_samples: int = 15):
     # Identify target layer
     target_layers = [orig_model.features[-1]]
     
-    # Create randomized model clone
+    # Create randomized model clone with locked seed for exact reproducibility
+    torch.manual_seed(42)
     rand_model = copy.deepcopy(orig_model)
     # Randomize classifier and final dense block
     if hasattr(rand_model, "classifier"):

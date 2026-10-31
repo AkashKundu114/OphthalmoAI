@@ -4,7 +4,15 @@ from typing import Any, Dict, List, Tuple
 
 import torch
 
-CRITICAL_DIAGNOSES = {"Uveitis", "Jaundice", "Keratitis"}
+CRITICAL_DIAGNOSES = {
+    "Uveitis",
+    "Jaundice",
+    "Keratitis",
+    "Age-related Macular Degeneration",
+    "Diabetic Retinopathy",
+    "Glaucoma",
+    "Hypertensive Retinopathy / Pathological Myopia",
+}
 DEFAULT_CONFIDENCE_THRESHOLD = 0.75
 DEFAULT_UNCERTAINTY_THRESHOLD = 0.15
 DEFAULT_VACUITY_THRESHOLD = 0.40

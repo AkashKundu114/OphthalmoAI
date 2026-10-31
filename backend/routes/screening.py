@@ -305,9 +305,13 @@ async def predict(
         except Exception:
             pass
 
-        if monolithic_model is not None:
+        gradcam_model = monolithic_model
+        if gradcam_model is None and len(ensemble_models) > 0:
+            gradcam_model = ensemble_models.get("convnext_small") or ensemble_models.get("densenet201") or next(iter(ensemble_models.values()), None)
+
+        if gradcam_model is not None:
             heatmap_base64, grayscale = generate_gradcam(
-                model=monolithic_model,
+                model=gradcam_model,
                 input_tensor=input_tensor,
                 class_idx=class_idx,
                 model_input_image=model_input_image,

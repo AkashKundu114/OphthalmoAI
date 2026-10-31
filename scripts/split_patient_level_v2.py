@@ -66,10 +66,10 @@ def build_unified_groups(df: pd.DataFrame) -> pd.DataFrame:
                 src = "unknown"
 
         if src == "preprocessed_fundus":
-            conf = "VERIFIED_STUDY_ID"
+            conf = "IMAGE_LEVEL_ONLY"
             gid = f"prep_{img_id}"
         elif src == "aptos_dr":
-            conf = "VERIFIED_STUDY_ID"
+            conf = "IMAGE_LEVEL_ONLY"
             gid = f"aptos_{img_id}"
         elif src == "odir5k":
             conf = "UNKNOWN"
@@ -99,6 +99,15 @@ def build_unified_groups(df: pd.DataFrame) -> pd.DataFrame:
             sha_to_group[sha] = row["group_id"]
         else:
             df.at[idx, "group_id"] = sha_to_group[sha]
+
+    # Step 3: Merge identical perceptual dHash clusters into identical group_id
+    dhash_to_group = {}
+    for idx, row in df.iterrows():
+        dh = row["dhash"]
+        if dh not in dhash_to_group:
+            dhash_to_group[dh] = df.at[idx, "group_id"]
+        else:
+            df.at[idx, "group_id"] = dhash_to_group[dh]
 
     return df
 

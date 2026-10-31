@@ -42,7 +42,12 @@ MAX_CONCURRENT_INFERENCES: int = int(os.getenv("MAX_CONCURRENT_INFERENCES", "4")
 MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE_BYTES", str(20 * 1024 * 1024)))
 
 CALIBRATION_PATH = os.path.join(MODELS_DIR, "calibration.json")
-CONFORMAL_CALIBRATION_PATH = os.path.join(MODELS_DIR, "conformal_calibration.json")
+CONFORMAL_CALIBRATION_PATH = os.getenv(
+    "CONFORMAL_CALIBRATION_PATH",
+    os.path.join(MODELS_DIR, "aw_crc_calibration.json")
+    if os.path.exists(os.path.join(MODELS_DIR, "aw_crc_calibration.json"))
+    else os.path.join(MODELS_DIR, "conformal_calibration.json"),
+)
 
 MC_DROPOUT_PASSES: int = int(os.getenv("MC_DROPOUT_PASSES", "8"))
 ENABLE_UNCERTAINTY: bool = os.getenv("ENABLE_UNCERTAINTY", "true").lower() in {"1", "true", "yes"}

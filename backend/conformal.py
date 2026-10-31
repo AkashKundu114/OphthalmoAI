@@ -43,6 +43,7 @@ class ConformalCalibrator:
         self.q_routine: float = 0.948
         self.is_calibrated: bool = False
         self.num_samples_calibrated: int = 0
+        self.last_empty_fallback: bool = False
 
         if self.calibration_path and os.path.exists(self.calibration_path):
             self.load(self.calibration_path)
@@ -117,11 +118,16 @@ class ConformalCalibrator:
         set_probs: Dict[str, float],
         probs: np.ndarray,
         top_diagnosis: str,
-    ) -> None:
-        """Guarantees that conformal prediction set contains at least one candidate."""
+    ) -> bool:
+        """Guarantees that conformal prediction set contains at least one candidate,
+        while explicitly recording whether an empty-set argmax fallback occurred.
+        Returns True if fallback was triggered, False otherwise.
+        """
         if prediction_set:
-            return
+            self.last_empty_fallback = False
+            return False
 
+        self.last_empty_fallback = True
         if probs.size > 0 and np.all(np.isfinite(probs)):
             argmax_idx = int(np.argmax(probs))
             if 0 <= argmax_idx < len(CLASS_NAMES):
@@ -136,6 +142,37 @@ class ConformalCalibrator:
 
         prediction_set.append(fallback_name)
         set_probs[fallback_name] = fallback_prob
+        return True
+
+    def predict_set_raw(
+        self,
+        probs: np.ndarray,
+        top_diagnosis: str,
+        admissibility_score: float = 0.95,
+        gamma: float = 1.0,
+    ) -> Tuple[List[str], Dict[str, float], bool]:
+        """Constructs raw conformal prediction set WITHOUT argmax fallback.
+        Returns (raw_prediction_set, raw_set_probs, is_empty).
+        """
+        probs = np.asarray(probs, dtype=np.float64)
+        if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
+            probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
+
+        eff_s = float(np.clip(admissibility_score, 0.10, 1.0))
+        scale_factor = eff_s ** max(0.1, min(float(gamma), 3.0))
+
+        raw_set: List[str] = []
+        raw_probs: Dict[str, float] = {}
+
+        for idx, name in enumerate(CLASS_NAMES):
+            p = float(probs[idx])
+            c_is_emerg = URGENCY_TIERS.get(name, "Non-urgent") in {"Emergency", "Urgent"}
+            dyn_q = (self.q_emergency if c_is_emerg else self.q_routine) / scale_factor
+            if math.isfinite(p) and p >= max(0.005, 1.0 - dyn_q):
+                raw_set.append(name)
+                raw_probs[name] = round(p * 100.0, 2)
+
+        return raw_set, raw_probs, len(raw_set) == 0
 
     def predict_set(
         self,
@@ -252,8 +289,18 @@ class ConformalCalibrator:
         try:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
-            self.q_emergency = float(data.get("q_emergency", self.q_emergency))
-            self.q_routine = float(data.get("q_routine", self.q_routine))
+
+            if "admissibility_weighted_crc" in data:
+                aw_data = data["admissibility_weighted_crc"]
+                self.q_emergency = float(aw_data.get("q_emergency", self.q_emergency))
+                self.q_routine = float(aw_data.get("q_routine", self.q_routine))
+            elif "standard_us_crc" in data:
+                std_data = data["standard_us_crc"]
+                self.q_emergency = float(std_data.get("q_emergency", self.q_emergency))
+                self.q_routine = float(std_data.get("q_routine", self.q_routine))
+            else:
+                self.q_emergency = float(data.get("q_emergency", self.q_emergency))
+                self.q_routine = float(data.get("q_routine", self.q_routine))
 
             loaded_alpha_e = data.get("alpha_emergency")
             if loaded_alpha_e is not None:
@@ -264,7 +311,7 @@ class ConformalCalibrator:
                 self.alpha_routine = validate_alpha(loaded_alpha_r, "loaded alpha_routine")
 
             self.is_calibrated = bool(data.get("is_calibrated", True))
-            self.num_samples_calibrated = int(data.get("num_samples_calibrated", 0))
+            self.num_samples_calibrated = int(data.get("num_samples_calibrated", data.get("n_calibration", 0)))
         except Exception:
             pass
 
