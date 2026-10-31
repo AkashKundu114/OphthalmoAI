@@ -142,35 +142,42 @@ class ConformalCalibrator:
         probs: np.ndarray,
         top_diagnosis: str,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
-        """Constructs the conformal prediction set for a single sample."""
+        """Constructs the conformal prediction set for a single sample.
+        
+        Candidate-Specific Urgency Stratification:
+        Each candidate class is tested against its OWN calibrated risk quantile:
+        - Emergency candidate classes require p >= 1.0 - q_emergency
+        - Routine candidate classes require p >= 1.0 - q_routine
+        """
         probs = np.asarray(probs, dtype=np.float64)
         if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
             probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
-
-        top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
-        is_emergency = top_urgency in {"Emergency", "Urgent"}
-
-        if is_emergency:
-            cutoff = max(0.0, 1.0 - self.q_emergency)
-            stratum = "Emergency-Stratified (Sight-Threatening)"
-            guarantee = (1.0 - self.alpha_emergency) * 100.0
-        else:
-            cutoff = max(0.0, 1.0 - self.q_routine)
-            stratum = "Routine-Stratified (Elective/Adnexal)"
-            guarantee = (1.0 - self.alpha_routine) * 100.0
 
         prediction_set: List[str] = []
         set_probs: Dict[str, float] = {}
 
         for idx, name in enumerate(CLASS_NAMES):
             p = float(probs[idx])
-            if math.isfinite(p) and p >= cutoff:
+            c_urgency = URGENCY_TIERS.get(name, "Non-urgent")
+            c_is_emergency = c_urgency in {"Emergency", "Urgent"}
+            c_q = self.q_emergency if c_is_emergency else self.q_routine
+            c_cutoff = max(0.0, 1.0 - c_q)
+
+            if math.isfinite(p) and p >= c_cutoff:
                 prediction_set.append(name)
                 set_probs[name] = round(p * 100.0, 2)
 
         self._ensure_non_empty_fallback(prediction_set, set_probs, probs, top_diagnosis)
         prediction_set.sort(key=lambda c: set_probs.get(c, 0.0), reverse=True)
 
+        top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
+        is_emergency = top_urgency in {"Emergency", "Urgent"}
+        if is_emergency:
+            stratum = "Emergency-Stratified (Sight-Threatening)"
+            guarantee = (1.0 - self.alpha_emergency) * 100.0
+        else:
+            stratum = "Routine-Stratified (Elective/Adnexal)"
+            guarantee = (1.0 - self.alpha_routine) * 100.0
         return prediction_set, set_probs, stratum, guarantee
 
     def predict_set_aw_crc(
@@ -180,40 +187,48 @@ class ConformalCalibrator:
         admissibility_score: float = 0.95,
         gamma: float = 1.0,
     ) -> Tuple[List[str], Dict[str, float], str, float]:
-        """Admissibility-Weighted Conformal Risk Control (AW-CRC):"""
+        """Admissibility-Weighted Conformal Risk Control (AW-CRC):
+        
+        Modulates non-conformity threshold inversely with optical admissibility S(X)^gamma.
+        Each candidate class is tested against its own dynamically scaled threshold:
+        p_c >= max(0.005, 1.0 - (q_c / S(X)^gamma))
+        When optical quality degrades (S < 1.0), the threshold decreases, adaptively expanding
+        the prediction set under biophysical ambiguity.
+        """
         probs = np.asarray(probs, dtype=np.float64)
         if probs.ndim != 1 or len(probs) != len(CLASS_NAMES):
             probs = np.pad(probs.ravel(), (0, max(0, len(CLASS_NAMES) - probs.size)))[:len(CLASS_NAMES)]
 
-        top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
-        is_emergency = top_urgency in {"Emergency", "Urgent"}
-
-        q_base = self.q_emergency if is_emergency else self.q_routine
         eff_s = float(np.clip(admissibility_score, 0.10, 1.0))
         gamma_safe = max(0.1, min(float(gamma), 3.0))
-
-        dyn_q = q_base / (eff_s ** gamma_safe)
-        cutoff = max(0.005, 1.0 - dyn_q)
-
-        if is_emergency:
-            stratum = f"AW-CRC Emergency-Stratified (S={eff_s:.2f})"
-            guarantee = (1.0 - self.alpha_emergency) * 100.0
-        else:
-            stratum = f"AW-CRC Routine-Stratified (S={eff_s:.2f})"
-            guarantee = (1.0 - self.alpha_routine) * 100.0
+        scale_factor = eff_s ** gamma_safe
 
         prediction_set: List[str] = []
         set_probs: Dict[str, float] = {}
 
         for idx, name in enumerate(CLASS_NAMES):
             p = float(probs[idx])
-            if math.isfinite(p) and p >= cutoff:
+            c_urgency = URGENCY_TIERS.get(name, "Non-urgent")
+            c_is_emergency = c_urgency in {"Emergency", "Urgent"}
+            c_q = self.q_emergency if c_is_emergency else self.q_routine
+            dyn_q = c_q / scale_factor
+            c_cutoff = max(0.005, 1.0 - dyn_q)
+
+            if math.isfinite(p) and p >= c_cutoff:
                 prediction_set.append(name)
                 set_probs[name] = round(p * 100.0, 2)
 
         self._ensure_non_empty_fallback(prediction_set, set_probs, probs, top_diagnosis)
         prediction_set.sort(key=lambda c: set_probs.get(c, 0.0), reverse=True)
 
+        top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
+        is_emergency = top_urgency in {"Emergency", "Urgent"}
+        if is_emergency:
+            stratum = f"AW-CRC Emergency-Stratified (S={eff_s:.2f})"
+            guarantee = (1.0 - self.alpha_emergency) * 100.0
+        else:
+            stratum = f"AW-CRC Routine-Stratified (S={eff_s:.2f})"
+            guarantee = (1.0 - self.alpha_routine) * 100.0
         return prediction_set, set_probs, stratum, guarantee
 
     def save(self, path: str) -> None:

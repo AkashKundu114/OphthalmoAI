@@ -290,17 +290,15 @@ export async function runEdgeInference(sourceImage) {
   }
 
   if (!session) {
-
-    const heuristicResult = await runHeuristicInference(sourceImage);
     return {
-      ...heuristicResult,
+      success: false,
       isEdgeModel: false,
-      isHeuristicFallback: true,
-      active_mode: 'heuristic_fallback',
-      engine: 'Legacy Heuristic Pre-Filter (Fallback - NOT for clinical use)',
+      isHeuristicFallback: false,
+      active_mode: 'unavailable',
+      engine: 'ONNX WebAssembly Engine (Unavailable)',
+      error: 'Edge neural inference unavailable. Heuristic disease classification is permanently disabled under clinical AI safety rules.',
       disclaimer: MEDICAL_DISCLAIMER_EDGE,
-      warning:
-        'Warning: Preliminary screening (legacy heuristic fallback). Full server-side analysis recommended for clinical decisions. This is not a diagnosis.',
+      warning: 'Edge inference failed to load neural model. Please retry or use the server screening pipeline.'
     };
   }
 

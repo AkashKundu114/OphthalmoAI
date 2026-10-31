@@ -19,8 +19,21 @@ CANONICAL_LAB_STDS  = np.array([32.4,  11.2,  14.8], dtype=np.float32)
 
 
 def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
-    """Applies Reinhard color constancy normalization in LAB space."""
+    """Applies foreground-masked Reinhard color constancy normalization in LAB space.
+    
+    Excludes black background border pixels from mean and standard deviation computation
+    to prevent overexposure distortion of the central retina.
+    """
     img_np = np.array(image.convert("RGB"))
+    h, w = img_np.shape[:2]
+
+    # Compute foreground mask (retinal tissue vs black border)
+    gray = np.mean(img_np, axis=2)
+    fg_mask = gray > 15.0
+
+    # Fallback to entire image if mask is degenerate
+    if np.sum(fg_mask) < (0.05 * h * w):
+        fg_mask = np.ones((h, w), dtype=bool)
 
     if CV2_AVAILABLE:
         lab = cv2.cvtColor(img_np, cv2.COLOR_RGB2LAB).astype(np.float32)
@@ -33,9 +46,13 @@ def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
         b_chan = 0.5 * (g - b) + 128.0
         lab = np.stack([l_chan, a_chan, b_chan], axis=-1)
 
-    src_means = np.mean(lab, axis=(0, 1))
-    src_stds = np.std(lab, axis=(0, 1))
-    src_stds = np.maximum(src_stds, 1e-4)
+    # Compute statistics strictly over valid retinal foreground
+    src_means = np.zeros(3, dtype=np.float32)
+    src_stds = np.zeros(3, dtype=np.float32)
+    for c in range(3):
+        vals = lab[:, :, c][fg_mask]
+        src_means[c] = float(np.mean(vals))
+        src_stds[c] = max(float(np.std(vals)), 1e-4)
 
     norm_lab = np.zeros_like(lab)
     for c in range(3):
@@ -55,6 +72,9 @@ def apply_reinhard_color_constancy(image: Image.Image) -> Image.Image:
         g_c = l_c - 0.344136 * b_c - 0.714136 * a_c
         b_c = l_c + 1.772 * b_c
         norm_rgb = np.clip(np.stack([r_c, g_c, b_c], axis=-1), 0, 255).astype(np.uint8)
+
+    # Zero out background pixels outside foreground mask
+    norm_rgb[~fg_mask] = 0
 
     return Image.fromarray(norm_rgb)
 

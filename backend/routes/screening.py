@@ -203,7 +203,11 @@ async def predict(
     except HTTPException:
         raise
     except Exception as val_err:
-        logger.warning("predict.fundus_validator_error", error=str(val_err))
+        logger.error("predict.fundus_validator_critical_failure", error=str(val_err))
+        raise HTTPException(
+            status_code=422,
+            detail=f"Optical Domain Guardrail critical failure: Unable to verify retinal admissibility safely ({safe_error_detail(val_err)}). Execution rejected under clinical fail-closed policy."
+        )
 
     domain_eval: Dict[str, Any] = {
         "domain_shift_detected": False,
@@ -255,7 +259,7 @@ async def predict(
                 is_calibrated = CALIBRATION_REGISTRY.is_calibrated("efficientnet_b4") or CALIBRATION_REGISTRY.is_calibrated("monolith")
                 calibrated_out = apply_temperature(out[0], calibration_temperature)
                 probs = torch.nn.functional.softmax(calibrated_out, dim=0)
-                model_group_name = "Monolithic 12-Class Model"
+                model_group_name = "Retinal Multi-Backbone Ensemble"
             else:
                 raise RuntimeError("No prediction models loaded.")
 

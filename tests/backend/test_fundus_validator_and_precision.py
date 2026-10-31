@@ -162,6 +162,29 @@ class TestPredictEndpointGuardrailRejection(unittest.TestCase):
         detail = res.json().get("detail", "")
         self.assertIn("retinal fundus", detail.lower())
 
+    def test_predict_fails_closed_on_validator_exception_with_422(self):
+        """Optical validator crash must reject image with 422 and abort inference under fail-closed safety."""
+        from unittest.mock import patch
+        img = Image.new("RGB", (256, 256), color=(180, 80, 30))
+        buf = BytesIO()
+        img.save(buf, format="JPEG")
+        raw = buf.getvalue()
+
+        with patch("backend.routes.screening.validate_fundus_image", side_effect=RuntimeError("Simulated validator crash")):
+            res = self.client.post(
+                "/predict",
+                files={"file": ("photo.jpg", raw, "image/jpeg")},
+                data={
+                    "pain": "None", "vision": "No", "itch": "No",
+                    "halos": "No", "discharge": "None",
+                    "light_sens": "No", "floaters": "No", "duration": "Not Sure",
+                },
+            )
+        self.assertEqual(res.status_code, 422)
+        detail = res.json().get("detail", "")
+        self.assertIn("fail-closed policy", detail.lower())
+
+
 
 if __name__ == "__main__":
     unittest.main()

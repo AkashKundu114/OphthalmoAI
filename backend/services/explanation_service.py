@@ -64,32 +64,38 @@ def generate_gradcam(
 
 
 def generate_spatial_description(diagnosis: str) -> str:
-    """Synthesizes anatomical lesion localization description based on condition."""
-    quadrants = [
-        "superotemporal macular arcade",
-        "inferonasal quadrant near optic disc",
-        "foveal center",
-        "peripapillary region",
-        "inferotemporal retinal periphery",
-    ]
+    """Synthesizes deterministic anatomical attribution description with explicit scientific disclaimer.
+    
+    Eliminates ungrounded random quadrant sampling. Visual attributions are derived from
+    global model attention maps and must not be interpreted as validated anatomical boundary segmentations.
+    """
     patterns = {
         "Diabetic Retinopathy": (
-            f"microaneurysms, dot-blot hemorrhages, and lipid exudates localized along the {random.choice(quadrants)}"
+            "Visual saliency concentrated over posterior microvascular arcades and posterior pole. "
+            "Note: Heatmap highlights salient convolutional activations; focal lesion localization is not clinically validated."
         ),
         "Glaucoma": (
-            "neuroretinal rim notch and cup-to-disc enlargement centered at the peripapillary optic nerve head"
+            "Visual saliency concentrated over peripapillary region and optic nerve head boundary. "
+            "Note: Heatmap reflects model focus on optic disc cupping morphology."
         ),
         "Age-related Macular Degeneration": (
-            f"confluent drusen clusters and subretinal pigment mottling concentrated at the {random.choice(['foveal center', 'parafoveal macula', 'perifoveal zone'])}"
+            "Visual saliency concentrated in the central macular region. "
+            "Note: Model attention aligns with central retinal degenerative changes."
         ),
         "Cataract": (
-            "generalized diffuse light scattering and media attenuation obscuring retinal vasculature across all quadrants"
+            "Visual saliency diffusely distributed across fundus field reflecting media attenuation and optical blur. "
+            "Note: Diffuse attention pattern aligns with generalized lens opacity."
         ),
         "Hypertensive Retinopathy / Pathological Myopia": (
-            f"focal arteriolar attenuation, AV crossing nicking, and flame hemorrhages along the {random.choice(quadrants)}"
+            "Visual saliency distributed along main retinal vascular trees. "
+            "Note: Activation pattern highlights vascular caliber variations."
         ),
         "Normal": (
-            "intact neuroretinal rim, crisp foveal avascular zone, and healthy retinal perfusion without focal lesions"
+            "Model attention distributed across physiological retinal landmarks without pathological concentration. "
+            "Normal optic disc, fovea, and background retinal architecture."
         ),
     }
-    return patterns.get(diagnosis, f"mild focal anomalies noted near the {random.choice(quadrants)}")
+    return patterns.get(
+        diagnosis, 
+        "Visual attribution is experimental and not anatomically validated. Review original fundus photography."
+    )

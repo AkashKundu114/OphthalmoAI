@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OphthalmoAI: High-Dimensional Synthetic Patient Bio-Data Generator
-===================================================================
-Generates clinically grounded electronic health record (EHR) profiles
-conditioned on posterior pole ophthalmic pathologies, derived from
-published epidemiological distributions (NHANES, UK Biobank, CDC).
+OphthalmoAI: [QUARANTINED FOR FORENSIC REPRODUCIBILITY - SYNTHETIC_NOT_CLINICAL]
+================================================================================
+CRITICAL AUDIT NOTICE (ISS-02, ISS-03):
+This generator samples electronic health record (EHR) features (HbA1c, SBP, DBP,
+IOP, LogMAR) from Gaussian distributions conditioned directly on the ground-truth
+disease class. This represents circular label leakage.
 
-Bio-Data Schema (12 Dimensions):
-  1. age (years)
-  2. sex (Male / Female)
-  3. eye_laterality (OD / OS)
-  4. hba1c_pct (Glycated Hemoglobin, %)
-  5. systolic_bp (mmHg)
-  6. diastolic_bp (mmHg)
-  7. mean_arterial_pressure (mmHg: DBP + (SBP - DBP) / 3)
-  8. pulse_pressure (mmHg: SBP - DBP)
-  9. intraocular_pressure_mmhg (IOP, mmHg)
- 10. visual_acuity_logmar (LogMAR score: 0.0=20/20, 1.0=20/200)
- 11. diabetes_duration_years (years with diabetes diagnosis)
- 12. smoking_status (Never / Former / Current)
+This file is preserved solely as a quarantined negative control for forensic audit
+reproducibility. It MUST NOT be used in primary model training, validation, or testing.
+OphthalmoAI primary pipelines are strictly vision-only.
 """
+
+import warnings
+warnings.warn(
+    "[QUARANTINE ALERT] generate_patient_biodata.py produces circular label leakage and "
+    "is marked SYNTHETIC_NOT_CLINICAL. It is excluded from all primary pipelines.",
+    UserWarning,
+    stacklevel=2
+)
 
 import os
 import sys

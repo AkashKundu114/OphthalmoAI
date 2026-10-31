@@ -1,46 +1,51 @@
 {
-  "timestamp": "2026-09-23T23:25:11.994247",
+  "timestamp": "2026-10-30T21:17:35.069713",
+  "source": "empirical_v2_clean",
+  "n_calibration": 1389,
+  "n_test": 1389,
   "gamma": 1.0,
   "tau_guard": 0.5,
   "standard_us_crc": {
-    "q_emergency": 0.2157247930812921,
-    "q_routine": 0.1801707783524997,
+    "q_emergency": 0.7234352231025696,
+    "q_routine": 0.31448015570640564,
     "results": {
-      "overall_cov": 0.9664053751399776,
-      "cov_emerg": 0.9856459330143541,
-      "cov_rout": 0.9494736842105264,
-      "mean_set_size": 0.9664053751399776,
-      "singletons_pct": 96.64053751399776,
+      "overall_cov": 0.9827213822894169,
+      "cov_emerg": 0.9930955120828538,
+      "cov_rout": 0.9653846153846154,
+      "mean_set_size": 1.0035997120230382,
+      "singletons_pct": 99.64002879769619,
+      "empty_sets_rate": 0.3599712023038157,
       "tier_set_sizes": {
-        "Grade A": 0.9984732824427481,
-        "Grade B": 0.9290322580645162,
-        "Grade C": 0.7831325301204819
+        "Grade A": 1.0035997120230382,
+        "Grade B": 0.0,
+        "Grade C": 0.0
       },
       "tier_coverage": {
-        "Grade A": 99.84732824427482,
-        "Grade B": 92.90322580645162,
-        "Grade C": 78.3132530120482
+        "Grade A": 98.27213822894169,
+        "Grade B": 0.0,
+        "Grade C": 0.0
       }
     }
   },
   "admissibility_weighted_crc": {
-    "q_emergency": 0.12957761980822846,
-    "q_routine": 0.1209596067409966,
+    "q_emergency": 0.7017321914256115,
+    "q_routine": 0.305540913612796,
     "results": {
-      "overall_cov": 0.9686450167973124,
-      "cov_emerg": 0.9880382775119617,
-      "cov_rout": 0.9515789473684211,
-      "mean_set_size": 0.9686450167973124,
-      "singletons_pct": 96.86450167973123,
+      "overall_cov": 0.9834413246940245,
+      "cov_emerg": 0.9930955120828538,
+      "cov_rout": 0.9673076923076923,
+      "mean_set_size": 1.0100791936645068,
+      "singletons_pct": 98.99208063354932,
+      "empty_sets_rate": 0.5759539236861051,
       "tier_set_sizes": {
-        "Grade A": 0.9770992366412213,
-        "Grade B": 0.9290322580645162,
-        "Grade C": 0.9759036144578314
+        "Grade A": 1.0100791936645068,
+        "Grade B": 0.0,
+        "Grade C": 0.0
       },
       "tier_coverage": {
-        "Grade A": 97.70992366412213,
-        "Grade B": 92.90322580645162,
-        "Grade C": 97.59036144578313
+        "Grade A": 98.34413246940244,
+        "Grade B": 0.0,
+        "Grade C": 0.0
       }
     }
   }
