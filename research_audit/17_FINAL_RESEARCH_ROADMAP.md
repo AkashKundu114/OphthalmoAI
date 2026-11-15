@@ -1,4 +1,4 @@
-# Phase 17: Final Research Roadmap & IEEE ICCECE 2027 Condensation Plan
+﻿# Phase 17: Final Research Roadmap & IEEE ICCECE 2027 Condensation Plan
 
 **Audit Date:** October 30, 2026  
 **Auditing Team:** Independent Multidisciplinary Research Team (10 Personas)  
@@ -141,7 +141,7 @@ To comply with IEEE conference standards, the 25-page draft must be condensed in
 - **Section VII-D: Conclusion (0.4 Column):**
   - Summary of verified contributions and open-source availability.
 - **References (2.0 Columns, bottom):**
-  - Strictly 26–28 high-impact peer-reviewed citations formatted in IEEE style.
+  - Strictly 26-28 high-impact peer-reviewed citations formatted in IEEE style.
 
 ---
 
@@ -151,16 +151,16 @@ The following table catalogs every claim, code file, table, and figure from the 
 
 | # | Artifact / Claim in Draft | Draft Location | Audit Status | Mandatory Action & Justification |
 |---|---|---|---|---|
-| **P1** | **Synthetic Multimodal EHR Synergy** (+2.24% acc boost) | Sec IV-C, Table 7, Lines 560–585 | **INVALID** | **RETRACT ENTIRELY.** Features were circularly sampled from Gaussians conditioned on disease labels (`generate_patient_biodata.py`). Present paper strictly as a vision-only system. |
-| **P2** | **Demographic Fairness Parity** ($\text{DIR} \ge 0.966$, $\Delta_{\text{EO}} = 0.022$) | Sec V-C, Table 8, Lines 640–675 | **INVALID** | **RETRACT ENTIRELY.** Evaluated on synthetic label-correlated age column. Replace with discussion of future multi-center demographic studies. |
-| **P3** | **PASG-GradCAM & Pointing Game** (88.4% pointing game, Dice 0.91) | Sec V-D, Table 9, Lines 680–715 | **UNVERIFIED** | **RETRACT ENTIRELY.** No U-Net or Pointing Game scripts exist. Saliency descriptions were generated via `random.choice(quadrants)`. Replace with standard Grad-CAM on ConvNeXt. |
+| **P1** | **Synthetic Multimodal EHR Synergy** (+2.24% acc boost) | Sec IV-C, Table 7, Lines 560-585 | **INVALID** | **RETRACT ENTIRELY.** Features were circularly sampled from Gaussians conditioned on disease labels (`generate_patient_biodata.py`). Present paper strictly as a vision-only system. |
+| **P2** | **Demographic Fairness Parity** ($\text{DIR} \ge 0.966$, $\Delta_{\text{EO}} = 0.022$) | Sec V-C, Table 8, Lines 640-675 | **INVALID** | **RETRACT ENTIRELY.** Evaluated on synthetic label-correlated age column. Replace with discussion of future multi-center demographic studies. |
+| **P3** | **PASG-GradCAM & Pointing Game** (88.4% pointing game, Dice 0.91) | Sec V-D, Table 9, Lines 680-715 | **UNVERIFIED** | **RETRACT ENTIRELY.** No U-Net or Pointing Game scripts exist. Saliency descriptions were generated via `random.choice(quadrants)`. Replace with standard Grad-CAM on ConvNeXt. |
 | **P4** | **Claim of 97.23% Top-1 Accuracy** | Abstract, Sec I, `README.md` | **CONTRADICTED** | **REPLACE with verified 89.77% on $n=2,249$ clean test set.** Document the 97.23% figure strictly as a contaminated negative control demonstrating patient leakage bias (+7.46%). |
-| **P5** | **Simulated 2,500 OOD Stress Corpus** | Sec V-B, Lines 610–635 | **PARTIALLY VERIFIED** | **REVISE.** Acknowledge that the 2,500 negative stress corpus in `reproduce_evaluation.py` is a hardcoded table. Present the 7/7 unit test intercept results and the 0.00% False Rejection Rate on 2,249 clinical scans. |
-| **P6** | **Fictitious Benchmark Sourcing** (Messidor-2, EyePACS, REFUGE, STARE) | Sec IV-A, Lines 480–505 | **CONTRADICTED** | **REVISE.** State truthfully that 72% of base data was imported from `Peacein/color-fundus-eye` on Hugging Face, alongside verified subsets of ODIR-5K, APTOS, IDRiD, and RIM-ONE DL. |
-| **P7** | **External Specificity Collapse Spin** ("100% human review trigger") | Sec VI-A, Lines 740–765 | **CONTRADICTED** | **REWRITE WITH SCIENTIFIC TRANSPARENCY.** Do not spin 16.42% (IDRiD) and 1.05% (RIM-ONE DL) specificity as a feature. Frame it as severe zero-shot domain shift under dark-aperture camera sensors. |
-| **P8** | **Conformal Empty Sets Omission** (3.14% null sets) | Sec III-D, Lines 410–445 | **CONTRADICTED** | **FORMALIZE RESOLUTION.** Explicitly report the 3.14% empty set rate and formalize the fallback rule: $\mathcal{C}^*(X) = \mathcal{C}(X) \cup \{\text{Referral}\}$ whenever $|\mathcal{C}(X)| = 0$. |
+| **P5** | **Simulated 2,500 OOD Stress Corpus** | Sec V-B, Lines 610-635 | **PARTIALLY VERIFIED** | **REVISE.** Acknowledge that the 2,500 negative stress corpus in `reproduce_evaluation.py` is a hardcoded table. Present the 7/7 unit test intercept results and the 0.00% False Rejection Rate on 2,249 clinical scans. |
+| **P6** | **Fictitious Benchmark Sourcing** (Messidor-2, EyePACS, REFUGE, STARE) | Sec IV-A, Lines 480-505 | **CONTRADICTED** | **REVISE.** State truthfully that 72% of base data was imported from `Peacein/color-fundus-eye` on Hugging Face, alongside verified subsets of ODIR-5K, APTOS, IDRiD, and RIM-ONE DL. |
+| **P7** | **External Specificity Collapse Spin** ("100% human review trigger") | Sec VI-A, Lines 740-765 | **CONTRADICTED** | **REWRITE WITH SCIENTIFIC TRANSPARENCY.** Do not spin 16.42% (IDRiD) and 1.05% (RIM-ONE DL) specificity as a feature. Frame it as severe zero-shot domain shift under dark-aperture camera sensors. |
+| **P8** | **Conformal Empty Sets Omission** (3.14% null sets) | Sec III-D, Lines 410-445 | **CONTRADICTED** | **FORMALIZE RESOLUTION.** Explicitly report the 3.14% empty set rate and formalize the fallback rule: $\mathcal{C}^*(X) = \mathcal{C}(X) \cup \{\text{Referral}\}$ whenever $|\mathcal{C}(X)| = 0$. |
 | **P9** | **Table 6 Arithmetic Contradiction** (0.9839 vs 0.9914 Macro-AUROC) | Sec V-A, Table 6 | **CONTRADICTED** | **CORRECT TABLE.** Reconcile Macro-AUROC arithmetic mean (0.9839) vs Macro-AUROC across pooled multi-class predictions (0.9914). Publish exact confusion matrix to resolve 147.6 ghost cases. |
-| **P10** | **Enterprise Cloud Infrastructure** (PostgreSQL RLS, Celery, HIPAA) | Sec VII, Appendices, Lines 850–920 | **PROPOSED** | **EVICT FROM PAPER.** Code belongs in engineering documentation or supplementary software repository. Not suitable for an 8-page IEEE conference paper. |
+| **P10** | **Enterprise Cloud Infrastructure** (PostgreSQL RLS, Celery, HIPAA) | Sec VII, Appendices, Lines 850-920 | **PROPOSED** | **EVICT FROM PAPER.** Code belongs in engineering documentation or supplementary software repository. Not suitable for an 8-page IEEE conference paper. |
 
 ---
 
@@ -286,12 +286,12 @@ All experimental metrics in the paper must be rendered using LaTeX macros define
 
 | Milestone | Target Dates | Work Package | Deliverables & Verification Gates |
 |---|---|---|---|
-| **Phase I: Codebase Cleanup** | Nov 1 – Nov 10, 2026 | Purge synthetic scripts, update documentation, isolate clean test manifests | Clean repo state; `README.md` and `docs/MODEL_CARD.md` updated with verified metrics. |
-| **Phase II: Empirical Suite** | Nov 11 – Nov 25, 2026 | Execute Experiments E1 through E6 on workstation GPU | Generated evaluation JSONs; empirical Pointing Game on IDRiD; OOF meta-classifier weights. |
-| **Phase III: Macro Alignment** | Nov 26 – Dec 05, 2026 | Synchronize `numbers.tex` and generate publication-quality vector plots | High-res EPS/PDF figures (Reliability diagrams, ROC curves, architecture schematic). |
-| **Phase IV: 8-Page Drafting** | Dec 06 – Dec 20, 2026 | Draft `main.tex` in `D:\OphthalmoAI-Paper` following the 8-page budget | Fully formatted 8-page IEEE conference manuscript adhering strictly to layout limits. |
-| **Phase V: Mock Peer Review** | Dec 21 – Dec 31, 2026 | Automated review via CodeRabbit CLI and independent auditor checklist | Zero formatting violations; zero unverified claims; all mathematical proofs validated. |
-| **Phase VI: Final Submission** | Jan 01 – Jan 15, 2027 | Camera-ready package preparation, arXiv preprint release, IEEE submission | Final submission to ICCECE 2027 portal with complete reproducibility package. |
+| **Phase I: Codebase Cleanup** | Nov 1 - Nov 10, 2026 | Purge synthetic scripts, update documentation, isolate clean test manifests | Clean repo state; `README.md` and `docs/MODEL_CARD.md` updated with verified metrics. |
+| **Phase II: Empirical Suite** | Nov 11 - Nov 25, 2026 | Execute Experiments E1 through E6 on workstation GPU | Generated evaluation JSONs; empirical Pointing Game on IDRiD; OOF meta-classifier weights. |
+| **Phase III: Macro Alignment** | Nov 26 - Dec 05, 2026 | Synchronize `numbers.tex` and generate publication-quality vector plots | High-res EPS/PDF figures (Reliability diagrams, ROC curves, architecture schematic). |
+| **Phase IV: 8-Page Drafting** | Dec 06 - Dec 20, 2026 | Draft `main.tex` in `D:\OphthalmoAI-Paper` following the 8-page budget | Fully formatted 8-page IEEE conference manuscript adhering strictly to layout limits. |
+| **Phase V: Mock Peer Review** | Dec 21 - Dec 31, 2026 | Automated review via CodeRabbit CLI and independent auditor checklist | Zero formatting violations; zero unverified claims; all mathematical proofs validated. |
+| **Phase VI: Final Submission** | Jan 01 - Jan 15, 2027 | Camera-ready package preparation, arXiv preprint release, IEEE submission | Final submission to ICCECE 2027 portal with complete reproducibility package. |
 
 ---
 

@@ -1,4 +1,4 @@
-# Novelty and Related Work Scientific Audit — OphthalmoAI
+﻿# Novelty and Related Work Scientific Audit â€” OphthalmoAI
 
 **Document ID:** `NOVELTY_AND_RELATED_WORK_AUDIT.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
@@ -47,7 +47,7 @@ The primary contribution of this work is **not** an incremental claim of raw mul
   - Fu et al. (2019) *Evaluation of Retinal Image Quality via Deep Learning: A Multi-Center Study* (EyeQuality), *IEEE Transactions on Medical Imaging* \cite{fu2019eyequality}.
   - Shen et al. (2021) deep IQA architectures.
 - **Comparison to OphthalmoAI:**
-  - *Prior State-of-the-Art (EyeQuality):* Uses multi-task deep neural networks (e.g., DenseNet or ResNet) to predict gradability (Good, Usable, Reject) and lesion clarity. While accurate, deep IQA models require dedicated GPU inference, consume 50–150 ms per image, and themselves remain vulnerable to out-of-distribution adversarial failures (e.g., a chest X-ray or blank wall can be misclassified as "gradable fundus").
+  - *Prior State-of-the-Art (EyeQuality):* Uses multi-task deep neural networks (e.g., DenseNet or ResNet) to predict gradability (Good, Usable, Reject) and lesion clarity. While accurate, deep IQA models require dedicated GPU inference, consume 50â€“150 ms per image, and themselves remain vulnerable to out-of-distribution adversarial failures (e.g., a chest X-ray or blank wall can be misclassified as "gradable fundus").
   - *OphthalmoAI Tier-0 Guardrail:* Operates strictly on the host CPU in $5.87\,\mathrm{ms}$ (P50) without loading neural network weights. It enforces fundamental optical invariants of telecentric fundus camera systems:
     1. Circular aperture mask geometry ($\mathcal{A}_{\mathrm{geom}}$): validates dark background ratio and convex circular hull fitting.
     2. Hemoglobin-melanin absorption spectroscopy ($\mathcal{C}_{\mathrm{spec}}$): validates the physiological red-to-green reflectance ratio $\mu_R / \mu_G \in [1.25, 2.50]$ and blue light suppression $\mu_B / \mu_R < 0.45$.
@@ -77,7 +77,7 @@ The primary contribution of this work is **not** an incremental claim of raw mul
 
 ## 3. Contribution-by-Contribution Deep Audit (Section I-A)
 
-We dissect each claimed contribution in `paper_revised.tex` (Section I-A, lines 53–63):
+We dissect each claimed contribution in `paper_revised.tex` (Section I-A, lines 53â€“63):
 
 ### Contribution 1: Deterministic Biophysical Optical Guardrail (Tier-0)
 > *"A deterministic, CPU-bound biophysical optical guardrail evaluating telecentric aperture geometry, hemoglobin-melanin absorption spectroscopy, and structural variance, achieving 100.0% distractor rejection specificity across seven non-fundus modalities in 5.87 ms on host CPU."*
@@ -133,22 +133,22 @@ We audited all 16 citations in `research/paper_revised.tex` and confirmed their 
 
 | Citation Key in `paper_revised.tex` | Full Authors | Title | Venue | Year | Verification Status |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| `gulshan2016development` | V. Gulshan, L. Peng, M. Coram, et al. | *Development and validation of a deep learning algorithm for detection of diabetic retinopathy in retinal fundus photographs* | JAMA, 316(22):2402–2410 | 2016 | **VERIFIED** |
-| `ting2017development` | D. S. W. Ting, C. M. G. Cheung, G. Lim, et al. | *Development and validation of a deep learning system for diabetic retinopathy and related eye diseases using retinal images...* | JAMA, 318(22):2211–2223 | 2017 | **VERIFIED** |
+| `gulshan2016development` | V. Gulshan, L. Peng, M. Coram, et al. | *Development and validation of a deep learning algorithm for detection of diabetic retinopathy in retinal fundus photographs* | JAMA, 316(22):2402â€“2410 | 2016 | **VERIFIED** |
+| `ting2017development` | D. S. W. Ting, C. M. G. Cheung, G. Lim, et al. | *Development and validation of a deep learning system for diabetic retinopathy and related eye diseases using retinal images...* | JAMA, 318(22):2211â€“2223 | 2017 | **VERIFIED** |
 | `hendrycks2017baseline` | D. Hendrycks, K. Gimpel | *A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks* | ICLR | 2017 | **VERIFIED** |
 | `porwal2020idrid` | P. Porwal, S. Pachade, R. Kamble, et al. | *Indian Diabetic Retinopathy Image Dataset (IDRiD): A Database for Diabetic Retinopathy Screening Research* | Data, 5(3):77 | 2020 | **VERIFIED** |
-| `fumero2011rim` | F. Fumero, S. Alayón, J. L. Sanchez, et al. | *RIM-ONE: An open retinal image database for optic nerve evaluation* | IEEE CBMS, pp. 1–6 | 2011 | **VERIFIED** |
-| `zhou2023foundation` | Y. Zhou, M. A. Chia, S. K. Wagner, et al. | *A foundation model for generalizable disease detection from retinal images* | Nature, 622:156–163 | 2023 | **VERIFIED** |
-| `fu2019eyequality` | H. Fu, B. Wang, J. Shen, et al. | *Evaluation of Retinal Image Quality via Deep Learning: A Multi-Center Study* | IEEE Trans. Med. Imaging, 38(8):1936–1948 | 2019 | **VERIFIED** (Replaced invalid key `shen2021eyequality`) |
-| `guo2017calibration` | C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger | *On calibration of modern neural networks* | ICML, PMLR 70:1321–1330 | 2017 | **VERIFIED** |
+| `fumero2011rim` | F. Fumero, S. AlayÃ³n, J. L. Sanchez, et al. | *RIM-ONE: An open retinal image database for optic nerve evaluation* | IEEE CBMS, pp. 1â€“6 | 2011 | **VERIFIED** |
+| `zhou2023foundation` | Y. Zhou, M. A. Chia, S. K. Wagner, et al. | *A foundation model for generalizable disease detection from retinal images* | Nature, 622:156â€“163 | 2023 | **VERIFIED** |
+| `fu2019eyequality` | H. Fu, B. Wang, J. Shen, et al. | *Evaluation of Retinal Image Quality via Deep Learning: A Multi-Center Study* | IEEE Trans. Med. Imaging, 38(8):1936â€“1948 | 2019 | **VERIFIED** (Replaced invalid key `shen2021eyequality`) |
+| `guo2017calibration` | C. Guo, G. Pleiss, Y. Sun, K. Q. Weinberger | *On calibration of modern neural networks* | ICML, PMLR 70:1321â€“1330 | 2017 | **VERIFIED** |
 | `vovk2005algorithmic` | V. Vovk, A. Gammerman, G. Shafer | *Algorithmic Learning in a Random World* | Springer | 2005 | **VERIFIED** |
 | `angelopoulos2021gentle` | A. N. Angelopoulos, S. Bates | *A gentle introduction to conformal prediction and distribution-free uncertainty quantification* | NeurIPS Tutorial / arXiv | 2021 | **VERIFIED** |
 | `bates2021distribution` | S. Bates, A. Angelopoulos, L. Lei, et al. | *Distribution-Free, Risk-Controlling Prediction Sets* | J. ACM / arXiv:2101.02703 | 2021 | **VERIFIED** |
-| `romano2020classification` | Y. Romano, M. Sesia, E. J. Candès | *Classification with Valid and Adaptive Prediction Sets* | NeurIPS, 33:3510–3522 | 2020 | **VERIFIED** |
-| `liu2022convnet` | Z. Liu, H. Mao, C.-Y. Wu, et al. | *A ConvNet for the 2020s* | IEEE CVPR, pp. 11976–11986 | 2022 | **VERIFIED** |
-| `huang2017densely` | G. Huang, Z. Liu, L. van der Maaten, K. Q. Weinberger | *Densely Connected Convolutional Networks* | IEEE CVPR, pp. 4700–4708 | 2017 | **VERIFIED** |
-| `tan2021efficientnetv2` | M. Tan, Q. V. Le | *EfficientNetV2: Smaller Models and Faster Training* | ICML, PMLR 139:10096–10106 | 2021 | **VERIFIED** |
-| `adebayo2018sanity` | J. Adebayo, J. Gilmer, M. Muelly, et al. | *Sanity Checks for Saliency Maps* | NeurIPS, 31:9505–9515 | 2018 | **VERIFIED** |
+| `romano2020classification` | Y. Romano, M. Sesia, E. J. CandÃ¨s | *Classification with Valid and Adaptive Prediction Sets* | NeurIPS, 33:3510â€“3522 | 2020 | **VERIFIED** |
+| `liu2022convnet` | Z. Liu, H. Mao, C.-Y. Wu, et al. | *A ConvNet for the 2020s* | IEEE CVPR, pp. 11976â€“11986 | 2022 | **VERIFIED** |
+| `huang2017densely` | G. Huang, Z. Liu, L. van der Maaten, K. Q. Weinberger | *Densely Connected Convolutional Networks* | IEEE CVPR, pp. 4700â€“4708 | 2017 | **VERIFIED** |
+| `tan2021efficientnetv2` | M. Tan, Q. V. Le | *EfficientNetV2: Smaller Models and Faster Training* | ICML, PMLR 139:10096â€“10106 | 2021 | **VERIFIED** |
+| `adebayo2018sanity` | J. Adebayo, J. Gilmer, M. Muelly, et al. | *Sanity Checks for Saliency Maps* | NeurIPS, 31:9505â€“9515 | 2018 | **VERIFIED** |
 
 ### Bibliography Cleanup Summary:
 1. **Total Entries in `research/references.bib`:** 73 unique entries (deduplicated from 77).

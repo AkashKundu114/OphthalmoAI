@@ -1,4 +1,4 @@
-# Mathematical and Methodological Review — OphthalmoAI
+# Mathematical and Methodological Review: OphthalmoAI
 
 **Document ID:** `MATHEMATICAL_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  

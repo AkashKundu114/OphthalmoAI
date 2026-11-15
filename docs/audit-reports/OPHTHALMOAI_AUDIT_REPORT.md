@@ -1,4 +1,4 @@
-# Comprehensive Application Audit Report: Project B — OphthalmoAI
+# Comprehensive Application Audit Report: Project B: OphthalmoAI
 
 **Project Name:** OphthalmoAI (AI-Assisted Retinal Pathology Screening & Triage Platform)  
 **Target Repository:** `d:\OphthalmoAI`  

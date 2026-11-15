@@ -1,4 +1,4 @@
-# OphthalmoAI — Technical Debt & Issues Log
+# OphthalmoAI: Technical Debt & Issues Log
 
 This log tracks architectural items, resolved engineering blockers, and ongoing operational maintenance for OphthalmoAI, maintained by **Akash Kundu**.
 

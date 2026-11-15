@@ -1,4 +1,4 @@
-# Phase 8 Audit Report: Explainability, Saliency Grounding & Clinical Attribution
+﻿# Phase 8 Audit Report: Explainability, Saliency Grounding & Clinical Attribution
 
 **Document Reference:** `research_audit/09_EXPLAINABILITY_AUDIT.md`  
 **Auditor:** Senior Clinical AI Safety, Ophthalmic Imaging, and Medical AI Auditor  
@@ -49,7 +49,7 @@ Table VIII reports:
 - Latency: **18.5 ms**
 
 ### 1.2 Forensic Inspection of `backend/services/explanation_service.py`
-We inspected lines 1–96 of [`backend/services/explanation_service.py`](file:///d:/OphthalmoAI/backend/services/explanation_service.py):
+We inspected lines 1-96 of [`backend/services/explanation_service.py`](file:///d:/OphthalmoAI/backend/services/explanation_service.py):
 1. **Grad-CAM Execution:**
    ```python
    from pytorch_grad_cam import GradCAM
@@ -63,7 +63,7 @@ We inspected lines 1–96 of [`backend/services/explanation_service.py`](file://
 2. **Missing Energy Calculations:**
    There is **no calculation of $\eta_{\text{macula}}$ or $\eta_{\text{disc}}$** anywhere in `explanation_service.py`, `backend/`, `scripts/`, or `models/`.
 3. **Mocked Spatial Description:**
-   Lines 66–95 define `generate_spatial_description(diagnosis)`:
+   Lines 66-95 define `generate_spatial_description(diagnosis)`:
    ```python
    def generate_spatial_description(diagnosis: str) -> str:
        quadrants = [
@@ -106,7 +106,7 @@ corneal_ratio = round(float(overlap / active_pixels) * 100.0, 1)
 sclera_mask = ((1 - iris_mask) == 1) & (L > 90)
 scleral_icterus = round(float(np.mean(np.maximum(0, sclera_b)) / 12.8), 2)
 ```
-Lines 141–154 then format these biomarkers into prompt context for an LLM:
+Lines 141-154 then format these biomarkers into prompt context for an LLM:
 - `- Corneal / Iris Involvement: {corneal}%`
 - `- Vascular Erythema Index: {erythema} (conjunctival/ciliary injection severity)`
 - `- Scleral Icterus Yellowness Index: {icterus}`
@@ -171,7 +171,7 @@ We audited [`backend/vector_search.py`](file:///d:/OphthalmoAI/backend/vector_se
    - `REF-NORM-001` (Normal)
    There is no historical database of thousands of real patient encounters.
 2. **Embedding Generation Mechanism:**
-   Lines 83–96 implement `_generate_synthetic_class_embedding()`:
+   Lines 83-96 implement `_generate_synthetic_class_embedding()`:
    ```python
    def _generate_synthetic_class_embedding(
        class_index: int, dim: int = 512, seed: int | None = None
@@ -187,7 +187,7 @@ We audited [`backend/vector_search.py`](file:///d:/OphthalmoAI/backend/vector_se
    ```
    **Embeddings are not extracted from EfficientNet-B4.** They are generated from synthetic Gaussian random noise (`rng.randn(512)`) with a static $+6.0$ offset added to the subspace slice corresponding to `class_index`.
 3. **Query Vector Synthesis:**
-   Lines 119–146 implement `extract_embedding_from_probabilities()`:
+   Lines 119-146 implement `extract_embedding_from_probabilities()`:
    ```python
    query_vec = np.zeros(self.dim, dtype=np.float32)
    for c_idx, w in enumerate(weights):

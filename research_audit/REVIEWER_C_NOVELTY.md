@@ -1,4 +1,4 @@
-# IEEE Conference Peer Review Report — Reviewer C (Novelty & Significance)
+﻿# IEEE Conference Peer Review Report :  Reviewer C (Novelty & Significance)
 
 **Reviewer Identity:** Reviewer C (IEEE Reviewer / Novelty, Computer Vision & Biomedical AI Specialist)  
 **Manuscript Title:** Quality-Aware Conformal Screening for Retinal Fundus Imaging Under Optical Domain Shift  

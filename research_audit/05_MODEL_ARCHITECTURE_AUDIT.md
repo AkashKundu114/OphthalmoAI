@@ -1,4 +1,4 @@
-# Phase 4: Model Architecture, Inductive Biases & Stacking Meta-Classifier Audit
+﻿# Phase 4: Model Architecture, Inductive Biases & Stacking Meta-Classifier Audit
 
 **Audit Date:** October 30, 2026  
 **Auditor:** Senior Computer Vision, Deep Learning & Reproducibility Auditor  
@@ -86,7 +86,7 @@ The scientific hypothesis asserted in the manuscript (`research/manuscript.tex`:
 ## 4. Deep Forensic Audit of the Stacking Meta-Classifier
 
 ### 4.1 Implementation Code Architecture
-In `scripts/train_ensemble.py` (lines 91–125), the stacking meta-classifier network is defined as:
+In `scripts/train_ensemble.py` (lines 91-125), the stacking meta-classifier network is defined as:
 ```python
 class RetinalMetaEnsemble(nn.Module):
     def __init__(self, convnext_model, densenet_model, efficientnet_model, num_classes=6):
@@ -121,10 +121,10 @@ class RetinalMetaEnsemble(nn.Module):
 A core question in machine learning auditing is: **Was the meta-classifier trained on Out-Of-Fold (OOF) cross-validation predictions, or in-sample predictions?**
 
 - **Forensic Inspection of `scripts/train_ensemble.py`:**
-  1. Lines 302–307 prepare `train_loader` using `prepare_fundus_dataloaders()`.
+  1. Lines 302-307 prepare `train_loader` using `prepare_fundus_dataloaders()`.
   2. `train_loader` streams from `train_manifest` (`train_augmented_40k.csv` or `train_patient_clean.csv`).
   3. The base backbones (`convnext_small.pth`, `densenet201.pth`, `efficientnet_v2_m.pth`) were **already fine-tuned on this exact training data**.
-  4. In `train_one_epoch` (lines 183–220), training images are passed through the frozen base backbones to generate logits, which are then passed into `self.meta_classifier`.
+  4. In `train_one_epoch` (lines 183-220), training images are passed through the frozen base backbones to generate logits, which are then passed into `self.meta_classifier`.
   5. **Audit Finding:** The meta-classifier was trained on **in-sample predictions**, NOT Out-of-Fold (OOF) cross-validation predictions. There is no $K$-fold cross-validation loop generating out-of-sample holdout logits for the training split.
 
 ### 4.3 Risk of In-Sample Overfitting & Calibration Shrinkage Assessment
@@ -165,7 +165,7 @@ The table below contrasts the two ensemble aggregation strategies:
 | **Production Serving Deployment** | **ACTIVE in `backend/routes/screening.py`** | Standalone Script & Research Checkpoint | **Production serving defaults to temperature-scaled soft-voting**. |
 
 ### Crucial Production Serving Discovery:
-Inspection of `backend/routes/screening.py` (lines 233–247) reveals how the live FastAPI service executes ensemble inference:
+Inspection of `backend/routes/screening.py` (lines 233-247) reveals how the live FastAPI service executes ensemble inference:
 ```python
 if len(ensemble_models) >= 3:
     probs_list = []

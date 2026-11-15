@@ -1,4 +1,4 @@
-# LOOP 00 — REPOSITORY INVENTORY & AUDIT BASELINE
+﻿# LOOP 00 :  REPOSITORY INVENTORY & AUDIT BASELINE
 
 **Audit Run Date**: 2026-10-31  
 **Repository Root**: `d:\OphthalmoAI`  
@@ -194,15 +194,15 @@ d:\OphthalmoAI\
 
 | Claim ID | Claimed Value | Source Location | Audit Priority | Verification Status |
 |---|---|---|---|---|
-| **CLM-01** | Meta-Ensemble Accuracy: 98.70% (1,371/1,389) | `research/numbers_revised.tex` | CRITICAL | UNVERIFIED — Requires independent re-evaluation |
-| **CLM-02** | Macro AUROC: 0.9985 | `research/numbers_revised.tex` | CRITICAL | UNVERIFIED — Requires recalculation from raw probabilities |
-| **CLM-03** | Zero Data Leakage Across v2 Splits | `research/manuscript.tex` | CRITICAL | UNVERIFIED — Requires SHA-256 & perceptual hash cross-check |
-| **CLM-04** | Patient-Level Independence | `research/manuscript.tex` | HIGH | CONTRADICTED — Source Kaggle CFE dataset lacks clinical patient IDs |
-| **CLM-05** | AW-CRC Coverage: Emergency 99.31%, Routine 96.73% | `research/numbers_revised.tex` | HIGH | SUSPECT — Code replaces empty prediction sets with argmax before evaluating coverage |
-| **CLM-06** | Meta-Ensemble Superiority over Soft-Voting | `research/numbers_revised.tex` | HIGH | CONTRADICTED — McNemar p-value = 0.6875 indicates no statistically significant difference |
-| **CLM-07** | External Generalization (IDRiD / RIM-ONE) | `research/numbers_revised.tex` | HIGH | CONTRADICTED — Specificity collapsed to 16.42% (IDRiD) and 1.05% (RIM-ONE); 100% referral rate |
-| **CLM-08** | Edge ONNX Model Parity & Latency (1.57 ms) | `research/numbers_revised.tex` | MEDIUM | UNVERIFIED — Must benchmark on live hardware |
-| **CLM-09** | Grad-CAM Adebayo Sanity Check ($r = -0.0818$) | `research/numbers_revised.tex` | MEDIUM | UNVERIFIED — Requires live parameter randomization execution |
+| **CLM-01** | Meta-Ensemble Accuracy: 98.70% (1,371/1,389) | `research/numbers_revised.tex` | CRITICAL | UNVERIFIED :  Requires independent re-evaluation |
+| **CLM-02** | Macro AUROC: 0.9985 | `research/numbers_revised.tex` | CRITICAL | UNVERIFIED :  Requires recalculation from raw probabilities |
+| **CLM-03** | Zero Data Leakage Across v2 Splits | `research/manuscript.tex` | CRITICAL | UNVERIFIED :  Requires SHA-256 & perceptual hash cross-check |
+| **CLM-04** | Patient-Level Independence | `research/manuscript.tex` | HIGH | CONTRADICTED :  Source Kaggle CFE dataset lacks clinical patient IDs |
+| **CLM-05** | AW-CRC Coverage: Emergency 99.31%, Routine 96.73% | `research/numbers_revised.tex` | HIGH | SUSPECT :  Code replaces empty prediction sets with argmax before evaluating coverage |
+| **CLM-06** | Meta-Ensemble Superiority over Soft-Voting | `research/numbers_revised.tex` | HIGH | CONTRADICTED :  McNemar p-value = 0.6875 indicates no statistically significant difference |
+| **CLM-07** | External Generalization (IDRiD / RIM-ONE) | `research/numbers_revised.tex` | HIGH | CONTRADICTED :  Specificity collapsed to 16.42% (IDRiD) and 1.05% (RIM-ONE); 100% referral rate |
+| **CLM-08** | Edge ONNX Model Parity & Latency (1.57 ms) | `research/numbers_revised.tex` | MEDIUM | UNVERIFIED :  Must benchmark on live hardware |
+| **CLM-09** | Grad-CAM Adebayo Sanity Check ($r = -0.0818$) | `research/numbers_revised.tex` | MEDIUM | UNVERIFIED :  Requires live parameter randomization execution |
 
 ---
 

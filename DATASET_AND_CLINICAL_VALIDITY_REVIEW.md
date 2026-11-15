@@ -1,4 +1,4 @@
-# Dataset and Clinical Validity Review — OphthalmoAI
+# Dataset and Clinical Validity Review: OphthalmoAI
 
 **Document ID:** `DATASET_AND_CLINICAL_VALIDITY_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
@@ -33,7 +33,7 @@ The raw dataset was constructed by aggregating public fundus repositories, prima
 | **Identical Label Duplicates** | 884 | 1,768 | 7.90% | Deduplicated (retained single canonical instance, quarantined copies) |
 | **Conflicting Label Duplicates** | 776 | 6,709 | 29.99% | Quarantined permanently in `excluded_samples_v2.csv` (unresolvable ground truth) |
 | **Total Quarantined / Excluded** | **1,660** | **8,477** | **37.86%** | **Excised completely from training and evaluation** |
-| **Pristine Clean Corpus (V2)** | — | **13,892** | **62.14%** | **Formed manifest_v2.csv** |
+| **Pristine Clean Corpus (V2)** | N/A | **13,892** | **62.14%** | **Formed manifest_v2.csv** |
 
 - **Verification:** The quarantine list `dataset/processed/excluded_samples_v2.csv` stores the exact filename, relative path, SHA-256 hash, dHash value, raw labels, and exclusion rationale for all 8,477 excluded samples. Zero excluded samples appear in the clean splits.
 
@@ -96,7 +96,7 @@ The clinical classification taxonomy harmonizes raw source labels into five clin
 In Table III of `paper_revised.tex`, Class 5 is listed with support $n=0$:
 - **Clinical Rationale:** The raw datasets contained poorly annotated cases labeled "Other/O" or conflating hypertensive retinopathy, pathological myopia, and retinal detachment without expert verification. To preserve clinical rigor, these ambiguous cases were quarantined.
 - **Architectural Retention:** The model classification heads retain 6 output logits to preserve compatibility with existing trained model weights (`meta_classifier_gpu.pth`, `convnext_small.pth`, `densenet201.pth`, `gpu_efficientnet_v2_m.pth`).
-- **Audit Cross-Check:** On the sealed clean test cohort, zero cases belong to Class 5, and the sum of support across Classes 0–4 equals exactly $386 + 482 + 361 + 134 + 26 = 1,389$ samples.
+- **Audit Cross-Check:** On the sealed clean test cohort, zero cases belong to Class 5, and the sum of support across Classes 0-4 equals exactly $386 + 482 + 361 + 134 + 26 = 1,389$ samples.
 
 ---
 
@@ -144,4 +144,4 @@ We cross-check Table III of `paper_revised.tex`:
 
 ## 8. Conclusion
 
-The dataset and clinical validation audit confirms that OphthalmoAI has been purged of legacy synthetic artifacts and unverified multi-modal claims. The V2 dataset ($N = 13,892$) is forensically deduplicated, strictly partitioned, and arithmetically reconciled with zero ghost cases. Clinical limitations—including the lack of hospital EHR accession numbers on public web archives and low AMD sample prevalence—are prominently and defensibly disclosed in Section VII of the manuscript.
+The dataset and clinical validation audit confirms that OphthalmoAI has been purged of legacy synthetic artifacts and unverified multi-modal claims. The V2 dataset ($N = 13,892$) is forensically deduplicated, strictly partitioned, and arithmetically reconciled with zero ghost cases. Clinical limitations (including the lack of hospital EHR accession numbers on public web archives and low AMD sample prevalence) are prominently and defensibly disclosed in Section VII of the manuscript.

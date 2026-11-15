@@ -4,6 +4,7 @@
 *A calibrated vision ensemble with post-hoc temperature scaling, dedicated Grad-CAM explainability, pre-inference optical domain guardrails, client-side ONNX Runtime Web edge inference, and multi-tenant clinic architecture.*
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Release: v0.1.0-alpha](https://img.shields.io/badge/Release-v0.1.0--alpha-blue.svg)](https://github.com/AkashKundu114/OphthalmoAI/releases/tag/v0.1.0-alpha)
 [![Author: Akash Kundu](https://img.shields.io/badge/Author-Akash%20Kundu-blue.svg)](https://github.com/AkashKundu114)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2%2B-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
@@ -46,11 +47,11 @@ All performance metrics reported below represent real, measured evaluations on s
 | **Overall Classification Accuracy** | **97.23%** | [96.12%, 98.24%] | Held-out validation split ($n=938$, 1000 bootstrap iterations) |
 | **Macro-Averaged AUROC** | **0.999** | [0.997, 1.000] | Multi-class One-vs-Rest ROC curve integration |
 | **Macro F1-Score** | **97.04%** | [95.88%, 98.11%] | Harmonic mean of class precision and recall |
-| **Pre-Calibration ECE** | **0.0845** | — | Raw softmax distribution prior to temperature scaling |
-| **Post-Calibration ECE (Platt $T$)** | **0.0312** | — | 15-bin equal-width Expected Calibration Error |
-| **Multi-Seed Robustness** | **85.18% ± 0.17%** | — | Evaluated across 5 independent random seeds |
+| **Pre-Calibration ECE** | **0.0845** | N/A | Raw softmax distribution prior to temperature scaling |
+| **Post-Calibration ECE (Platt $T$)** | **0.0312** | N/A | 15-bin equal-width Expected Calibration Error |
+| **Multi-Seed Robustness** | **85.18% ± 0.17%** | N/A | Evaluated across 5 independent random seeds |
 | **External Validation Sensitivity (IDRiD)** | **99.64%** | [98.8%, 100.0%] | Independent real-world clinical cohort |
-| **Out-of-Distribution Escalation (RIM-ONE DL)** | **100.0%** | — | Automated review gate on non-canonical disc crops |
+| **Out-of-Distribution Escalation (RIM-ONE DL)** | **100.0%** | N/A | Automated review gate on non-canonical disc crops |
 
 ### 2. Measured Inference Latency & Cold Start Telemetry
 

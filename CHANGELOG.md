@@ -1,20 +1,80 @@
 # Changelog: OphthalmoAI
 
-All notable changes to **OphthalmoAI** will be documented in this file.
+All notable changes to **OphthalmoAI** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **Version Note:** Versions prior to `v0.1.0-alpha` reflect internal laboratory development milestones (v2.2.0 through v2.7.0). On October 17, 2026, the project standardized its public release numbering on Semantic Versioning starting with release tag `v0.1.0-alpha`.
+
+---
+
+## [Unreleased] - 2026-10-31
+
+### Research Audit Suite, Dataset Forensics & Serving Alignment
+
+### Added
+- **Dataset Forensics and Corpus Validation**:
+  - Audited the full fundus corpus for duplicates, synthetic biodata, and exact source splits across EyePACS, Messidor-2, APTOS 2019, and IDRiD (`manifest_v2.csv`).
+  - Added dedicated forensic verification tools (`scripts/audit_corpus_duplicates.py`, `scripts/audit_synthetic_biodata.py`, `scripts/inspect_duplicates.py`, `scripts/inspect_raw_categories.py`, `scripts/verify_exact_sources.py`).
+  - Added 17 structured research audit modules under `research_audit/` and synchronized root review documents.
+- **Ensemble Evaluation Refresh**:
+  - Re-evaluated the soft-voting and meta-classifier ensembles on the expanded 2,249-sample test split (`models/evaluation_meta_ensemble.json`, `models/evaluation_meta_ensemble_meta_classifier.json`, `models/evaluation_meta_ensemble_soft_voting.json`).
+- **CI Dependency Management**:
+  - Grouped Dependabot updates and configured rules to ignore major breaking bumps in `.github/dependabot.yml`.
+
+### Changed
+- **Edge ONNX Benchmark Alignment**:
+  - Standardized the ONNX benchmark default input resolution to 224x224 to match the MobileNetV3 edge screening architecture (`backend/onnx_inference.py`).
+  - Refreshed model registry metadata in `models/registry.json`.
+- **Publication Status Harmonization**:
+  - Updated all research documents and audit files to state that the work is an academic research manuscript in preparation, removing premature conference or IEEE submission claims.
+- **Repository Structure Cleanup**:
+  - Reorganized root files into dedicated folders (`docs/`, `.github/`, `deploy/docker/`), removing leftover scratch scripts and emojis from primary documentation.
+
+---
+
+## [v0.1.0-alpha] - 2026-10-17
+
+### Public Research Release Baseline
+
+### Added
+- **Unified Release Versioning**:
+  - Standardized the package version to `0.1.0-alpha` across `pyproject.toml`, `frontend/package.json`, and `backend/main.py`.
+- **Automated Test Suite Expansion (335 Passing Tests)**:
+  - 312 backend Pytest tests across 37 test modules (100% pass rate).
+  - 23 frontend Vitest tests (100% pass rate).
+  - Clean production Vite frontend build (`npm run build`).
+- **Code Quality and Static Analysis**:
+  - Zero mypy type errors across all 52 backend Python source files.
+  - Zero ruff linter warnings across the entire backend codebase.
+- **Supply Chain Security**:
+  - Clean `pip-audit` scan with zero vulnerabilities, removing legacy `python-jose` dependencies.
+  - Zero high or critical `npm audit` security advisories.
+- **Privacy and Data Minimization Defaults**:
+  - Defaulted `PERSIST_SCANS=false` in `backend/config.py` so patient images are processed in volatile RAM buffers and discarded upon response completion.
+  - Automated EXIF and GPS metadata stripping on all uploaded imagery (`backend/security.py`).
+  - Air-gapped system font stack in `frontend/src/index.css`, removing external Google Fonts CDN requests.
+- **Client-Side Edge Screening**:
+  - Browser-native WebAssembly inference via ONNX Runtime Web (`edge_model.onnx`, 224x224), enabling zero-egress offline screening in remote clinics.
+- **Defense-in-Depth Safety Stack**:
+  - 8 runtime safety layers: optical aperture check, chromophore ratio verification, image quality assessment (IQA), Platt temperature scaling ($T \approx 1.15$, ECE 0.0312), adaptive conformal risk prediction sets (AW-CRC, $\alpha=0.05$), epistemic uncertainty quantification, symptom cross-checking, and clinician review gates.
+- **Empirical Clinical Performance**:
+  - 97.23% classification accuracy on held-out test split ($n=938$, 95% CI: [96.12%, 98.24%]).
+  - 0.999 Macro AUROC, 97.04% Macro F1.
+  - 99.64% external sensitivity on the IDRiD cohort.
+  - 100% autonomous escalation on out-of-distribution localized optic disc crops (RIM-ONE DL).
 
 ---
 
 ## [v2.7.0] - 2026-09-29
 
-### Clean Code Architecture, Boundary Hardening & Comprehensive Unit Test Expansion ("Code is Poetry")
+### Clean Code Architecture, Boundary Hardening & Unit Test Expansion
 
-> **Engineered** complete repository modularization, boundary condition hardening, and technical interview readiness **as measured by** 253 total passing automated tests (232 Pytest backend tests in 16.4s + 21 Vitest frontend tests in 3.0s), 100% test pass rate, 0 ESLint errors/warnings, 0.25s execution of the master reproducibility suite, and elimination of 17 obsolete scratch/binary artifacts, **by implementing** single-responsibility modular functions, descriptive domain identifiers, multi-database parameterized tenancy filters (PostgreSQL, MS SQL Server, SQLite), numerical stability safeguards (division-by-zero, log-space clamping, bounded ring buffers), and a dedicated 31-test boundary condition suite.
+Consolidated repository modularization, boundary condition hardening, and technical interview readiness. Verified 253 total passing automated tests (232 Pytest backend tests and 21 Vitest frontend tests) with zero ESLint errors and clean master reproducibility execution.
 
 ### Added
 - **Dedicated Boundary Condition & Edge Case Unit Test Suite (`tests/test_boundary_conditions.py`)**:
-  - 31 automated test cases covering adversarial tenant headers, SQL injection attempts, 0x0/1x1/extreme-aspect images, pure white/black variance anomalies, zero/negative calibration temperatures, zero-request Prometheus quantiles, extreme conformal alphas ($10^{-4}$ and $0.99$), and emergency triage routing.
+  - 31 automated test cases covering adversarial tenant headers, SQL injection attempts, extreme aspect ratio images, pure white and black variance anomalies, non-positive calibration temperatures, zero-request Prometheus quantiles, extreme conformal alphas ($10^{-4}$ and $0.99$), and emergency triage routing.
 - **Multi-Database Tenancy & Format Validation (`backend/tenancy.py`)**:
   - Added `validate_tenant_identifier()` with strict character and length boundaries (`^[a-zA-Z0-9_\-]{3,64}$`).
   - Added fail-closed parameterized row-level isolation compatible with PostgreSQL, MS SQL Server, and SQLite.
@@ -24,21 +84,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Refactored & Cleaned
 - **Frontend Clean Code (`frontend/src/edgeInference.js`, `frontend/src/App.jsx`)**:
-  - Modularized edge inference into focused functions with division guards, RGB clamping, and object URL memory leak revocation.
+  - Modularized edge inference into focused functions with division guards, RGB clamping, and object URL memory cleanup.
   - Added form input boundary constraints for all clinical vitals.
-- **Script Modularization (`scripts/reproduce_evaluation.py`, `scripts/run_statistical_tests.py`, etc.)**:
+- **Script Modularization (`scripts/reproduce_evaluation.py`, `scripts/run_statistical_tests.py`)**:
   - Added zero-dependency analytical fallbacks so reproduction scripts run in headless and policy-restricted environments.
-- **Repository Hygiene & Dead Code Removal**:
-  - Purged 17 obsolete scratch scripts and binary tools (`tools/tectonic/tectonic.exe`, `tools/tectonic/tectonic.zip`, `backend/tests/` legacy folder, local test logs).
-  - Hardened `.gitignore` to prevent any binary, log, or scratch scripts from being tracked.
+- **Repository Hygiene**:
+  - Removed obsolete scratch scripts and binary tools.
+  - Updated `.gitignore` to prevent any binary, log, or scratch scripts from being tracked.
 
 ---
 
 ## [v2.6.0] - 2026-09-17
 
-### Independent External Clinical Validation, Model Adaptation & Script Consolidation
+### Independent External Clinical Validation & Model Adaptation
 
-> **Engineered** independent multi-cohort clinical validation and domain adaptation **as measured by** +5.8% to +8.7% external accuracy surge (reaching 81.55%), 91.30% DR sensitivity, 100% Proliferative DR detection, 100% fail-safe uncertainty escalation on localized optic disc crops, zero internal test regression (preserving 85.18% accuracy / 0.9818 AUROC), and 201 passing automated tests, **by implementing** layer-selective fine-tuning on augmented multi-camera data, re-calibrating Platt scaling temperatures, generating a 5-figure 300 DPI publication visual suite, consolidating operational scripts into a 5-pillar architecture, and authoring a formal clinical validation report.
+Validated the model across independent clinical cohorts and implemented domain adaptation, improving external accuracy to 81.55% with 91.30% DR sensitivity, 100% Proliferative DR detection, and fail-safe uncertainty escalation on localized optic disc crops without regressing internal performance.
 
 ### Added
 - **Independent Multi-Cohort External Benchmarking**:
@@ -73,9 +133,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [v2.5.0] - 2026-09-15
 
-### Production Systems Engineering & Enterprise Upgrades
+### Production Systems Engineering & Enterprise Serving
 
-> **Engineered** enterprise clinical infrastructure and low-latency serving pipelines **as measured by** 2.15x serving acceleration (84.2ms p50 latency), offline-first edge inference (<50ms turnaround), 100% compliance with FDA SaMD fairness metrics, and 190 passing automated tests, **by implementing** ONNX Runtime FP16 quantization, HTML5 Canvas edge execution, async WebSocket task queues, Reinhard domain adaptation, CBMIR vector search, Prometheus/OpenTelemetry observability, and multi-tenant Row-Level Security.
+Implemented enterprise serving infrastructure, including ONNX Runtime FP16 quantization, in-browser edge screening, asynchronous task queuing with WebSocket progress streaming, Reinhard color constancy, and multi-tenant row-level security.
 
 ### Added
 - **Low-Latency ONNX Runtime Serving & Quantization**:

@@ -22,7 +22,7 @@ To establish an uncompromised scientific assessment of generalizability, **Ophth
 </p>
 
 ### Key Clinical Findings:
-1. **Generalization Accuracy Drop (Predicted vs. Empirical)**: On standard 45°–50° posterior pole cameras (IDRiD), screening accuracy was **75.73%** (a 9.45% decrease from the internal 85.18% benchmark), validating the theoretical expectation that medical vision models experience a 5–10% performance drop on unseen external sensors.
+1. **Generalization Accuracy Drop (Predicted vs. Empirical)**: On standard 45°-50° posterior pole cameras (IDRiD), screening accuracy was **75.73%** (a 9.45% decrease from the internal 85.18% benchmark), validating the theoretical expectation that medical vision models experience a 5-10% performance drop on unseen external sensors.
 2. **High Critical Sensitivity**: For vision-threatening and referable diabetic retinopathy, the ensemble demonstrated **85.51% overall DR sensitivity** and **94.7% sensitivity on Severe DR (Stage 3)**.
 3. **Field-of-View (FOV) Mismatch Failure Mode**: On RIM-ONE DL, where fundus photographs are tightly cropped regions-of-interest (292×292) around the optic nerve head, sensitivity collapsed to **6.79%**. This demonstrates that full-field models require complete posterior pole landmarks (macula, fovea, vascular arcades, and optical vignettes) and cannot be deployed on cropped optic disc images without dedicated ROI retraining.
 4. **Clinical Safety Net Validation**: Out-of-distribution uncertainty quantification worked precisely as engineered: **65.05% of IDRiD scans** and **100.00% of RIM-ONE scans** were automatically flagged with `requires_human_review: true`, preventing autonomous diagnostic errors from reaching patients.
@@ -148,7 +148,7 @@ Importantly, layer-selective fine-tuning preserved complete multi-class discrimi
 
 ## 7. Recommendations for Clinical Telemedicine Deployment
 
-1. **Mandatory Site Calibration**: Before deploying OphthalmoAI in a new hospital or telemedicine clinic utilizing an unencountered camera system, acquire a calibration set of 30–50 verified scans to tune the local Platt temperature ($T_{\text{site}}$) and Reinhard color moments.
+1. **Mandatory Site Calibration**: Before deploying OphthalmoAI in a new hospital or telemedicine clinic utilizing an unencountered camera system, acquire a calibration set of 30-50 verified scans to tune the local Platt temperature ($T_{\text{site}}$) and Reinhard color moments.
 2. **Strict Geometric Pre-Screening**: Maintain the Optical Aperture & Chromophore Domain Guardrail (`backend/fundus_validator.py`) to reject tight ROI crops, fluorescein angiograms, and non-mydriatic artifacts before inference.
 3. **Preserve Human-in-the-Loop Protocol**: In community screening settings, any scan generating `requires_human_review: true` must be routed to the asynchronous review queue (`POST /scans/{id}/override`) for licensed optometrist or ophthalmologist confirmation.
 

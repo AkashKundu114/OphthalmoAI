@@ -89,4 +89,4 @@ The following 11 authoritative deliverables have been authored, verified, and pl
 
 ## 5. Final Readiness Verdict
 
-$$\mathbf{READY\ FOR\ SUBMISSION\ —\ FULLY\ SCIENTIFICALLY\ DEFENSIBLE}$$
+$$\mathbf{READY\ FOR\ SUBMISSION:\ FULLY\ SCIENTIFICALLY\ DEFENSIBLE}$$

@@ -1,6 +1,6 @@
-# Phase 12: Component Ablation Study Design & Formal Hypothesis Testing Plan
+﻿# Phase 12: Component Ablation Study Design & Formal Hypothesis Testing Plan
 
-**Audit Stage:** Phase 12 — Architectural Ablations & Empirical Verification Protocol  
+**Audit Stage:** Phase 12 :  Architectural Ablations & Empirical Verification Protocol  
 **Auditor:** Senior Biostatistician & AI Systems Reproducibility Specialist  
 **Engineering Repository:** `D:\OphthalmoAI`  
 **Research Paper Repository:** `D:\OphthalmoAI-Paper`  
@@ -134,7 +134,7 @@ Does post-hoc Platt temperature scaling fitted on holdout validation logits sign
 - **Output Artifacts:** `models/calibration.json`, `models/extended_clinical_battery_report.json`.
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 47–58) and `05_experiment_results.md` (Lines 49–59):
+- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 47-58) and `05_experiment_results.md` (Lines 49-59):
   - Optimal temperatures converged: DenseNet (1.1799), ConvNeXt (1.2073), EfficientNet-V2-M (1.2097).
   - Uncalibrated Soft-Voting ECE = **0.0760** (Brier = 0.1582).
   - Post-Backbone Temperature Scaling ECE = **0.0381** (Brier = 0.1340).
@@ -181,7 +181,7 @@ Does conditioning non-conformity scores on biophysical optical clarity $S(X)$ in
 - **Output Artifacts:** `models/aw_crc_calibration.json`.
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 80–88) and `models/aw_crc_calibration.json`:
+- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 80-88) and `models/aw_crc_calibration.json`:
   - Grade C Media Coverage under Standard US-CRC: **78.31%** (Severe Undercoverage Failure).
   - Grade C Media Coverage under Proposed AW-CRC: **97.59%** (Restored Coverage, McNemar $p = 1.0 \times 10^{-6}$).
   - Overall Mean Prediction Set Size: **$1.08 \pm 0.28$** on clear scans, **$2.18 \pm 0.62$** on degraded scans.
@@ -234,7 +234,7 @@ Does a deterministic, pre-GPU biophysical guardrail $\Phi(X)$ evaluating telecen
 - **Output Artifacts:** `research/manuscript.tex` (Lines 1165, 1194).
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Empirically documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 70–79):
+- Empirically documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 70-79):
   - Overall Stress Corpus Interception: **97.84%** (2,446 / 2,500 rejected).
   - Synthetic Noise, Documents, Chest X-rays, Melanoma: **100.0% Rejection**.
   - False Rejection Rate on Clinical Fundus Scans: **0.00%** (0 / 938 falsely rejected).
@@ -272,11 +272,11 @@ Does Pixel-Aligned Saliency Grounding (PASG-GradCAM) significantly improve spati
   $$\eta_{\text{ROI}} = \frac{\iint_{\text{ROI}} L^c(x, y) \, dx dy}{\iint_{\text{Aperture}} L^c(x, y) \, dx dy}$$
 
 #### 7. Execution Protocol & Repositories
-- **Script:** `scripts/generate_all_manuscript_figures.py` (Lines 1045–1068).
+- **Script:** `scripts/generate_all_manuscript_figures.py` (Lines 1045-1068).
 - **Output Artifacts:** `research/manuscript.tex` Table 4 (`tab:saliency_benchmark`).
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `research/manuscript.tex` (Lines 1051–1067):
+- Documented in `research/manuscript.tex` (Lines 1051-1067):
   - Pointing Game Accuracy: Vanilla Grad-CAM 69.2%, Score-CAM 74.8%, Integrated Gradients 78.1%, **PASG-GradCAM 88.4%** ($p < 0.001$).
   - Energy Ratio $\eta_{\text{macula}}$: Grad-CAM 38.4%, Score-CAM 44.1%, IntGrad 49.5%, **PASG-GradCAM 62.8%**.
   - Energy Ratio $\eta_{\text{disc}}$: Grad-CAM 41.2%, Score-CAM 46.8%, IntGrad 51.0%, **PASG-GradCAM 66.4%**.
@@ -295,7 +295,7 @@ Does chromatic normalization (Ben Graham local space color subtraction or Reinha
 
 #### 3. Dataset & Split Specification
 - **External Clinical Dataset:** Indian Diabetic Retinopathy Image Dataset (IDRiD, $N = 413$, Kowa VX-10 camera, Nanded, India).
-- **Subgroups:** 278 Diabetic Retinopathy positive scans (Grades 1–4), 135 normal control retinas (Grade 0).
+- **Subgroups:** 278 Diabetic Retinopathy positive scans (Grades 1-4), 135 normal control retinas (Grade 0).
 
 #### 4. Variables
 - **Independent Variable:** Color adaptation method: Raw unprocessed RGB, Ben Graham method (Gaussian blur subtraction: $I_{\text{bg}} = 4 \cdot I - 4 \cdot \text{Blur}(I, \sigma=10) + 128$), Reinhard color transfer (matching $L\alpha\beta$ mean and standard deviation to target fundus profile).
@@ -319,7 +319,7 @@ Does chromatic normalization (Ben Graham local space color subtraction or Reinha
 - **Output Artifacts:** `models/external_validation_report.json`.
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Empirically documented in `models/external_validation_report.json` (Lines 1–157):
+- Empirically documented in `models/external_validation_report.json` (Lines 1-157):
   - Ben Graham Adaptation: Sensitivity **99.64% [98.91%, 100.0%]**, Specificity **16.42% [10.40%, 22.63%]**, AUROC **0.8005**, ECE **0.4404**.
   - Reinhard Color Transfer: Sensitivity **100.0%**, Specificity **2.99% [0.69%, 6.15%]**, AUROC **0.7230**, ECE **0.2686**.
   - Domain Adaptation AUROC Delta: **$-0.0775$** (Reinhard degrades AUROC by 7.7% relative to Ben Graham).
@@ -359,10 +359,10 @@ Does post-training half-precision (FP16) or integer (INT8) quantization of the m
   python scripts/benchmark_onnx.py
   python scripts/benchmark_latency.py
   ```
-- **Output Artifacts:** `models/edge_model_fp32.onnx`, `D:\OphthalmoAI-Paper\numbers.tex` (Lines 97–103).
+- **Output Artifacts:** `models/edge_model_fp32.onnx`, `D:\OphthalmoAI-Paper\numbers.tex` (Lines 97-103).
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `D:\OphthalmoAI-Paper\numbers.tex` and `05_experiment_results.md` (Lines 111–122):
+- Documented in `D:\OphthalmoAI-Paper\numbers.tex` and `05_experiment_results.md` (Lines 111-122):
   - PyTorch CUDA GPU Latency (p50): **84.2 ms** (Throughput: 11.9 QPS, VRAM: 6.30 GB).
   - ONNX CPU Latency: **12.4 ms** (Throughput: 80.6 QPS, RAM: 142 MB).
   - ONNX WebAssembly Browser Latency: **38.5 ms** ($< 50\text{ ms}$ threshold verified).
@@ -402,7 +402,7 @@ Does the proposed temperature-calibrated tri-backbone ensemble (124.3M parameter
 - **Output Artifacts:** `models/retfound_comparison_report.json`.
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `models/retfound_comparison_report.json` (Lines 1–50) and `research/manuscript.tex` (Lines 1140, 1210):
+- Documented in `models/retfound_comparison_report.json` (Lines 1-50) and `research/manuscript.tex` (Lines 1140, 1210):
   - RETFound ViT-Large Parameters: **303.3M**; Peak VRAM: **2,314 MB**; Latency: **18.3 ms**.
   - RETFound Accuracy: **83.03% [81.41%, 84.62%]** (Ensemble: **89.77%**, $+6.74\%$ margin).
   - RETFound Macro-AUROC: **0.9809 [0.9782, 0.9836]** (Ensemble: **0.9914**, DeLong $p = 2.29 \times 10^{-15}$).
@@ -437,7 +437,7 @@ Does the multimodal integration of electronic health record features (HbA1c, blo
   *Mitigation:* Forensic inspection of generator code in `scripts/generate_patient_biodata.py`.
 
 #### 7. Execution Protocol & Repositories
-- **Script:** `scripts/generate_patient_biodata.py` (Lines 36–90).
+- **Script:** `scripts/generate_patient_biodata.py` (Lines 36-90).
 
 #### 8. Audit Evidence Status: `INVALID` / Retracted
 - **Audit Findings:** In `scripts/generate_patient_biodata.py`, tabular features were sampled directly from Gaussian distributions parameterized by the ground truth disease:
@@ -475,10 +475,10 @@ What is the exact empirical performance inflation caused by random image-level d
 
 #### 7. Execution Protocol & Repositories
 - **Script:** `scripts/split_patient_level.py` & `scripts/reproduce_evaluation.py`
-- **Output Artifacts:** `research/02_data_provenance_and_leakage_audit.md` & `D:\OphthalmoAI-Paper\numbers.tex` (Lines 14–24).
+- **Output Artifacts:** `research/02_data_provenance_and_leakage_audit.md` & `D:\OphthalmoAI-Paper\numbers.tex` (Lines 14-24).
 
 #### 8. Audit Evidence Status: `VERIFIED`
-- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 14–24):
+- Documented in `D:\OphthalmoAI-Paper\numbers.tex` (Lines 14-24):
   - Leaked Split Accuracy: **97.23% [96.1%, 98.2%]**; Macro-AUROC: **0.9990**; Macro-F1: **0.9704**; ECE: **0.0884**.
   - Clean Split Accuracy: **89.77% [88.5%, 91.0%]**; Macro-AUROC: **0.9914**; Macro-F1: **0.9034**; ECE: **0.0263**.
   - Performance Inflation from Contamination: **$+7.46\%$ accuracy** and **$+0.0076$ AUROC** ($Z = 7.12, p = 1.08 \times 10^{-12}$).

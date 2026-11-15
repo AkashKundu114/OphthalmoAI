@@ -1,4 +1,4 @@
-# IEEE Conference Peer Review Report — Reviewer A (Methodology & Systems)
+﻿# IEEE Conference Peer Review Report :  Reviewer A (Methodology & Systems)
 
 **Reviewer Identity:** Reviewer A (IEEE Senior Reviewer / ML & Statistical Systems Specialist)  
 **Manuscript Title:** Quality-Aware Conformal Screening for Retinal Fundus Imaging Under Optical Domain Shift  

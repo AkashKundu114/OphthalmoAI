@@ -10,12 +10,12 @@
 
 ### 1.1 Purpose
 OphthalmoAI is an artificial intelligence-assisted clinical decision-support software designed to analyze digital color fundus photographs of the posterior pole. It classifies retinal imagery across **six primary diagnostic categories**:
-1. **Normal (Healthy Fundus)** — Clear retina, intact neuroretinal rim, crisp foveal reflex.
-2. **Diabetic Retinopathy (DR)** — Microaneurysms, blot hemorrhages, hard exudates, neovascularization (ICD-10: E11.319).
-3. **Glaucoma** — Pathological cup-to-disc ratio ($>0.6$), vertical cup elongation, neuroretinal rim thinning (ICD-10: H40.9).
-4. **Cataract (Media Opacity)** — Diffuse optical scattering and vascular attenuation visible on fundus view (ICD-10: H25.9).
-5. **Age-related Macular Degeneration (AMD)** — Drusen accumulation, geographic atrophy, choroidal neovascularization (ICD-10: H35.30).
-6. **Hypertensive Retinopathy / Pathological Myopia** — Arteriolar attenuation, copper/silver wiring, AV crossing changes, posterior staphyloma (ICD-10: H35.00).
+1. **Normal (Healthy Fundus)**: Clear retina, intact neuroretinal rim, crisp foveal reflex.
+2. **Diabetic Retinopathy (DR)**: Microaneurysms, blot hemorrhages, hard exudates, neovascularization (ICD-10: E11.319).
+3. **Glaucoma**: Pathological cup-to-disc ratio ($>0.6$), vertical cup elongation, neuroretinal rim thinning (ICD-10: H40.9).
+4. **Cataract (Media Opacity)**: Diffuse optical scattering and vascular attenuation visible on fundus view (ICD-10: H25.9).
+5. **Age-related Macular Degeneration (AMD)**: Drusen accumulation, geographic atrophy, choroidal neovascularization (ICD-10: H35.30).
+6. **Hypertensive Retinopathy / Pathological Myopia**: Arteriolar attenuation, copper/silver wiring, AV crossing changes, posterior staphyloma (ICD-10: H35.00).
 
 ### 1.2 Clinical Role: Decision Support, Not Autonomous Diagnosis
 - OphthalmoAI functions strictly as an **adjunctive screening and triage tool** to prioritize patient backlogs in community health, optometric screenings, and telehealth clinics.

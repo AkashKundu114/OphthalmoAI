@@ -1,4 +1,4 @@
-# Phase 11: Systematic Related Work, Prior Art & Novelty Assessment
+﻿# Phase 11: Systematic Related Work, Prior Art & Novelty Assessment
 
 **Audit Date:** October 30, 2026  
 **Auditor:** Skeptical Research Supervisor, Senior Biomedical AI Researcher & IEEE Reviewer  
@@ -24,22 +24,22 @@ This audit executes an uncompromising literature review and novelty analysis of 
 ## 2. Comprehensive State-of-the-Art Literature Survey
 
 ### 2.1 Landmark Clinical AI & Commercial Screening Systems
-- **Gulshan et al. (JAMA 2016; 316(22):2402–2410; DOI: 10.1001/jama.2016.17216):**
+- **Gulshan et al. (JAMA 2016; 316(22):2402-2410; DOI: 10.1001/jama.2016.17216):**
   - *Contribution:* Applied deep convolutional neural networks (Inception-v3) to binary referable diabetic retinopathy (RDR; moderate or worse DR, or diabetic macular edema) across EyePACS ($n=9,963$) and Messidor-2 ($n=1,748$), reporting sensitivities of $97.5\%$ and $96.1\%$, and specificities of $93.4\%$ and $93.9\%$.
-  - *Architectural & Clinical Scope:* Monolithic 2D classification for a single disease entity; high reliance on consensus adjudication (7–8 US board-certified ophthalmologists). Output was an uncalibrated point softmax probability without finite-sample error guarantees.
-- **Ting et al. (JAMA 2017; 318(22):2211–2223; DOI: 10.1001/jama.2017.18152):**
+  - *Architectural & Clinical Scope:* Monolithic 2D classification for a single disease entity; high reliance on consensus adjudication (7-8 US board-certified ophthalmologists). Output was an uncalibrated point softmax probability without finite-sample error guarantees.
+- **Ting et al. (JAMA 2017; 318(22):2211-2223; DOI: 10.1001/jama.2017.18152):**
   - *Contribution:* Developed the Singapore Integrated Diabetic Retinopathy Programme (SiDRP) multi-condition system across $494,661$ retinal images from multi-ethnic Asian cohorts, expanding beyond DR to include suspected glaucoma and age-related macular degeneration (AMD).
   - *Architectural & Clinical Scope:* Semi-independent binary classifiers evaluated sequentially; centralized server-based infrastructure; proprietary datasets without public distribution-free uncertainty control.
 - **Abràmoff et al. / IDx-DR (npj Digital Medicine 2018; 1:39; DOI: 10.1038/s41746-018-0040-6):**
   - *Contribution:* Conducted the pivotal prospective multi-center clinical trial ($n=900$ diabetic patients in primary care) evaluating the autonomous IDx-DR (now Digital Diagnostics LumineticsCore) system, securing the first FDA De Novo clearance (DEN180001) for an autonomous diagnostic AI system in any medical specialty.
   - *Clinical Performance & Safety:* Reported sensitivity of $87.2\%$ ($95\%$ CI: $81.8\%-91.2\%$) and specificity of $90.7\%$ ($95\%$ CI: $88.3\%-92.7\%$) against stereoscopic 4-widefield fundus photography adjudicated by the Wisconsin Reading Center.
   - *Architectural Gating:* IDx-DR incorporates a deterministic image quality assessment (IQA) module that rejects ungradable scans before diagnostic inference, mandating re-imaging or clinical specialist referral.
-- **Eyenuk EyeArt (Ophthalmology 2020; 127(8):1075–1085; DOI: 10.1016/j.ophtha.2020.02.008):**
+- **Eyenuk EyeArt (Ophthalmology 2020; 127(8):1075-1085; DOI: 10.1016/j.ophtha.2020.02.008):**
   - *Contribution:* Prospective validation of the autonomous EyeArt system in primary care, demonstrating $95.5\%$ sensitivity and $86.5\%$ specificity for referable DR, securing FDA 510(k) clearance (K200667).
   - *Clinical Distinction:* Emphasizes high sensitivity to prevent missed referrals, but operates as a cloud-served or enterprise clinic appliance with proprietary closed-source algorithms.
 
 ### 2.2 Retinal Vision Foundation Models
-- **RETFound (Zhou et al., Nature 2023; 622:156–163; DOI: 10.1038/s41586-023-06555-x):**
+- **RETFound (Zhou et al., Nature 2023; 622:156-163; DOI: 10.1038/s41586-023-06555-x):**
   - *Contribution:* First general-purpose retinal foundation model, built on a Vision Transformer (ViT-Large, $304\text{M}$ parameters) pre-trained via Masked Autoencoding (MAE, $75\%$ masking ratio) on $1.6\text{M}$ unlabeled fundus and OCT images.
   - *Strengths:* Exceptional label efficiency on downstream ocular classification, systemic disease prediction (myocardial infarction, Parkinson's disease, heart failure), and genetic stroke risk.
   - *Deployment Bottlenecks:* Requires $>24\text{ GB}$ VRAM for training and $\sim 2.3\text{ GB}$ peak VRAM for single-batch FP32 inference; compute-heavy architecture ill-suited for edge microcontrollers or disconnected rural clinics without dedicated GPU hardware.
@@ -53,9 +53,9 @@ This audit executes an uncompromising literature review and novelty analysis of 
 ### 2.3 Medical Conformal Prediction & Conformal Risk Control
 - **Vovk (Mondrian Conformal Prediction 2003; Technical Report CSL-TR-03-001) & Vovk et al. (2005):**
   - *Foundational Theory:* Established that exchangeable non-conformity scores permit constructing finite-sample prediction sets $\mathcal{C}(X_{n+1})$ satisfying $\mathbb{P}(Y_{n+1} \in \mathcal{C}(X_{n+1})) \ge 1 - \alpha$. Mondrian conformal prediction partitions the calibration space into disjoint categories (e.g., disease classes or age groups) to guarantee group-conditional validity.
-- **Angelopoulos & Bates (Foundations and Trends in Machine Learning 2021; 14(4):403–491; DOI: 10.1561/2200000085):**
+- **Angelopoulos & Bates (Foundations and Trends in Machine Learning 2021; 14(4):403-491; DOI: 10.1561/2200000085):**
   - *Contribution:* Comprehensive formulation of split conformal prediction, adaptive prediction sets (APS), and regularized adaptive prediction sets (RAPS), popularizing distribution-free uncertainty quantification across modern computer vision.
-- **Angelopoulos et al. (Conformal Risk Control, JMLR 2023; 24(163):1–61):**
+- **Angelopoulos et al. (Conformal Risk Control, JMLR 2023; 24(163):1-61):**
   - *Contribution:* Extended conformal prediction beyond misclassification loss ($0/1$ loss) to general bounded, monotonically non-increasing clinical loss functions $\mathcal{L}(\mathcal{C}(X), Y) \in [0, B]$, guaranteeing $\mathbb{E}[\mathcal{L}(\mathcal{C}(X_{n+1}), Y_{n+1})] \le \alpha$.
 - **Angelopoulos et al. (Learn-then-Test, PNAS 2024; 121(24):e2311477121):**
   - *Contribution:* General framework for bounding multiple complex risk criteria simultaneously with family-wise error rate control.
@@ -72,14 +72,14 @@ This audit executes an uncompromising literature review and novelty analysis of 
 - **Mahalanobis Distance (Lee et al., NeurIPS 2018):**
   - *Mechanism:* Fits class-conditional Gaussian distributions on penultimate layer features and computes Mahalanobis distance.
   - *Failure Mode:* Ren et al. (NeurIPS 2021) proved that statistical latent-space detectors collapse under mild camera hardware or illumination shifts, misidentifying valid patient scans from a new clinic as OOD.
-- **EyeQuality / Deep Fundus Quality Assessment (Fu et al., IEEE TMI 2019; 38(11):2690–2701):**
+- **EyeQuality / Deep Fundus Quality Assessment (Fu et al., IEEE TMI 2019; 38(11):2690-2701):**
   - *Mechanism:* Multi-task deep neural network trained to classify fundus image quality into 'Good', 'Usable', and 'Reject'.
   - *Limitation:* Requires a heavy deep network solely for quality filtering and requires thousands of manually graded training images that are prone to inter-annotator disagreement.
 
 ### 2.5 Explainability & Visual Saliency Sanity Checks
-- **Grad-CAM (Selvaraju et al., ICCV 2017; pp. 618–626):**
+- **Grad-CAM (Selvaraju et al., ICCV 2017; pp. 618-626):**
   - *Mechanism:* Computes the gradient of class score $Y^c$ with respect to penultimate feature activations $A^k$, averaging spatial gradients to compute feature weights $\alpha_k^c$ followed by ReLU.
-- **Adebayo et al. (Sanity Checks for Saliency Maps, NeurIPS 2018; 31:9505–9515):**
+- **Adebayo et al. (Sanity Checks for Saliency Maps, NeurIPS 2018; 31:9505-9515):**
   - *Landmark Finding:* Demonstrated that several widely used visual attribution methods (e.g., Guided Backpropagation, Guided Grad-CAM) are invariant to model parameter randomization and ground-truth data randomization, functioning effectively as edge detectors rather than faithful representations of model decision logic.
   - *Clinical Implication:* Cosmetic heatmaps in medical AI must be subjected to quantitative grounding benchmarks (e.g., Pointing Game, anatomical energy fraction against verified segmentation boundaries) rather than anecdotal visual presentation.
 
@@ -114,7 +114,7 @@ The following matrix systematically dissects every architectural, algorithmic, a
 1. **The Biophysical Domain Guardrail (OAC-DG):**
    - *Assessment:* Shifting pre-inference out-of-distribution detection from opaque, brittle latent-space density estimators (which fail under camera sensor changes) to deterministic biophysical invariants (telecentric aperture geometry and hemoglobin/melanin chromophore absorption ratios $\rho_{\text{RB}} \ge 1.05$) is a **genuine methodological contribution**. Operating in $<2.0$ ms on host CPU before allocating GPU tensors is operationally valuable for frontline edge devices.
 2. **Admissibility-Weighted Conformal Risk Control (AW-CRC):**
-   - *Assessment:* Adapting non-conformity scores dynamically using continuous physical image quality ($\Phi(X)^\gamma$) to expand prediction sets on hazy Grade C media—guaranteeing 98.8% coverage on sight-threatening emergencies without manual threshold tuning—is a **sound methodological adaptation of conformal prediction to ophthalmic optical physics**.
+   - *Assessment:* Adapting non-conformity scores dynamically using continuous physical image quality ($\Phi(X)^\gamma$) to expand prediction sets on hazy Grade C media: guaranteeing 98.8% coverage on sight-threatening emergencies without manual threshold tuning: is a **sound methodological adaptation of conformal prediction to ophthalmic optical physics**.
 3. **The Patient Leakage Forensic Analysis (97.23% vs. 89.77%):**
    - *Assessment:* Rigorously isolating the 319-patient overlap (35.96%) between naive training and test splits and proving that it artificially inflated accuracy from 89.77% to 97.23% provides an **exemplary methodological case study** on the dangers of image-level splitting in medical imaging.
 

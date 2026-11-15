@@ -1,31 +1,25 @@
-## 🚀 Google XYZ Impact Statement
-*Please provide a summary of your changes using the Google XYZ formula:*
-> **Accomplished** [X] **as measured by** [Y], **by doing** [Z].
+## Summary of Changes
+Provide a clear, direct summary of your modifications and the clinical or technical rationale.
 
 ---
 
-## 📝 Description
-Briefly describe the context and clinical/technical rationale for these changes. What problem does this solve?
+## Verification & Quality Gates
+Please verify all mandatory quality gates:
+- [ ] **Gate 1 (Backend Tests):** All 312 Pytest tests pass (`pytest tests -q`).
+- [ ] **Gate 2 (Frontend Tests):** All 23 Vitest tests pass and production build succeeds (`npm test -- --run && npm run build`).
+- [ ] **Gate 3 (Ensemble & Calibration):** Tri-backbone ensemble soft-voting and Platt scaling temperatures are preserved.
+- [ ] **Gate 4 (Domain Guardrails):** Optical domain validator (OAC-DG) correctly rejects non-fundus uploads with HTTP 422.
+- [ ] **Gate 5 (Type Safety & Linting):** 0 mypy type errors and 0 ruff lint warnings.
 
 ---
 
-## 🧪 Verification & Quality Gates
-*In accordance with Microsoft / Google Engineering & Code Quality practices, please verify all gates:*
-- [ ] **Gate 1 (Unit & Integration Tests):** All 190 Pytest tests pass (`pytest tests -q`).
-- [ ] **Gate 2 (Ensemble & Calibration):** Tri-backbone ensemble soft-voting and Platt scaling temperatures verified.
-- [ ] **Gate 3 (Domain Guardrails):** Optical domain validator (OAC-DG) correctly enforces non-fundus rejection with HTTP 422.
-- [ ] **Gate 4 (Frontend Integrity):** React 19 production build succeeds without warnings (`npm run build`).
-- [ ] **Gate 5 (Healthier Codebase):** Modified modules are left cleaner, strictly typed, and better tested.
-
----
-
-## 🔒 Clinical Safety & HIPAA Posture
-- [ ] Strictly **zero real patient PHI** or un-anonymized fundus imagery committed.
+## Clinical Safety & Privacy Posture
+- [ ] Strictly zero real patient PHI or identifiable fundus imagery committed.
 - [ ] Pre-inference optical aperture and chromophore validation remains fully intact.
-- [ ] Multi-tenant Row-Level Security (RLS) filters are strictly preserved.
-- [ ] Medical decision-support disclaimers are preserved across report generators and UI views.
+- [ ] Multi-tenant row-level security filters are preserved.
+- [ ] Medical decision-support disclaimers remain visible across UI views and PDF report exports.
 
 ---
 
-## 🔗 Related Issues
+## Related Issues
 Fixes # (issue number)

@@ -1,4 +1,4 @@
-# Machine Learning Pipeline, Evaluation & Reproducibility Report: Project B — OphthalmoAI
+# Machine Learning Pipeline, Evaluation & Reproducibility Report: Project B: OphthalmoAI
 
 **Target Repository:** `d:\OphthalmoAI`  
 **Date:** October 16, 2026  

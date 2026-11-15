@@ -1,4 +1,4 @@
-# Remaining Risks, Clinical Boundaries & Research Limitations
+﻿# Remaining Risks, Clinical Boundaries & Research Limitations
 
 **Document Version:** 2.0  
 **Audit Cycle:** Phase 10 Autonomous Remediation Loop  
@@ -41,7 +41,7 @@ This document provides a transparent, adversarial ledger of open risks that cann
 - **Severity:** HIGH (Diagnostic Selection Bias)
 - **Evidence:** Tier-0 optical admissibility (`backend/fundus_validator.py`) deterministically rejects low-contrast, low-luminance, or blurry images ($S(X) < 0.50$, Grade C). Under severe overexposure (gain $\times 2.2$), false rejection reached **36.7%**.
 - **Clinical Hazard:** Optical media opacities (dense cataracts, vitreous hemorrhage from proliferative DR, corneal edema from acute angle-closure glaucoma) directly degrade fundus image quality. Silently rejecting Grade C scans risks systematically discarding the patients in most urgent need of ophthalmic intervention.
-- **Mitigation:** The clinical routing engine must categorize any biophysically rejected scan as *"Uninterpretable — Suspected Media Opacity (Mandatory Slit-Lamp / Indirect Ophthalmoscopy Referral)"*, rather than a benign upload error.
+- **Mitigation:** The clinical routing engine must categorize any biophysically rejected scan as *"Uninterpretable :  Suspected Media Opacity (Mandatory Slit-Lamp / Indirect Ophthalmoscopy Referral)"*, rather than a benign upload error.
 
 ---
 

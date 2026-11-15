@@ -1,4 +1,4 @@
-# Figure, Table, and Reference Audit — OphthalmoAI
+# Figure, Table, and Reference Audit: OphthalmoAI
 
 **Document ID:** `FIGURE_TABLE_REFERENCE_AUDIT.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  

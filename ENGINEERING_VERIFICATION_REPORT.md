@@ -85,7 +85,7 @@ tests/test_dataset_v2_forensics.py ....                   [100%]
 
 ## 4. Final Scientific & Engineering Verdict
 
-$$\mathbf{VERIFICATION\ COMPLETE\ —\ PRODUCTION\ QUALITY\ ACHIEVED}$$
+$$\mathbf{VERIFICATION\ COMPLETE:\ PRODUCTION\ QUALITY\ ACHIEVED}$$
 
 The OphthalmoAI platform satisfies every defined completion criterion:
 1. Zero critical defects remain in data manifests, model architectures, or API boundaries.

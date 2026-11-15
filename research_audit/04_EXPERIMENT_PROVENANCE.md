@@ -1,4 +1,4 @@
-# Phase 2: Historical Experiment Reconstruction & Checkpoint Provenance Audit
+﻿# Phase 2: Historical Experiment Reconstruction & Checkpoint Provenance Audit
 
 **Audit Date:** October 30, 2026  
 **Auditor:** Senior Deep Learning, Computer Vision & Reproducibility Auditor  
@@ -56,7 +56,7 @@ Every model file residing in `models/` was fingerprinted using SHA-256 cryptogra
 | **`edge_model.onnx` (Frontend)** | MobileNet-V3-Small (INT8 Quant) | 1,696,740 | 1.62 MB | `262d6d0c493a52e6b137b205d3252e42424269221379c5958435602a45d9358b` | 2026-09-30 10:27:45 | **VERIFIED** |
 
 > **Architectural Byte Allocation Audit on `meta_classifier.pth`:**  
-> A point of critical inquiry was why `meta_classifier.pth` is 462.41 MB when an MLP linear layer with 18 inputs, 64 hidden units, and 6 outputs contains only 1,734 parameters (~7 KB). Forensic inspection of `scripts/train_ensemble.py` lines 91–124 and 363–364 demonstrates that `RetinalMetaEnsemble` wraps the three complete constituent PyTorch backbones (`self.convnext`, `self.densenet`, `self.efficientnet`) alongside the stacking head. When `torch.save(ensemble.state_dict())` is invoked, it serializes all $124.3\times 10^6$ parameters into a single bundled checkpoint ($188.80\,\text{MB} + 70.37\,\text{MB} + 203.18\,\text{MB} \approx 462.4\,\text{MB}$). Thus, `meta_classifier.pth` is completely self-contained and does not require loading auxiliary backbone files.
+> A point of critical inquiry was why `meta_classifier.pth` is 462.41 MB when an MLP linear layer with 18 inputs, 64 hidden units, and 6 outputs contains only 1,734 parameters (~7 KB). Forensic inspection of `scripts/train_ensemble.py` lines 91-124 and 363-364 demonstrates that `RetinalMetaEnsemble` wraps the three complete constituent PyTorch backbones (`self.convnext`, `self.densenet`, `self.efficientnet`) alongside the stacking head. When `torch.save(ensemble.state_dict())` is invoked, it serializes all $124.3\times 10^6$ parameters into a single bundled checkpoint ($188.80\,\text{MB} + 70.37\,\text{MB} + 203.18\,\text{MB} \approx 462.4\,\text{MB}$). Thus, `meta_classifier.pth` is completely self-contained and does not require loading auxiliary backbone files.
 
 ---
 

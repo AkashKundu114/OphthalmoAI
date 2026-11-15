@@ -1,9 +1,9 @@
-# OphthalmoAI — Security Audit Report
-**Classification:** Internal — Engineering
+# OphthalmoAI: Security Audit Report
+**Classification:** Internal: Engineering
 **Scope:** Full codebase (`backend/`, `frontend/`, `k8s/`, `.github/`)
 **Remediation status:** All 20 original findings fixed; 3 additional bugs found and fixed this session (see §3).
 
-*(Condensed from the original full audit narrative — this version preserves the finding table and remediation map, which is the operationally useful part; the original per-finding prose walkthroughs, CVSS breakdowns, and PoC snippets are omitted here for length but the substance — what was wrong and how it was fixed — is unchanged.)*
+*(Condensed from the original full audit narrative. This version preserves the finding table and remediation map, which is the operationally useful part; the original per-finding prose walkthroughs, CVSS breakdowns, and PoC snippets are omitted here for length, but the substance of what was wrong and how it was fixed is unchanged.)*
 
 ---
 
@@ -14,16 +14,16 @@
 | C1 | Critical | Hardcoded JWT default secret enabled token forgery | Startup guard rejects placeholder in production |
 | C2 | Critical | No token revocation after logout | `TokenBlacklist` (JTI-based, in-memory) |
 | C3 | Critical | File upload MIME spoofing | `validate_magic_bytes()` checks real file signatures |
-| C4 | High | Internal stack traces leaked in 500 errors | `safe_error_detail()` — generic message + correlation ID in prod |
+| C4 | High | Internal stack traces leaked in 500 errors | `safe_error_detail()`: generic message + correlation ID in prod |
 | C5 | High | Missing HTTP security headers | `SecurityHeadersMiddleware` (CSP, HSTS, X-Frame-Options, etc.) |
 | C6 | High | CORS wildcard permitted in production | Startup guard rejects `CORS_ORIGINS=*` in production |
 | C7 | High | Rate limiting silently disabled if `slowapi` missing | Fails hard in production instead of silently no-op'ing |
 | C8 | High | XSS in chat message renderer | DOMPurify sanitisation + safe custom markdown renderer |
-| C9 | High | No dependency/container scanning in CI | `security.yml` — Bandit, Semgrep, Trivy, Gitleaks, OWASP, pip-audit, npm audit |
-| M1 | Medium | Prompt injection via unsanitised chat input | `sanitise_chat_message()` — 13 regex patterns blocked |
-| M2 | Medium | SSRF via unvalidated `OLLAMA_URL` | `validate_ollama_url()` — private/reserved IP ranges blocked |
+| C9 | High | No dependency/container scanning in CI | `security.yml`: Bandit, Semgrep, Trivy, Gitleaks, OWASP, pip-audit, npm audit |
+| M1 | Medium | Prompt injection via unsanitised chat input | `sanitise_chat_message()`: 13 regex patterns blocked |
+| M2 | Medium | SSRF via unvalidated `OLLAMA_URL` | `validate_ollama_url()`: private/reserved IP ranges blocked |
 | M3 | Medium | Weak email validation | RFC-5321 regex + length limits in `validators.py` |
-| M4 | Medium | No brute-force protection on login | `LoginAttemptTracker` — 5 failures → 15-min lockout |
+| M4 | Medium | No brute-force protection on login | `LoginAttemptTracker`: 5 failures → 15-min lockout |
 | M5 | Low-Medium | No SRI on Google Fonts / CDN network egress | Google Fonts `@import` completely removed from `index.css`; native OS system fonts used for 100% air-gap compliance |
 | M6 | Medium | Dev-tunnel hostname committed to source | Removed; env-var-driven `allowedHosts` |
 | M7 | Medium | Chat endpoint used a manual DB session | Now uses `Depends(get_db)` like every other endpoint |

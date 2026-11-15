@@ -28,7 +28,7 @@ All benchmark figures and architecture diagrams are rendered in **300+ DPI publi
 | ![Base Monolith Comparison](images/base_monolith_models_comparison.png) | ![Architecture Evolution Summary](images/architecture_evolution_summary.png) |
 | ![Thermal Profile Comparison](images/thermal_comparison.png) | ![Model Convergence Rates](images/convergence_comparison.png) |
 
-### Independent External Clinical Validation Gallery (v2.6)
+### Independent External Clinical Validation Gallery
 
 | External Multi-Cohort Benchmark & Adaptation | Anatomical Geometry & Safety Escalation |
 | :--- | :--- |
@@ -43,18 +43,28 @@ All benchmark figures and architecture diagrams are rendered in **300+ DPI publi
 ```
 docs/
 ├── README.md                                  # Master documentation index and visual gallery
-├── architecture.html                          # Interactive Archify SVG architecture map (pan/zoom, keyboard nav)
+├── architecture.html                          # Interactive Archify SVG architecture map
 ├── SYSTEM_SPECIFICATION.md                    # Core technical architecture, pipeline stages & QA checklist
-├── PERFORMANCE_METRICS.md                     # Comprehensive empirical evaluation, ROC, and GPU profiling
-├── OphthalmoAI_Technical_White_Paper.md       # Formal algorithmic white paper & mathematical formulations
-├── PRODUCTION.md                              # Production deployment, Docker Compose, Kubernetes & ONNX Runtime
+├── MODEL_CARD.md                              # Model Card (Mitchell et al.) for vision models and edge ONNX
+├── INTENDED_USE.md                            # Clinical scope, target population, and contraindications
+├── LIMITATIONS.md                             # Domain boundary analysis and known failure modes
+├── SAFETY_MECHANISMS.md                       # 8-layer defense-in-depth safety architecture
+├── PRIVACY.md                                 # Ephemeral processing and data lifecycle specifications
+├── PRIVACY_POLICY.md                          # Clinical data handling and privacy disclosures
+├── PERFORMANCE_METRICS.md                     # Empirical evaluation, ROC curves, and GPU profiling
+├── EVALUATION.md                              # Evaluation harness setup and verification protocols
+├── DEPLOYMENT.md                              # Deployment and operations manual
+├── VALIDATION_PROTOCOL.md                     # Statistical validation and pre-registration protocol
+├── OphthalmoAI_Technical_White_Paper.md       # Algorithmic white paper and mathematical formulations
+├── PRODUCTION.md                              # Production deployment, Docker Compose, Kubernetes & ONNX
 ├── REPRODUCIBILITY.md                         # Reproducibility verification guide and seed matrices
 ├── ROADMAP.md                                 # Technical and clinical research roadmap
-├── PRIVACY_POLICY.md                          # Clinical data handling and privacy disclosures
 ├── TERMS_AND_CONDITIONS.md                    # Platform research evaluation terms
 ├── training_guide.md                          # Data preparation, hyperparameter tuning & training manual
-├── audit-reports/                             # Comprehensive historical audit reports and verification matrices
+├── audit-reports/                             # Historical audit reports and verification matrices
 │   └── README.md                              # Audit reports catalog and index
+├── benchmarks/                                # Hardware and edge benchmark reports
+│   └── edge_inference_benchmarks.md           # Client-side ONNX runtime latency and memory profile
 ├── clinical/                                  # Clinical Safety & Regulatory Documentation
 │   ├── CLINICAL_EVALUATION_AND_SAFETY.md      # Intended use, clinical risk mitigation & validation protocols
 │   └── EXTERNAL_VALIDATION_REPORT.md          # Multi-cohort external validation & generalization study
@@ -64,16 +74,9 @@ docs/
 ├── technical/                                 # Enterprise Systems & Security Specifications
 │   ├── AZURE_DEPLOY.md                        # Azure Cloud deployment instructions
 │   ├── BACKEND_SCHEMA.md                      # Database schemas, Alembic migrations & tenancy models
-│   ├── ISSUES.md                              # Historical engineering debt & resolution ledger
-│   └── SECURITY_AUDIT.md                      # Automated & red-team security audit reports
+│   ├── ISSUES.md                              # Technical debt and issues ledger
+│   └── SECURITY_AUDIT.md                      # Security audit reports
 └── images/                                    # 29 publication-grade (300 DPI) performance charts & diagrams
-
-research/                                      # Master Academic Publication Workspace
-├── manuscript.tex                             # Camera-ready double-column LaTeX manuscript (24 pages)
-├── manuscript.pdf                             # Verified compiled publication PDF
-├── docs/paper_draft.md                        # Full markdown manuscript draft
-├── docs/publishing_guide.md                   # Literature review, work gaps & publishing strategy
-└── figures/named/                             # Production figures (kundu1.png to kundu14.png)
 ```
 
 ---
@@ -81,16 +84,18 @@ research/                                      # Master Academic Publication Wor
 ## Key Document Links
 
 - **[Interactive Architecture Map](architecture.html)**: Interactive, standalone Archify SVG architecture diagram (featuring keyboard navigation: `/` search, `R` route trace, `P` story playback, `F` presentation mode, `T` theme toggle).
-- **[System Specification](SYSTEM_SPECIFICATION.md)**: Exhaustive pipeline breakdown from raw fundus ingestion to PDF attestation.
-- **[Performance & Telemetry](PERFORMANCE_METRICS.md)**: Deep dive into the 85.18% test accuracy, 0.9818 AUROC, and Platt scaling.
+- **[Model Card](MODEL_CARD.md)**: Architecture details, cryptographic weights checksums, and empirical benchmarks.
+- **[Intended Use & Clinical Scope](INTENDED_USE.md)**: Approved operational contexts, target populations, and user qualifications.
+- **[Limitations & Failure Modes](LIMITATIONS.md)**: Sensor domain shift, boundary conditions, and Grad-CAM interpretation bounds.
+- **[Safety Mechanisms](SAFETY_MECHANISMS.md)**: Deep dive into all 8 defensive runtime layers.
+- **[Privacy Architecture](PRIVACY.md)**: Ephemeral in-memory scan processing and data minimization.
+- **[System Specification](SYSTEM_SPECIFICATION.md)**: Pipeline breakdown from raw fundus ingestion to PDF attestation.
+- **[Performance & Telemetry](PERFORMANCE_METRICS.md)**: Detailed examination of the multi-backbone ensemble, ROC curves, and Platt temperature scaling.
 - **[External Clinical Validation Report](clinical/EXTERNAL_VALIDATION_REPORT.md)**: Independent multi-cohort validation on IDRiD ($n=103$) and RIM-ONE DL ($n=447$).
 - **[Clinical Evaluation & Safety](clinical/CLINICAL_EVALUATION_AND_SAFETY.md)**: Risk controls, intended use statement, and medical disclaimers.
-- **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Complete mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
-- **[Scripts Catalog & Operations Guide](../scripts/README.md)**: Master operational guide for the consolidated 5-pillar script architecture.
-- **[Research Paper Draft](../research/docs/paper_draft.md)**: Full academic manuscript ready for journal submission.
-- **[Research Upgrades & Publishing Strategy](../research/docs/publishing_guide.md)**: SOTA literature review, work gaps, upgrade topics, and journal roadmap.
-- **[LaTeX Manuscript](../research/manuscript.tex)**: Camera-ready double-column source file.
+- **[Technical White Paper](OphthalmoAI_Technical_White_Paper.md)**: Mathematical formulations (TC-MBE, OAC-DG, US-CRC, PASG-GradCAM).
+- **[Scripts Catalog & Operations Guide](../scripts/README.md)**: Operational guide for the consolidated 5-pillar script architecture.
 - **[App Flow & State Machines](design/APP_FLOW.md)**: Sequence diagrams and client-server communication flows.
 - **[UI/UX Design Brief](design/UI_UX_BRIEF.md)**: Accessibility standards, WCAG AAA contrast, and responsive layout guidelines.
-- **[Backend Schema Specification](technical/BACKEND_SCHEMA.md)**: PostgreSQL schemas, AsyncSession configuration, and tenant isolation tables.
-- **[Security Audit Report](technical/SECURITY_AUDIT.md)**: Penetration testing outcomes and prompt injection mitigation verification.
+- **[Backend Schema Specification](technical/BACKEND_SCHEMA.md)**: Database schemas, AsyncSession configuration, and tenant isolation tables.
+- **[Security Audit Report](technical/SECURITY_AUDIT.md)**: Vulnerability assessment and mitigation verification.

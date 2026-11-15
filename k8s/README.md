@@ -91,7 +91,7 @@ kubectl -n ophthalmoai rollout status deployment/frontend
 ## 4. Key Architectural Configurations
 
 ### PyTorch Cold-Start Protection (`startupProbe`)
-Loading deep learning model weights (`efficientnet_b4.pth`) into CPU memory during container boot can take 15–30 seconds. A `startupProbe` is configured on the backend deployment with a 150-second grace window (`failureThreshold: 30`, `periodSeconds: 5`), preventing Kubernetes from restarting initializing pods prematurely.
+Loading deep learning model weights (`efficientnet_b4.pth`) into CPU memory during container boot can take 15-30 seconds. A `startupProbe` is configured on the backend deployment with a 150-second grace window (`failureThreshold: 30`, `periodSeconds: 5`), preventing Kubernetes from restarting initializing pods prematurely.
 
 ### Medical Image Uploads (Ingress Body Size)
 Default NGINX Ingress limits payload size to 1MB. `ingress.yaml` includes:
@@ -99,7 +99,7 @@ Default NGINX Ingress limits payload size to 1MB. `ingress.yaml` includes:
 nginx.ingress.kubernetes.io/proxy-body-size: "25m"
 nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
 ```
-This ensures high-resolution fundus retinal scans (5–20MB) and multi-pass Monte Carlo dropout inference succeed without HTTP 413 or 504 errors.
+This ensures high-resolution fundus retinal scans (5-20MB) and multi-pass Monte Carlo dropout inference succeed without HTTP 413 or 504 errors.
 
 ### Autoscaling
 `hpa.yaml` automatically scales the backend from 1 to 5 replicas based on average CPU (75%) and memory (80%) utilization.

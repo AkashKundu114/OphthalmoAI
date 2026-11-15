@@ -1,4 +1,4 @@
-# Phase 9 Audit Report: External Clinical Validation & Specificity Collapse
+﻿# Phase 9 Audit Report: External Clinical Validation & Specificity Collapse
 
 **Document Reference:** `research_audit/10_EXTERNAL_VALIDATION_AUDIT.md`  
 **Auditor:** Senior Clinical AI Safety, Ophthalmic Imaging, and Medical AI Auditor  
@@ -117,18 +117,18 @@ probs_bin = 1.0 - probs_meta[:, 0]  # probability of any disease
 ```
 - **The Binarization Trap:** The script converts the 6-class model into a binary classifier by defining:
   $$\text{Pred}_{\text{binary}} = 1 \iff \hat{y}_{\text{6-class}} \ne 0$$
-  where Class 0 is "Normal Fundus", and Classes 1–5 are DR, Glaucoma, Cataract, AMD, and HR/Myopia.
+  where Class 0 is "Normal Fundus", and Classes 1-5 are DR, Glaucoma, Cataract, AMD, and HR/Myopia.
 - When exposed to foreign sensor hardware, the probability mass for the "Normal" class ($P(\text{Normal})$) completely collapsed. For example, on IDRiD, even if the model was unsure whether an image had DR, Glaucoma, or Cataract, the sum of disease probabilities $1.0 - P(\text{Normal})$ exceeded $0.50$ for **94.4% of cases under Ben Graham and 99.0% under Reinhard**.
 - Consequently, the model classified almost every image as "disease-positive".
 - **The Mathematical Result:**
-  - When a classifier predicts "Positive" for $95–99\%$ of a cohort, its **Sensitivity is mechanically guaranteed to be $\sim 100\%$** (it captures all true positives by capturing almost everything).
+  - When a classifier predicts "Positive" for $95-99\%$ of a cohort, its **Sensitivity is mechanically guaranteed to be $\sim 100\%$** (it captures all true positives by capturing almost everything).
   - Simultaneously, its **Specificity collapses toward zero**, because almost every true negative is falsely labeled as positive.
 
 ---
 
 ## 4. Audit of Reinhard Color Adaptation vs. Ben Graham Filtering
 
-The manuscript (Section IV-G, lines 1121–1123, Fig. 19) claims:
+The manuscript (Section IV-G, lines 1121-1123, Fig. 19) claims:
 > "Crucially, activating Reinhard chromaticity normalization in decorrelated $L\alpha\beta$ space aligned sensor color moments with the reference distribution, elevating AUROC to $0.6577$ ($95\%$ CI $[0.6032, 0.7078]$)---a significant domain adaptation gain of $\Delta\text{AUROC} = +0.0402$ ($p = 0.0233$, paired McNemar test)."
 
 ### 4.1 Cross-Dataset Comparison of Adaptation Effects
@@ -197,7 +197,7 @@ trigger_rate = np.mean(top1_conf < 0.70)
 The manuscript repeatedly uses the term "domain adaptation gain" ($\Delta\text{AUROC} = +0.0402$).
 
 ### 6.1 Code Implementation Check
-We audited lines 70–80 of [`scripts/run_external_validation.py`](file:///d:/OphthalmoAI/scripts/run_external_validation.py#L70-L80):
+We audited lines 70-80 of [`scripts/run_external_validation.py`](file:///d:/OphthalmoAI/scripts/run_external_validation.py#L70-L80):
 ```python
 def apply_reinhard(img_np):
     lab = cv2.cvtColor(img_np, cv2.COLOR_RGB2LAB).astype(np.float32)

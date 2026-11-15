@@ -33,7 +33,7 @@ As the designated independent hostile red-team auditor, my role is to distrust u
 ### Challenge 2: Disproving Guaranteed Patient-Level Independence
 - **The Authors' Assertion:** *"All experimental partitions are strictly separated at the patient level with 0.00% patient leakage."*
 - **Adversarial Evidence & Refutation:**
-  1. **Synthetic Patient ID Heuristic:** In `scripts/split_patient_level.py` (lines 74–84):
+  1. **Synthetic Patient ID Heuristic:** In `scripts/split_patient_level.py` (lines 74-84):
      ```python
      num = int(''.join(filter(str.isdigit, img_id)))
      patient_id = f"prep_subject_{num // 2}"

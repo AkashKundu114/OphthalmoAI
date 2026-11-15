@@ -22,7 +22,7 @@ All identified vulnerabilities (OPH-SEC-01 through OPH-SEC-09) have been fully r
 - **Component:** [`frontend/src/apiConfig.js`](file:///d:/OphthalmoAI/frontend/src/apiConfig.js) (`FALLBACK_TUNNEL_URL`)
 - **Severity:** **High (CVSS 7.5 / HIPAA Privacy Violation Risk)**
 - **Vulnerability Description:**  
-  `apiConfig.js` hardcoded `export const FALLBACK_TUNNEL_URL = 'https://api.trycloudflare.com'`. If the local backend or primary API was unavailable, client fetch logic silently fell back to transmitting user `FormData`—containing unencrypted retinal fundus images and clinical metadata—to an external Cloudflare tunnel endpoint.
+  `apiConfig.js` hardcoded `export const FALLBACK_TUNNEL_URL = 'https://api.trycloudflare.com'`. If the local backend or primary API was unavailable, client fetch logic silently fell back to transmitting user `FormData` (containing unencrypted retinal fundus images and clinical metadata) to an external Cloudflare tunnel endpoint.
 - **Remediation Applied:**  
   Defaulted `FALLBACK_TUNNEL_URL` to `import.meta.env.VITE_FALLBACK_TUNNEL_URL || ''`. By default, no fallback tunnel is configured, ensuring all network operations remain strictly bound to local `/api` routes.
 - **Status:** **REMEDIATED & VERIFIED**

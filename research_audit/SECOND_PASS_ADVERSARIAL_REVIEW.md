@@ -1,4 +1,4 @@
-# Second-Pass Independent Adversarial Review & Disproof Investigation
+﻿# Second-Pass Independent Adversarial Review & Disproof Investigation
 
 **Document ID:** `research_audit/SECOND_PASS_ADVERSARIAL_REVIEW.md`  
 **Audit Date:** October 30, 2026  
@@ -55,19 +55,19 @@ This second-pass adversarial review overturns several conclusions of the initial
 
 ---
 
-## 2. Step 1 — Challenging the Initial Audit Itself
+## 2. Step 1 :  Challenging the Initial Audit Itself
 
 | Initial Audit Finding | First-Audit Evidence | Adversarial Challenge & Re-Investigation | Revised Status |
 |---|---|---|:---:|
 | **Clean Patient Partitioning ($n=2,249$)** | `scripts/split_patient_level.py` reported zero patient intersection. | **INVALID.** `num // 2` was applied to indices of a shuffled dataframe (`prepare_fundus_dataset.py`), pairing unrelated images. In `ingest_color_fundus_eye.py`, 16,140 images were given unique dummy IDs (`pt_cfe_XXXXX`). 157 exact MD5 duplicate images cross between train and test. | **CONTRADICTED / INVALID** |
 | **Superiority over RETFound (+6.74%)** | `models/retfound_comparison_report.json` reported 89.77% vs 83.03% ($p=2.29\times 10^{-15}$). | **PARTIALLY INVALID.** RETFound was evaluated at $224 \times 224$ resolution while OphthalmoAI used $384 \times 384$ ($2.94\times$ pixel advantage). The reported "DeLong test" was actually a 1,000-sample bootstrap difference. | **PARTIALLY VERIFIED (UNFAIR PROTOCOL)** |
 | **AW-CRC Dynamic Adaptation** | Manuscript claimed prediction sets expand to size 2.18 under optical degradation. | **CONTRADICTED.** In `models/aw_crc_calibration.json`, `mean_set_size == singletons_pct == 0.968645`. Sets **never** expand to size $\ge 2$. Set size metrics in `generate_all_manuscript_figures.py` line 944 were hardcoded. | **CONTRADICTED / INVALID** |
-| **Biophysical Guardrail Intercept** | 7/7 unit tests passed; 0.00% False Rejection Rate. | **PARTIALLY VERIFIED.** `backend/routes/screening.py` lines 205–207 catch exceptions in `validate_fundus_image` and silently fail open, bypassing the guardrail. | **PARTIALLY VERIFIED (FAIL-OPEN BYPASS)** |
+| **Biophysical Guardrail Intercept** | 7/7 unit tests passed; 0.00% False Rejection Rate. | **PARTIALLY VERIFIED.** `backend/routes/screening.py` lines 205-207 catch exceptions in `validate_fundus_image` and silently fail open, bypassing the guardrail. | **PARTIALLY VERIFIED (FAIL-OPEN BYPASS)** |
 | **Reinhard Color Constancy as Domain Adaptation** | Script documented $\Delta\text{AUROC} = +0.0402$ on RIM-ONE DL. | **FLAWED ALGORITHM.** `apply_reinhard` computes mean/std across the entire image including black border pixels, blowing out the retinal center and degrading IDRiD AUROC by $-0.0775$. | **INVALID IMPLEMENTATION** |
 
 ---
 
-## 3. Step 2 — Overlooked Problems Ledger (10 Critical Discoveries)
+## 3. Step 2 :  Overlooked Problems Ledger (10 Critical Discoveries)
 
 ### Discovery ADV-01: Pseudo-Patient Allocation on Randomly Shuffled Rows
 - **Affected File:** [`scripts/split_patient_level.py#L71-L86`](file:///d:/OphthalmoAI/scripts/split_patient_level.py#L71-L86) & [`scripts/prepare_fundus_dataset.py#L182-L187`](file:///d:/OphthalmoAI/scripts/prepare_fundus_dataset.py#L182-L187)
@@ -223,7 +223,7 @@ This second-pass adversarial review overturns several conclusions of the initial
 
 ---
 
-## 4. Step 3 — Independent Recalculation of Critical Results
+## 4. Step 3 :  Independent Recalculation of Critical Results
 
 | Experimental Metric | Original Manuscript | First-Audit Finding | Second-Pass Recalculation | Root Cause & Adversarial Explanation |
 |---|---|---|---|---|
@@ -259,7 +259,7 @@ Live GPU inference across `test_patient_clean.csv` using calibrated model weight
 
 ---
 
-## 5. Step 4 — The 5 Strongest Reviewer Rejection Arguments
+## 5. Step 4 :  The 5 Strongest Reviewer Rejection Arguments
 
 Below are the 5 strongest arguments an expert IEEE reviewer would use to reject the paper for ICCECE 2027:
 
@@ -369,13 +369,13 @@ honestly as camera sensor shift requiring camera-specific calibration.
 
 ---
 
-## 6. Step 5 — Novelty Deconstruction Against Prior Art
+## 6. Step 5 :  Novelty Deconstruction Against Prior Art
 
 ### 6.1 Biophysical Guardrail $\Phi(X)$
 - **Claimed Novelty:** "Optical Aperture and Chromophore Domain Guardrail (OAC-DG)."
 - **Prior Art:**
   - *Circular Aperture Masking:* Fleming et al. (2006), Lalonde et al. (2001), Usher et al. (2004) formalized circular fundus mask extraction and corner dark vignetting checks.
-  - *Chromophore Ratio ($\rho_{\text{RB}} \ge 1.05$):* Niemeijer et al. (2006, *IEEE TMI*) and Hunter et al. (2011, *IOVS*) established color histogram profiling in retinal image quality assessment. Hemoglobin absorption in green/blue (400–550 nm) and melanin reflection in red (>600 nm) has been standard fundus preprocessing for 20 years.
+  - *Chromophore Ratio ($\rho_{\text{RB}} \ge 1.05$):* Niemeijer et al. (2006, *IEEE TMI*) and Hunter et al. (2011, *IOVS*) established color histogram profiling in retinal image quality assessment. Hemoglobin absorption in green/blue (400-550 nm) and melanin reflection in red (>600 nm) has been standard fundus preprocessing for 20 years.
   - *Contrast & Saturation Thresholds:* Shen et al. (2019, *EyeQuality*) and Köhler et al. (2013).
 - **Novelty Verdict:** **ZERO METHODOLOGICAL NOVELTY.** It is an engineering assembly of 20-year-old OpenCV threshold heuristics. However, implementing it as a sub-2.0 ms CPU pre-filter before allocating GPU memory is solid systems engineering and should be presented as an *efficient clinical systems contribution*, not a foundational optical discovery.
 
@@ -401,7 +401,7 @@ honestly as camera sensor shift requiring camera-specific calibration.
 
 ---
 
-## 7. Step 6 — Verification of Remediations & Residual Risk Ledger
+## 7. Step 6 :  Verification of Remediations & Residual Risk Ledger
 
 | Vulnerability ID | Root Cause | Required Correction | Experiment Needed | Implementation Status | Safe Verification Result | Residual Risk |
 |---|---|---|---|:---:|---|---|
@@ -412,15 +412,15 @@ honestly as camera sensor shift requiring camera-specific calibration.
 | **ISS-05** (Empty Sets) | Score cutoff $\max P(c \mid X) < 1 - \hat{q}/S(X)^\gamma$ leaves set empty. | Add non-empty fallback rule $\mathcal{C}^*_{\text{safe}}(X)$; disclose 3.14% null sets. | Fallback referral evaluation across $\alpha \in [0.01, 0.10]$. | **PENDING** | Verified 865 singletons and 28 null sets in `models/aw_crc_calibration.json`. | Low; formalizes triage fallback. |
 | **ADV-01** (Pseudo-Patients) | `num // 2` applied to randomly shuffled row index in `prepare_fundus_dataset.py`. | Document the heuristic honestly; run de-duplicated patient hash split. | Re-split using MD5 hash clustering. | **PENDING** | Discovered 157 exact MD5 duplicate images crossing train and test. | Medium; requires disclosing split limitations. |
 | **ADV-02** (Cross-Split Dups) | Ingestion of `color_fundus_eye` imported duplicate files across pathology folders. | Deduplicate master manifest by image MD5 before splitting. | Re-run evaluation excluding 157 contaminated test images. | **PENDING** | 157 duplicate hashes cataloged and isolated. | Medium; slight test set reduction ($n=2,092$). |
-| **ADV-03** (Heuristic Fallback)| Silent fallback in `edgeInference.js` guesses diseases from RGB ratios. | Delete `edgeHeuristic.js` diagnostic guessing; show clear error modal on ONNX failure. | Test frontend error handling with disabled ONNX. | **PENDING** | Located in `frontend/src/edgeHeuristic.js` lines 287–295. | Low; frontend safety patch. |
-| **ADV-04** (Fail-Open Guard) | `screening.py` catches all exceptions in `validate_fundus_image` with warning. | Change `except Exception:` to fail closed (`raise HTTPException(422)`). | Unit test throwing exception in validator. | **PENDING** | Located in `backend/routes/screening.py` lines 205–207. | Zero; 2-line code fix. |
-| **ADV-05** (False DeLong) | 1,000-sample bootstrap difference labeled as DeLong test in script. | Change manuscript text to: "1,000-iteration bootstrap difference test ($p < 0.001$)." | None (text correction). | **PENDING** | Located in `scripts/finetune_retfound_comparison.py` lines 27–32. | Low; text alignment. |
-| **ADV-07** (Reinhard Bug) | Reinhard normalizer includes black border in mean/std calculation. | Compute LAB mean/std strictly over foreground retinal mask. | Re-evaluate IDRiD with foreground-only Reinhard. | **PENDING** | Located in `scripts/evaluate_external_dataset.py` lines 70–84. | Low; improves domain adaptation. |
-| **ADV-08** (Synthetic CBMIR)| `ClinicalCaseVectorIndex` uses random Gaussian vectors instead of deep embeddings. | Retract CBMIR claims or connect to actual ConvNeXt penultimate layer embeddings. | Extract true 512-dim embeddings. | **PENDING** | Located in `backend/vector_search.py` lines 83–97. | Low; prune claims from paper. |
+| **ADV-03** (Heuristic Fallback)| Silent fallback in `edgeInference.js` guesses diseases from RGB ratios. | Delete `edgeHeuristic.js` diagnostic guessing; show clear error modal on ONNX failure. | Test frontend error handling with disabled ONNX. | **PENDING** | Located in `frontend/src/edgeHeuristic.js` lines 287-295. | Low; frontend safety patch. |
+| **ADV-04** (Fail-Open Guard) | `screening.py` catches all exceptions in `validate_fundus_image` with warning. | Change `except Exception:` to fail closed (`raise HTTPException(422)`). | Unit test throwing exception in validator. | **PENDING** | Located in `backend/routes/screening.py` lines 205-207. | Zero; 2-line code fix. |
+| **ADV-05** (False DeLong) | 1,000-sample bootstrap difference labeled as DeLong test in script. | Change manuscript text to: "1,000-iteration bootstrap difference test ($p < 0.001$)." | None (text correction). | **PENDING** | Located in `scripts/finetune_retfound_comparison.py` lines 27-32. | Low; text alignment. |
+| **ADV-07** (Reinhard Bug) | Reinhard normalizer includes black border in mean/std calculation. | Compute LAB mean/std strictly over foreground retinal mask. | Re-evaluate IDRiD with foreground-only Reinhard. | **PENDING** | Located in `scripts/evaluate_external_dataset.py` lines 70-84. | Low; improves domain adaptation. |
+| **ADV-08** (Synthetic CBMIR)| `ClinicalCaseVectorIndex` uses random Gaussian vectors instead of deep embeddings. | Retract CBMIR claims or connect to actual ConvNeXt penultimate layer embeddings. | Extract true 512-dim embeddings. | **PENDING** | Located in `backend/vector_search.py` lines 83-97. | Low; prune claims from paper. |
 
 ---
 
-## 8. Step 7 — Final Internal Research-Readiness Classification
+## 8. Step 7 :  Final Internal Research-Readiness Classification
 
 ### **CLASSIFICATION: REQUIRES MAJOR METHODOLOGICAL REVISION**
 

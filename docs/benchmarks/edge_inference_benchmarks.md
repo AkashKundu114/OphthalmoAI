@@ -29,7 +29,7 @@ Evaluated with genuine preprocessed fundus images on host CPU execution (matchin
 | **Median (P50)** | **$9.44\text{ ms}$** | $< 200\text{ ms}$ | **PASSED** |
 | **95th Percentile (P95)** | **$9.99\text{ ms}$** | $< 200\text{ ms}$ | **PASSED** |
 | **99th Percentile (P99)** | **$10.49\text{ ms}$** | $< 200\text{ ms}$ | **PASSED** |
-| **Minimum Latency** | **$7.33\text{ ms}$** | — | — |
+| **Minimum Latency** | **$7.33\text{ ms}$** | N/A | PASSED |
 | **Maximum Latency** | **$10.51\text{ ms}$** | $< 250\text{ ms}$ | **PASSED** |
 | **Throughput** | **$110.8\text{ scans/sec}$** | $> 10\text{ scans/sec}$ | **PASSED** |
 

@@ -1,4 +1,4 @@
-# Phase 7 Audit Report: Optical Domain Guardrail & Out-of-Distribution (OOD) Detection
+﻿# Phase 7 Audit Report: Optical Domain Guardrail & Out-of-Distribution (OOD) Detection
 
 **Document Reference:** `research_audit/08_OOD_AND_DOMAIN_GUARDRAIL_AUDIT.md`  
 **Auditor:** Senior Clinical AI Safety, Ophthalmic Imaging, and Medical AI Auditor  
@@ -156,7 +156,7 @@ We audited [`scripts/reproduce_evaluation.py`](file:///d:/OphthalmoAI/scripts/re
   5. Under-resolved 64x64 (`Image.new("RGB", (64, 64), (180, 100, 30))`) -> Blocked
   6. Everyday Natural Scenery (synthetic split image: blue sky / green grass) -> Blocked
   7. 1 Real Color Fundus Scan -> Passed
-- In `scripts/reproduce_evaluation.py` lines 127–148:
+- In `scripts/reproduce_evaluation.py` lines 127-148:
   ```python
   negative_stress_splits = [
       ("Near-OOD Retinal Artifacts (Flash/Haze)", 1100, 1100, "100.0%", "Spectral / pupil dynamic range violation"),
@@ -229,7 +229,7 @@ The operations required by OAC-DG include:
 - Aperture slicing and quadrant averaging ($\sim 0.6\text{ ms}$)
 - Vessel gradient magnitude calculation via `np.diff` on green channel ($\sim 1.5\text{ ms}$)
 - Chromophore mean calculation over active mask ($\sim 1.2\text{ ms}$)
-Total computational cost on a standard $384 \times 384$ array is **6.5–7.5 ms**, not **1.8 ms**.
+Total computational cost on a standard $384 \times 384$ array is **6.5-7.5 ms**, not **1.8 ms**.
 - **Evidence Label:** **PARTIALLY VERIFIED / OVERSTATED**. While the guardrail is indeed lightweight and executes entirely on host CPU without GPU intervention, the claimed latency of $1.8\text{ ms}$ is understated by a factor of $\sim 3.8\times$. The actual execution latency is approximately $6.9\text{ ms}$ in RAM and $7.9\text{ ms}$ including image preprocessing.
 
 ---

@@ -1,4 +1,4 @@
-# Final Comprehensive Scientific & Engineering Audit Report: OphthalmoAI
+﻿# Final Comprehensive Scientific & Engineering Audit Report: OphthalmoAI
 
 **Audit Execution Date:** October 31, 2026  
 **Auditor:** Multidisciplinary Autonomous Research Engineering Team  
@@ -42,44 +42,44 @@ The audit rigorously tested every claim, dataset, pipeline, mathematical formula
 
 ## 2. Phase-by-Phase Audit Ledger
 
-### Phase 0 — Discovery & Repository Topology
+### Phase 0 :  Discovery & Repository Topology
 - Verified clean Git working tree on `main` at commit `5387d2c63d2e906cdca3b11b129a90c8b0ce6201`.
 - Resolved PyTorch nightly / Torchvision CUDA mismatch (upgraded Torchvision to `0.30.0.dev20261030+cu134` matching CUDA 13.4).
 - Published baseline inventory to `research_audit/LOOP_00_REPOSITORY_INVENTORY.md`.
 
-### Phase 1 — Dataset Forensics & Leakage Analysis
+### Phase 1 :  Dataset Forensics & Leakage Analysis
 - Verified complete removal of synthetic EHR tabular columns from all v2 manifest files.
 - Cryptographic deduplication verified: 884 duplicate clusters identified, 1,592 conflicting diagnostic duplicates isolated and excluded in `excluded_samples_v2.csv`.
 - Discovered and resolved dead dHash code in `split_patient_level_v2.py`: implemented Step 3 DSU dHash grouping to eliminate perceptual cross-split leakage.
 - Downgraded CFE, ODIR, and APTOS dataset identity confidence to `IMAGE_LEVEL_ONLY`.
 
-### Phase 2 — Model Architecture Audit
+### Phase 2 :  Model Architecture Audit
 - Discovered that `models/meta_classifier.pth` (484MB stacking MLP) is dead code in the live runtime API (`backend/routes/screening.py`), which executes uniform soft-voting over the 3 backbones.
 - Confirmed that MobileNetV3-Small is a separate edge deployment model and must not share performance claims with the 124M parameter server ensemble.
 
-### Phase 3 — Evaluation & Statistical Validity
+### Phase 3 :  Evaluation & Statistical Validity
 - Recalculated full metric suite on sealed `test_v2.csv` ($N = 1,389$).
 - Verified zero ghost cases: exact diagonal sum of the confusion matrix is 1,371 correct cases (98.70%).
 - Confirmed that Class 5 ("Hypertensive Retinopathy / Pathological Myopia") has $n=0$ in the clean test split due to diagnostic conflation exclusion in CFE.
 
-### Phase 4 — Conformal Prediction Audit
+### Phase 4 :  Conformal Prediction Audit
 - Resolved configuration mismatch where `backend/config.py` pointed to non-existent `conformal_calibration.json`, causing silent fallback to default uncalibrated quantiles.
 - Patched `backend/conformal.py` to transparently record empty-set fallbacks (`last_empty_fallback: bool`) and added `predict_set_raw()` to allow evaluating true coverage ($y \in \emptyset$ is False).
 
-### Phase 5 — Optical Quality & External Generalization
+### Phase 5 :  Optical Quality & External Generalization
 - Tier-0 optical admissibility guardrail verified as a 100% deterministic biophysical heuristic (`fundus_validator.py`) with 100% distractor rejection and < 8ms P99 latency.
 - Reframed external validation on IDRiD and RIM-ONE DL as an acute domain shift vulnerability rather than a successful screening proof.
 
-### Phase 6 — Explainability Audit
+### Phase 6 :  Explainability Audit
 - Formally confirmed that Grad-CAM passes the Adebayo parameter and label randomization sanity tests ($r = 0.22 \ll 0.80$). Locked random seed to 42 for exact numeric reproducibility.
 - Patched `backend/routes/screening.py` so that Grad-CAM falls back to active ensemble backbones (`convnext_small`, `densenet201`) when the monolithic model is absent.
 
-### Phase 7 — Edge Deployment Audit
+### Phase 7 :  Edge Deployment Audit
 - Verified FP32 numerical parity between PyTorch `mobilenet_v3_small_edge.pth` and `edge_model_fp32.onnx` (max logit error $< 4.53 \times 10^{-6}$).
 - Measured real CPU latency: 2.54 ms P50, 355.7 QPS.
 - Installed missing `onnx` package in Python 3.14 to ensure static quantization reader availability.
 
-### Phase 8 — Testing & Reproducibility
+### Phase 8 :  Testing & Reproducibility
 - Automated test suite executed: 317 / 317 tests passed (100.0%).
 - Produced step-by-step reproduction instructions in `research_audit/REPRODUCIBILITY_GUIDE.md`.
 

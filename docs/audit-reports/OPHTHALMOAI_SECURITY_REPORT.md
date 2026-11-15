@@ -1,4 +1,4 @@
-# Security Audit & Vulnerability Assessment: Project B — OphthalmoAI
+# Security Audit & Vulnerability Assessment: Project B: OphthalmoAI
 
 **Target Repository:** `d:\OphthalmoAI`  
 **Date:** October 16, 2026  
@@ -23,7 +23,7 @@ Nine significant security issues (OPH-SEC-01 through OPH-SEC-09) were identified
 - **Component:** `frontend/src/apiConfig.js` (`FALLBACK_TUNNEL_URL`)
 - **Severity:** **High (CVSS 7.5 / HIPAA Violation Risk)**
 - **Vulnerability Description:**  
-  `apiConfig.js` hardcoded `export const FALLBACK_TUNNEL_URL = 'https://api.trycloudflare.com'`. If the local backend or primary API was unavailable or slow to respond, client-side fetch logic silently fell back to transmitting user `FormData`—containing unencrypted retinal fundus images and clinical metadata—to an external Cloudflare tunnel endpoint.
+  `apiConfig.js` hardcoded `export const FALLBACK_TUNNEL_URL = 'https://api.trycloudflare.com'`. If the local backend or primary API was unavailable or slow to respond, client-side fetch logic silently fell back to transmitting user `FormData` (containing unencrypted retinal fundus images and clinical metadata) to an external Cloudflare tunnel endpoint.
 - **Exploitation Impact:**  
   Biometric retinal imagery could be transmitted across public third-party infrastructure without explicit clinician or patient consent, violating HIPAA biometric privacy and zero-egress commitments.
 - **Remediation Implemented:**  

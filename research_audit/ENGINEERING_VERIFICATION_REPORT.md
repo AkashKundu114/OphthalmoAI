@@ -1,4 +1,4 @@
-# OphthalmoAI Engineering Verification Report
+﻿# OphthalmoAI Engineering Verification Report
 
 **Document ID:** `research_audit/ENGINEERING_VERIFICATION_REPORT.md`  
 **Execution Date:** October 30, 2026  

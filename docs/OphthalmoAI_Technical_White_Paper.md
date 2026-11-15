@@ -4,7 +4,7 @@
 **Author:** Akash Kundu  
 **Initiative:** OphthalmoAI Clinical Research & Systems Engineering  
 **Artifact Status:** Peer-Reviewed Biomedical Informatics Research Manuscript (In Preparation)  
-**System Version:** v2.7.0 (Production-Hardened Multi-Tenant Architecture)  
+**System Version:** v0.1.0-alpha (Standardized Research Release Baseline)  
 **Interactive Architecture:** [`docs/architecture.html`](architecture.html)  
 
 ---
@@ -25,7 +25,7 @@ Point-of-care color fundus photography is an indispensable screening tool for pr
 - **Cross-Sensor Domain Adaptation:** Reinhard $L\alpha\beta$ color constancy normalization eliminates inter-vendor camera drift (Zeiss, Topcon, Canon, handheld smartphone adapters).
 - **Independent External Multi-Cohort Validation:** Validated across external cohorts (IDRiD, India; RIM-ONE DL, Spain), demonstrating **91.30% DR recall**, **100.0% Proliferative DR recall**, and **100% autonomous escalation** (`requires_human_review: true`) on out-of-distribution optical crops.
 - **Enterprise Edge & Cloud Telemedicine Systems:** Low-latency serving via ONNX Runtime FP16 (84.2 ms p50 latency, 17.3 QPS), client-side in-browser edge screening (<50 ms, zero cloud egress), asynchronous task queuing with WebSocket streaming, and multi-tenant Row-Level Security (RLS).
-- **Verified Software Quality:** Complete test suite of **253 passing automated tests** (232 backend unit/integration tests + 21 frontend Vitest tests) with an end-to-end reproducibility harness executing in **<0.6 seconds**.
+- **Verified Software Quality:** Complete test suite of **335 passing automated tests** (312 backend unit/integration tests + 23 frontend Vitest tests) with an end-to-end reproducibility harness executing in **<0.6 seconds**.
 
 ---
 
@@ -245,7 +245,7 @@ To evaluate clinical generalizability across disparate populations, camera optic
 | **F1 Score** | 0.8292 | 0.8252 | **0.8690** | **+0.0438** |
 | **AUROC (DR vs Normal)** | 0.9818 | 0.7647 | **0.8824** | **+0.1177** |
 | **Proliferative DR Recall (Stage 4)** | 91.20% | 76.92% (10/13) | **100.00%** (13/13) | **+23.08%** (Zero missed sight-threatening PDR) |
-| **Internal Retention Check** | Baseline | — | **85.18% / 0.9818 AUROC** | **0.0% Catastrophic Forgetting** |
+| **Internal Retention Check** | Baseline | N/A | **85.18% / 0.9818 AUROC** | **0.0% Catastrophic Forgetting** |
 
 ### 6.2 RIM-ONE DL: Anatomical Geometry Shift & Autonomous Safety Net Escalation
 

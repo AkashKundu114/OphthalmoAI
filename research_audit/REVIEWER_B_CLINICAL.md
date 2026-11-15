@@ -1,4 +1,4 @@
-# IEEE Conference Peer Review Report — Reviewer B (Clinical AI Safety & Ophthalmology)
+﻿# IEEE Conference Peer Review Report :  Reviewer B (Clinical AI Safety & Ophthalmology)
 
 **Reviewer Identity:** Reviewer B (Senior Clinical Ophthalmologist & Medical AI Validation Researcher)  
 **Manuscript Title:** Quality-Aware Conformal Screening for Retinal Fundus Imaging Under Optical Domain Shift  

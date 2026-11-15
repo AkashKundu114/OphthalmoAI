@@ -1,4 +1,4 @@
-# Statistical Review and Verification Report — OphthalmoAI
+# Statistical Review and Verification Report: OphthalmoAI
 
 **Document ID:** `STATISTICAL_REVIEW.md`  
 **Execution Context:** Peer-reviewed biomedical informatics manuscript (in preparation)  
@@ -85,8 +85,8 @@ Computed on sealed test set ($N = 1,389$):
 | **Class 2: Glaucoma** | 361 | 363 | 361 | 98.90% (361/361)* | [97.23%, 99.58%] | 99.45% | 0.9918 | 0.9988 |
 | **Class 3: Cataract** | 134 | 130 | 128 | 95.52% (128/134) | [90.57%, 98.05%] | 98.46% | 0.9697 | 0.9997 |
 | **Class 4: AMD** | 29 | 26 | 23 | 79.31% (23/29) | [61.61%, 90.15%] | 88.46% | 0.8364 | 0.9946 |
-| **Class 5: Quarantined**| 0 | 0 | 0 | — | — | — | — | — |
-| **Macro Average** | — | — | — | **94.19%** | — | **96.51%** | **0.9530** | **0.9985** |
+| **Class 5: Quarantined**| 0 | 0 | 0 | N/A | N/A | N/A | N/A | N/A |
+| **Macro Average** | N/A | N/A | N/A | **94.19%** | N/A | **96.51%** | **0.9530** | **0.9985** |
 
 *\*Note: In Table III of `paper_revised.tex`, support represents the evaluated split rows: Class 0=386, Class 1=482, Class 2=361, Class 3=134, Class 4=26, Class 5=0 ($386+482+361+134+26+0 = 1,389$).*
 
@@ -106,8 +106,8 @@ Computed on sealed test set ($N = 1,389$):
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Emergency Stratum** | DR, Glaucoma, AMD | 869 | 0.01 | $\ge 99.0\%$ | **99.31%** (863/869) | 1.012 classes/pt |
 | **Routine Stratum** | Normal, Cataract | 520 | 0.05 | $\ge 95.0\%$ | **96.73%** (503/520) | 1.008 classes/pt |
-| **Overall (Raw CP)** | All 5 Active Classes | 1,389 | — | — | **97.91%** (1,360/1,389) | 1.004 classes/pt |
-| **Overall (Operational)**| With Argmax Fallback | 1,389 | — | — | **98.34%** (1,366/1,389) | **1.010 classes/pt** |
+| **Overall (Raw CP)** | All 5 Active Classes | 1,389 | N/A | N/A | **97.91%** (1,360/1,389) | 1.004 classes/pt |
+| **Overall (Operational)**| With Argmax Fallback | 1,389 | N/A | N/A | **98.34%** (1,366/1,389) | **1.010 classes/pt** |
 
 ### 5.2 Set Cardinality Distribution
 Across all $N = 1,389$ test patients:

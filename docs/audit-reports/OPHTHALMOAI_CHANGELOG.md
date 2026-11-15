@@ -1,10 +1,49 @@
-# Changelog & Verification Record: Project B — OphthalmoAI
+# Changelog & Verification Record: Project B: OphthalmoAI
 
-All notable changes made to OphthalmoAI during the October 16, 2026 Deep Audit are documented here.
+All notable changes made to OphthalmoAI during the release audits and hardening phases are documented here.
 
 ---
 
-## [2.1.0-audit] - 2026-10-16
+## [Post-Release Audit] - 2026-10-31
+
+### Research Audit Suite, Dataset Forensics & Parity Alignment
+
+- **Corpus Forensics & Duplicate Auditing:**
+  - Audited the full dataset corpus for duplicate scans, synthetic biodata, and source splits across EyePACS, Messidor-2, APTOS 2019, and IDRiD (`manifest_v2.csv`).
+  - Added dedicated verification scripts under `scripts/` (`audit_corpus_duplicates.py`, `audit_synthetic_biodata.py`, `inspect_duplicates.py`, `inspect_raw_categories.py`, `verify_exact_sources.py`).
+  - Added 17 modular audit reports under `research_audit/` and synchronized root review documents.
+- **ONNX Input Dimension Default Alignment:**
+  - Standardized ONNX benchmark default input resolution to 224x224 to match the MobileNetV3 edge model architecture (`backend/onnx_inference.py`).
+  - Updated model registry metadata (`models/registry.json`).
+- **Publication Status Harmonization:**
+  - Verified and harmonized all documentation to state that the work is an academic research manuscript in preparation, removing any claims of IEEE publication.
+
+---
+
+## [0.1.0-alpha] - 2026-10-17
+
+### Public Release Hardening Baseline (Phases A through H)
+
+- **Standardized Version Tagging:**
+  - Set version string to `0.1.0-alpha` across `pyproject.toml`, `frontend/package.json`, and `backend/main.py`.
+- **Quality Gates & Test Baseline:**
+  - 312 backend Pytest tests passed in 84.69s (100% pass rate).
+  - 23 frontend Vitest tests passed in 3.55s (100% pass rate).
+  - Total test suite: 335 automated tests passing cleanly.
+  - Zero mypy type errors across 52 backend source files.
+  - Zero ruff linter warnings across all backend modules.
+- **Supply Chain Security:**
+  - 100% clean `pip-audit` scan (removed vulnerable `python-jose` dependency).
+  - Clean `npm audit` with zero high or critical advisories.
+- **Medical Privacy Defaults:**
+  - Set `PERSIST_SCANS=false` by default in `backend/config.py` for RAM-only scan evaluation.
+  - Automatic EXIF and GPS metadata stripping on all uploaded imagery (`backend/security.py`).
+- **Edge Inference:**
+  - Validated client-side ONNX Runtime Web WASM inference (`edge_model.onnx`, 224x224).
+
+---
+
+## [2.2.0-reliability] - 2026-10-16
 
 ### Policy & Compliance Neutralization
 

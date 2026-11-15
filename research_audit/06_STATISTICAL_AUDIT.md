@@ -1,6 +1,6 @@
-# Phase 5: Biostatistical Audit, Multi-Seed Stability, Significance Testing & Metric Reconciliation
+﻿# Phase 5: Biostatistical Audit, Multi-Seed Stability, Significance Testing & Metric Reconciliation
 
-**Audit Stage:** Phase 5 — Statistical & Metric Integrity  
+**Audit Stage:** Phase 5 :  Statistical & Metric Integrity  
 **Auditor:** Senior Biostatistician & Uncertainty Quantification Research Specialist  
 **Repository:** [https://github.com/AkashKundu114/OphthalmoAI](https://github.com/AkashKundu114/OphthalmoAI)  
 **Date of Audit:** October 30, 2026  
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary
 
-This audit delivers an exhaustive biostatistical and forensic inspection of the reported evaluation metrics, multi-seed variance, hypothesis tests (DeLong, McNemar, Holm–Bonferroni), confidence interval methodologies, and metric discrepancies across the OphthalmoAI codebase and preprint manuscript (`research/manuscript.tex`).
+This audit delivers an exhaustive biostatistical and forensic inspection of the reported evaluation metrics, multi-seed variance, hypothesis tests (DeLong, McNemar, Holm-Bonferroni), confidence interval methodologies, and metric discrepancies across the OphthalmoAI codebase and preprint manuscript (`research/manuscript.tex`).
 
 ### Key Audit Findings
 
@@ -21,7 +21,7 @@ This audit delivers an exhaustive biostatistical and forensic inspection of the 
 2. **Multi-Seed Stability Reconciliation (`VERIFIED`):**
    - `models/multi_seed_statistical_report.json` documents an ensemble mean accuracy of **85.18% $\pm$ 0.17%** across 5 random seeds (`[42, 101, 2024, 7, 999]`). This evaluates the legacy single-pass FP16 soft-voting model on $n = 938$ without the learned stacking meta-classifier. The manuscript's 89.77% reflects the full stacking ensemble on the expanded clean cohort ($n = 2,249$).
 3. **The Macro AUROC (0.9914) vs Accuracy (89.77%) Divergence Explained (`VERIFIED`):**
-   - In 6-class One-vs-Rest (OvR) evaluation, pooling the 5 non-target classes into the negative class creates severe negative class predominance (82% to 93.5% negatives) composed largely of "easy negatives" (e.g., Normal fundi when scoring Cataract). This mathematically inflates pairwise rank midranks, pushing OvR AUROCs to 0.9642–0.9962 while multi-class argmax accuracy is strictly penalized by fine-grained boundary confusions.
+   - In 6-class One-vs-Rest (OvR) evaluation, pooling the 5 non-target classes into the negative class creates severe negative class predominance (82% to 93.5% negatives) composed largely of "easy negatives" (e.g., Normal fundi when scoring Cataract). This mathematically inflates pairwise rank midranks, pushing OvR AUROCs to 0.9642-0.9962 while multi-class argmax accuracy is strictly penalized by fine-grained boundary confusions.
 4. **Standalone Simulation vs. Live Inference Artifacts Identified (`PARTIALLY VERIFIED`):**
    - `models/statistical_tests_report.json` was generated via `run_standalone_reference_audit` in `scripts/run_statistical_tests.py` using synthetic probabilities over $n = 938$ (yielding 90.41% accuracy and 0.9486 AUROC), whereas Table 5 of `manuscript.tex` reports empirical evaluations from live model runs on $n = 2,249$ (89.77% accuracy, 0.9914 AUROC). Both lineages are fully mapped in the reconciliation ledger below.
 
@@ -42,7 +42,7 @@ This audit delivers an exhaustive biostatistical and forensic inspection of the 
 
 ### 2.2 Global Performance Metrics on Primary Clean Test Cohort ($n = 2,249$)
 
-Source evidence: `models/evaluation_meta_ensemble.json`, `models/evaluation_meta_ensemble_soft_voting.json`, and `research/manuscript.tex` (Lines 1170–1201).
+Source evidence: `models/evaluation_meta_ensemble.json`, `models/evaluation_meta_ensemble_soft_voting.json`, and `research/manuscript.tex` (Lines 1170-1201).
 
 | Diagnostic Model Configuration | Top-1 Accuracy | Balanced Accuracy | Macro AUROC | Macro F1 | Weighted F1 | ECE (15 Bins) | Evidence Label |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -60,7 +60,7 @@ Source evidence: `models/evaluation_meta_ensemble.json`, `models/evaluation_meta
 
 ### 2.3 Granular Per-Class Diagnostic Metrics ($n = 2,249$)
 
-Source evidence: `models/extended_clinical_battery_report.json` (Lines 1–105) and `models/evaluation_convnext_small.json`.
+Source evidence: `models/extended_clinical_battery_report.json` (Lines 1-105) and `models/evaluation_convnext_small.json`.
 
 Exact 95% Wilson Score Confidence Intervals are calculated as:
 $$\text{CI}_{\text{Wilson}} = \frac{p + \frac{z^2}{2n} \pm z\sqrt{\frac{p(1-p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}, \quad \text{with } z = 1.95996$$
@@ -73,7 +73,7 @@ $$\text{CI}_{\text{Wilson}} = \frac{p + \frac{z^2}{2n} \pm z\sqrt{\frac{p(1-p)}{
 | **Cataract (Class 3)** | 147 | 0.9420 | [0.8877, 0.9675] | 0.9840 | [0.9775, 0.9884] | 58.87 | 0.06 | 998.84 | 0.9962 |
 | **AMD (Class 4)** | 374 | 0.7980 | [0.7531, 0.8345] | 0.9890 | [0.9829, 0.9927] | 72.55 | 0.20 | 355.19 | 0.9924 |
 | **HR / Myopia (Class 5)** | 407 | 0.7120 | [0.6667, 0.7544] | 0.9940 | [0.9893, 0.9967] | 118.67 | 0.29 | 409.56 | 0.9879 |
-| **Macro Average / Total** | **2,249** | **0.8430** | — | **0.9707** | — | — | — | — | **0.9839 / 0.9914\*** |
+| **Macro Average / Total** | **2,249** | **0.8430** | N/A | **0.9707** | N/A | :  | N/A | :  | **0.9839 / 0.9914\*** |
 
 *\*Note on AUROC aggregation:* The simple arithmetic mean of the six class OvR AUROCs is $\frac{0.9642 + 0.9754 + 0.9871 + 0.9962 + 0.9924 + 0.9879}{6} = 0.98387$. In contrast, `models/evaluation_meta_ensemble.json` and `manuscript.tex` report **0.9914 Macro AUROC**. This difference arises because `evaluation_meta_ensemble.json` calculates multi-class AUROC using the Hand & Till (2001) multi-class formulation or scikit-learn's weighted trapezoidal integration over normalized calibrated probabilities from the meta-classifier network.
 
@@ -147,7 +147,7 @@ $$\mathcal{S} = \{42, 101, 2024, 7, 999\}$$
 
 ### 4.2 Forensic Reconciliation: Why is Multi-Seed Accuracy 85.18% vs Manuscript 89.77%?
 
-Investigation of `scripts/evaluate_multi_seed.py` (Lines 136–185) reveals the exact architectural and cohort differences:
+Investigation of `scripts/evaluate_multi_seed.py` (Lines 136-185) reveals the exact architectural and cohort differences:
 1. **Split Difference:**
    - Multi-seed testing in `evaluate_multi_seed.py` was executed on the legacy test split ($n = 938$, `dataset/processed/test.csv`).
    - The primary manuscript results (89.77%) were evaluated on the clean, patient-partitioned test split ($n = 2,249$, `dataset/processed/test_patient_clean.csv`).
@@ -155,7 +155,7 @@ Investigation of `scripts/evaluate_multi_seed.py` (Lines 136–185) reveals the 
    - The multi-seed benchmark evaluates a **basic soft-voting probability average** ($\bar{p} = \frac{1}{3}\sum p_m$) using FP16 backbone checkpoints.
    - The manuscript's 89.77% is produced by the **learned stacking meta-classifier** (`models/meta_classifier.pth`, an MLP trained on concatenated temperature-calibrated logits). On $n = 2,249$, soft voting achieves 89.42%, while meta-classification reaches 89.77%.
 3. **Synthetic Variance Artifact Warning (`CONTRADICTED` in script design):**
-   - In `scripts/evaluate_multi_seed.py` lines 138–142, the seed accuracies across architectures have identical sample standard deviations ($s = 0.00168$ for all models). The vector offsets for seeds 101, 2024, 7, and 999 relative to seed 42 are $+0.0021, -0.0021, +0.0011, -0.0011$ across all backbones.
+   - In `scripts/evaluate_multi_seed.py` lines 138-142, the seed accuracies across architectures have identical sample standard deviations ($s = 0.00168$ for all models). The vector offsets for seeds 101, 2024, 7, and 999 relative to seed 42 are $+0.0021, -0.0021, +0.0011, -0.0011$ across all backbones.
    - *Audit Finding:* These variations were constructed analytically using a fixed perturbation kernel ($\Delta \in \{+0.21\%, -0.21\%, +0.11\%, -0.11\%\}$) to demonstrate stability around nominal checkpoints rather than retraining 5 independent models from random initial weights. This must be transparently disclosed in research records.
 
 ---
@@ -171,7 +171,7 @@ $$\hat{\theta}_A = \text{AUROC}(A), \quad \hat{\theta}_B = \text{AUROC}(B)$$
 $$z = \frac{|\hat{\theta}_A - \hat{\theta}_B|}{\sqrt{\widehat{\text{Var}}(\hat{\theta}_A) + \widehat{\text{Var}}(\hat{\theta}_B) - 2\widehat{\text{Cov}}(\hat{\theta}_A, \hat{\theta}_B)}}$$
 $$\text{Two-sided } p = 2 \cdot \big(1 - \Phi(|z|)\big)$$
 
-`scripts/run_statistical_tests.py` (Lines 66–86, 152–256) implements Sun and Xu's (2014) fast $O(N \log N)$ algorithm using midrank adjustments (`compute_midrank`).
+`scripts/run_statistical_tests.py` (Lines 66-86, 152-256) implements Sun and Xu's (2014) fast $O(N \log N)$ algorithm using midrank adjustments (`compute_midrank`).
 - **Code Verification:** Midrank computation correctly splits ties by assigning the average rank:
   $$\text{midrank}(k) = \frac{1}{|T_k|} \sum_{i \in T_k} i$$
 - Variance and covariance matrices ($S_x, S_y$) are derived from the structural components $V_{01}$ and $V_{10}$ over positive and negative instances.
@@ -185,7 +185,7 @@ $$\text{Two-sided } p = 2 \cdot \big(1 - \Phi(|z|)\big)$$
 | **Meta-Classifier vs DenseNet-201** | $z = 1.818, p = 0.0072$ | $z = 0.7687, p = 0.2174$ | `VERIFIED` in Manuscript |
 | **Meta-Classifier vs ConvNeXt-Small** | $z = 1.913, p = 0.0010$ | $z = 1.3117, p = 0.0160$ | `VERIFIED` in Both |
 | **Meta-Classifier vs EfficientNet-V2-M**| $z = 1.204, p = 0.0059$ | $z = 0.6397, p = 0.1194$ | `VERIFIED` in Manuscript |
-| **Meta-Classifier vs RETFound ViT** | $p = 2.29 \times 10^{-15}$ | — | `VERIFIED` (`retfound_comparison_report.json`) |
+| **Meta-Classifier vs RETFound ViT** | $p = 2.29 \times 10^{-15}$ | N/A | `VERIFIED` (`retfound_comparison_report.json`) |
 
 ---
 
@@ -205,11 +205,11 @@ $$p_{\text{exact}} = 2 \cdot \sum_{k=0}^{\min(b, c)} \binom{b + c}{k} \left(\fra
 1. **Ensemble vs ResNet-50 Baseline (`models/multi_seed_statistical_report.json`):**
    - $b = 119, c = 30$, discordant sum $= 149$.
    - $\chi^2 = \frac{(|119 - 30| - 1)^2}{149} = \frac{88^2}{149} = \frac{7744}{149} = 51.973$.
-   - $p = 5.626 \times 10^{-13}$ (`VERIFIED` — Extremely statistically significant).
+   - $p = 5.626 \times 10^{-13}$ (`VERIFIED` :  Extremely statistically significant).
 2. **Ensemble vs DenseNet-201 (`models/multi_seed_statistical_report.json`):**
    - $b = 24, c = 17$, discordant sum $= 41$.
    - $\chi^2 = \frac{(|24 - 17| - 1)^2}{41} = \frac{6^2}{41} = \frac{36}{41} = 0.8780$.
-   - $p = 0.3487$ (`VERIFIED` — Not statistically significant in raw accuracy; ensemble gain is in calibration and uncertainty).
+   - $p = 0.3487$ (`VERIFIED` :  Not statistically significant in raw accuracy; ensemble gain is in calibration and uncertainty).
 3. **Full System vs Single Backbones on $n = 2,249$ (`manuscript.tex` Table 5):**
    - Meta-Classifier vs DenseNet-201: $\chi^2 = 4.14, p = 0.0420$ (`VERIFIED`).
    - Meta-Classifier vs ConvNeXt-Small: $\chi^2 = 4.14, p = 0.0420$ (`VERIFIED`).
@@ -217,14 +217,14 @@ $$p_{\text{exact}} = 2 \cdot \sum_{k=0}^{\min(b, c)} \binom{b + c}{k} \left(\fra
 
 ---
 
-### 5.3 Holm–Bonferroni Step-Down Correction
+### 5.3 Holm-Bonferroni Step-Down Correction
 
 To control Family-Wise Error Rate (FWER) across the 6 diagnostic classes:
 1. Sort raw $p$-values: $p_{(1)} \le p_{(2)} \le \dots \le p_{(m)}$ with $m = 6$.
 2. Adjusted thresholds: $p_{(k)} \le \frac{\alpha}{m - k + 1}$.
 3. Step-down adjusted $p$-value: $p_{(k)}^{\text{adj}} = \max_{j \le k} \left\{ \min\big(1, (m - j + 1) p_{(j)}\big) \right\}$.
 
-Source evidence: `models/multi_seed_statistical_report.json` (Lines 45–63):
+Source evidence: `models/multi_seed_statistical_report.json` (Lines 45-63):
 
 | Diagnostic Class Index | Raw $p$-value | Multiplier $(m - k + 1)$ | Step-Down Adjusted $p$ | Significant ($\alpha = 0.05$) |
 | :---: | :---: | :---: | :---: | :---: |
@@ -266,6 +266,6 @@ This register identifies, cross-references, and reconciles every conflicting met
 2. **Synchronize `statistical_tests_report.json` with Live Pipeline:**
    - Re-run `scripts/run_statistical_tests.py` with `--device cuda` on the actual `test_patient_clean.csv` split so the exported JSON matches Table 5 of `manuscript.tex` exactly, replacing the analytical fallback simulation.
 3. **Clarify OvR AUROC in Methodology:**
-   - Include a brief methodological note in the manuscript explaining that OvR AUROCs (0.9642–0.9962) reflect rank discrimination against pooled easy negatives, whereas argmax accuracy (89.77%) evaluates hardest-competitor multi-class triage.
+   - Include a brief methodological note in the manuscript explaining that OvR AUROCs (0.9642-0.9962) reflect rank discrimination against pooled easy negatives, whereas argmax accuracy (89.77%) evaluates hardest-competitor multi-class triage.
 4. **Wilson Score CIs for Rare Subgroups:**
    - Continue reporting exact Wilson Score CIs for rare clinical subgroups (Cataract $n=147$, AMD $n=374$, Myopia $n=407$), as normal approximation CIs severely under-cover when proportions approach 0.0 or 1.0.

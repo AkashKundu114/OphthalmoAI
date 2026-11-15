@@ -1,4 +1,4 @@
-# Phase 10: Edge Deployment, ONNX Runtime & WebAssembly Latency Audit
+﻿# Phase 10: Edge Deployment, ONNX Runtime & WebAssembly Latency Audit
 
 **Audit Date:** October 30, 2026  
 **Auditor:** Senior Deep Learning Systems & Edge Deployment Auditor  
@@ -12,10 +12,10 @@
 
 This phase evaluates the edge computing and point-of-care deployment capabilities of OphthalmoAI. The research manuscript asserts two central performance claims regarding operational latency:
 1. **Workstation Serving via ONNX FP16:** p50 serving latency of **84.2 ms (11.9 QPS sequentially, 17.3 QPS batched)** on consumer workstation silicon.
-2. **Offline-First In-Browser Screening:** Zero-cloud client-side execution in **under 50 ms (38–43 ms)** via HTML5 Canvas tensor extraction and WebAssembly (WASM).
+2. **Offline-First In-Browser Screening:** Zero-cloud client-side execution in **under 50 ms (38-43 ms)** via HTML5 Canvas tensor extraction and WebAssembly (WASM).
 
 Our forensic audit verifies that low-latency serving is fully functional and backed by real compiled models and live execution scripts. Crucially, however, the audit clarifies a major architectural distinction:
-- **Server/GPU Pipeline:** Deploys the full **124.3M-parameter Tri-Backbone Ensemble** at $384 \times 384$ resolution, achieving **72.7–84.2 ms** latency on NVIDIA GPU hardware.
+- **Server/GPU Pipeline:** Deploys the full **124.3M-parameter Tri-Backbone Ensemble** at $384 \times 384$ resolution, achieving **72.7-84.2 ms** latency on NVIDIA GPU hardware.
 - **Edge Browser Pipeline:** Deploys an ultra-lightweight **MobileNet-V3-Small model** (2.54M parameters, $224 \times 224$ resolution, quantized to 1.62 MB INT8), achieving **38.5 ms** latency in-browser via WebAssembly.
 
 The full 124.3M tri-ensemble is **not** executed within the browser's WebAssembly sandbox. This tiered separation (heavy ensemble on server, lightweight MobileNet on edge) represents sound medical engineering, but requires transparent disambiguation in the manuscript to prevent conflation.
@@ -53,7 +53,7 @@ The full 124.3M tri-ensemble is **not** executed within the browser's WebAssembl
 | **`edge_model.onnx`** | `frontend/public/models/` | 2,542,854 | 1,696,740 | 1.62 MB | ONNX INT8 (QUInt8 Dynamic) | `262d6d0c493a52e6b137b205d3252e42424269221379c5958435602a45d9358b` | In-Browser WebAssembly Client |
 
 ### Model Footprint Verification:
-- `scripts/export_edge_model.py` (lines 418–422) enforces an operational constraint: `MAX_SIZE_MB = 15.0`.
+- `scripts/export_edge_model.py` (lines 418-422) enforces an operational constraint: `MAX_SIZE_MB = 15.0`.
 - The quantized browser artifact `frontend/public/models/edge_model.onnx` measures exactly **1.62 MB (1,696,740 bytes)**, which is **9.2$\times$ smaller than the browser memory ceiling**. It downloads across a 3G mobile link in under 1.5 seconds.
 - Audit Status: **VERIFIED**.
 
@@ -91,7 +91,7 @@ Running `scripts/benchmark_onnx.py --model-path models/edge_model_fp32.onnx` rev
 
 #### Forensic Findings on Benchmark Integrity:
 1. **Real Measurement:** `ONNX Runtime (Graph Opt)` achieved a measured mean of **2.19 ms (p50: 1.94 ms, 455.6 QPS)** on host CPU, matching the 1.43 ms observed in `benchmark_latency.py`.
-2. **Synthetic Flagging:** In `backend/onnx_inference.py` (lines 379–395 and 438–450), when no live PyTorch model is passed, the script injects a hardcoded reference baseline: `p50 = 181.0 ms`. The script then computes an analytical projection for FP16 by dividing by 3.20 ($181.0 / 3.20 = 56.56\,\text{ms}$).
+2. **Synthetic Flagging:** In `backend/onnx_inference.py` (lines 379-395 and 438-450), when no live PyTorch model is passed, the script injects a hardcoded reference baseline: `p50 = 181.0 ms`. The script then computes an analytical projection for FP16 by dividing by 3.20 ($181.0 / 3.20 = 56.56\,\text{ms}$).
 3. **Auditor Commendation:** The codebase properly tags this row with:
    `is_synthetic = True`, `mode = "SYNTHETIC ESTIMATE"`, and `warning = "FP16 quantization profile is an analytical projection."`
    This defensive tagging ensures full transparency and prevents synthetic numbers from being misrepresented as empirical benchmarks.
@@ -101,7 +101,7 @@ Running `scripts/benchmark_onnx.py --model-path models/edge_model_fp32.onnx` rev
 ## 4. In-Browser WebAssembly Implementation Audit
 
 ### 4.1 Client-Side Codebase Inspection (`frontend/src/edgeInference.js`)
-Inspection of `frontend/src/edgeInference.js` (lines 1–86, 273–370) confirms how the edge model is executed in the user's browser:
+Inspection of `frontend/src/edgeInference.js` (lines 1-86, 273-370) confirms how the edge model is executed in the user's browser:
 - **Runtime Library:** `import * as ort from 'onnxruntime-web'`.
 - **WASM Configuration:**
   ```javascript
@@ -112,7 +112,7 @@ Inspection of `frontend/src/edgeInference.js` (lines 1–86, 273–370) confirms
   ```
 - **Execution Provider:** Configured strictly to `['wasm']` (WebAssembly with SIMD acceleration).
 - **Model Path:** `/models/edge_model.onnx` (resolves to the 1.62 MB quantized artifact in `frontend/public/models/`).
-- **Graceful Fallback:** If the browser blocks WebAssembly or fails to load the model, lines 288–305 automatically fall back to `runHeuristicInference()` in `edgeHeuristic.js`, while raising an explicit UI disclaimer: *"Warning: Preliminary screening (legacy heuristic fallback). Full server-side analysis recommended for clinical decisions."*
+- **Graceful Fallback:** If the browser blocks WebAssembly or fails to load the model, lines 288-305 automatically fall back to `runHeuristicInference()` in `edgeHeuristic.js`, while raising an explicit UI disclaimer: *"Warning: Preliminary screening (legacy heuristic fallback). Full server-side analysis recommended for clinical decisions."*
 
 ### 4.2 Latency Accounting: Does <50 ms Include Preprocessing?
 In `frontend/src/edgeInference.js`, latency is tracked via high-resolution performance timers:
@@ -160,7 +160,7 @@ The table below contrasts the two deployed systems:
 | **Model Size on Disk** | 239.2 MB (FP16 Fused) | 1.62 MB (INT8 Quantized) | Edge model is $147\times$ smaller on disk. |
 | **Input Tensor Shape** | $1 \times 3 \times 384 \times 384$ | $1 \times 3 \times 224 \times 224$ | Resolution difference: 147,456 vs 50,176 pixels ($2.94\times$). |
 | **Execution Engine** | PyTorch CUDA / ONNX Runtime C++ | ONNX Runtime WebAssembly (WASM SIMD) | Different runtimes. |
-| **Measured p50 Latency** | 72.7–84.2 ms (GPU) | 38.0–43.2 ms (Browser WASM) | Both meet their respective real-time deadlines. |
+| **Measured p50 Latency** | 72.7-84.2 ms (GPU) | 38.0-43.2 ms (Browser WASM) | Both meet their respective real-time deadlines. |
 | **Data Egress** | Requires image upload to backend | **0 KB (Zero egress, completely local)** | Edge guarantees strict local privacy. |
 
 ### Required Manuscript Clarification:

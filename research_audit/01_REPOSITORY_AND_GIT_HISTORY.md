@@ -1,4 +1,4 @@
-# Phase 1: Repository Architecture, Git Provenance & Evolution Audit
+﻿# Phase 1: Repository Architecture, Git Provenance & Evolution Audit
 
 **Audit Date:** October 30, 2026  
 **Auditor:** Senior Computer Vision, Deep Learning, Software Engineering & Reproducibility Auditor  
@@ -99,12 +99,12 @@ timeline
 
 ### Detailed Chronological Epochs:
 
-1. **Epoch I: Inception & Prototyping (November 2025 – May 2026)**
+1. **Epoch I: Inception & Prototyping (November 2025 - May 2026)**
    - `da8863c` (2025-11-25): *Initial commit: Eye Disease AI Full Stack App*. Basic web interface evaluating single fundus uploads.
    - `372c7de` (2026-05-02): Modularized backend lifecycle, chat endpoints, and LLaVA visual-question-answering integration.
    - `ee09593` (2025-11-26): Backend optimization constrained to 512MB RAM limits for free tier hosting.
 
-2. **Epoch II: Multi-Backbone Deep Learning & GPU Telemetry (August 2026 – Early September 2026)**
+2. **Epoch II: Multi-Backbone Deep Learning & GPU Telemetry (August 2026 - Early September 2026)**
    - `2ee2f1d` (2026-08-16): *Add ensemble training script*. First appearance of `scripts/train_ensemble.py`. Defined the tri-backbone paradigm (ConvNeXt-Small, DenseNet-201, EfficientNet-V2-M) and feature concatenation into an MLP meta-classifier.
    - `dd397cd` (2026-08-16): Introduced NVIDIA NGC PyTorch Docker configurations, automated CUDA memory tracking, and hardware telemetry hooks.
    - `2026-09-11 to 2026-09-13`: Intensive training runs logged in `dataset/logs/`, generating 45 hardware telemetry JSON files across FP16, BF16, and FP32 precisions.

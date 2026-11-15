@@ -1,4 +1,4 @@
-# UI Responsiveness, Clinical UX & Accessibility Audit: Project B — OphthalmoAI
+# UI Responsiveness, Clinical UX & Accessibility Audit: Project B: OphthalmoAI
 
 **Target Repository:** `d:\OphthalmoAI`  
 **Date:** October 16, 2026  

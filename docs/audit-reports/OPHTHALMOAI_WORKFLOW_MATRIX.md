@@ -1,4 +1,4 @@
-# Workflow Verification Matrix: Project B — OphthalmoAI
+# Workflow Verification Matrix: Project B: OphthalmoAI
 
 **Target Repository:** `d:\OphthalmoAI`  
 **Date:** October 16, 2026  
@@ -32,4 +32,4 @@
 
 - **Total Backend Tests:** 283 passed unit/integration tests (`tests/backend/`, `tests/`)
 - **Total Frontend Tests:** 23 passed component/client tests (`frontend/tests/`)
-- **Combined Passed Tests:** **306 Passed Tests — 0 Failures**
+- **Combined Passed Tests:** **306 Passed Tests, 0 Failures**

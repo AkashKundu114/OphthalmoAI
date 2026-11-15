@@ -1,4 +1,4 @@
-# Independent Research Verification & Statistical Audit Report
+﻿# Independent Research Verification & Statistical Audit Report
 
 **Report Author:** Multidisciplinary Independent Verification Team  
 **Evaluation Standard:** Independent Empirical Re-Execution Standard  
@@ -115,6 +115,6 @@ We certify that:
 1. No experimental results, metric values, or patient data were fabricated.
 2. The code in `d:\OphthalmoAI` has been tested through actual execution, compiling models, running PyTorch inference, and evaluating real arrays on host hardware.
 3. All empirical claims published in `research/numbers_revised.tex` and `research/paper_revised.tex` are mathematically verified against raw tensor outputs.
-4. Methodological boundaries—including the lack of clinical patient IDs on web-scraped data, the statistical equivalence between meta-learning and soft-voting, and the catastrophic specificity collapse on external cameras—are openly documented as scientific limitations.
+4. Methodological boundaries: including the lack of clinical patient IDs on web-scraped data, the statistical equivalence between meta-learning and soft-voting, and the catastrophic specificity collapse on external cameras: are openly documented as scientific limitations.
 
 **Independent Verification Status:** **VERIFIED WITH ACCEPTED SCIENTIFIC LIMITATIONS**

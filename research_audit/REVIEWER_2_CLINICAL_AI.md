@@ -12,7 +12,7 @@
 
 ## 1. Summary of the Work
 
-The manuscript investigates an automated tele-ophthalmic screening pipeline designed for primary care clinics and remote medical outposts. The clinical objective is early triaging of sight-threatening retinal pathologies—specifically Diabetic Retinopathy (DR), Glaucomatous Optic Neuropathy, and Age-Related Macular Degeneration (AMD)—alongside physiological Normal eyes and Cataract-induced media opacity.
+The manuscript investigates an automated tele-ophthalmic screening pipeline designed for primary care clinics and remote medical outposts. The clinical objective is early triaging of sight-threatening retinal pathologies (specifically Diabetic Retinopathy (DR), Glaucomatous Optic Neuropathy, and Age-Related Macular Degeneration (AMD)) alongside physiological Normal eyes and Cataract-induced media opacity.
 
 Rather than treating deep learning as an autonomous black-box diagnostician, the paper designs a **clinically cautious decision-support framework**. The core clinical mechanisms include:
 1. Pre-inference rejection of non-fundus or severely corrupted scans via biophysical spectroscopy and aperture checks.

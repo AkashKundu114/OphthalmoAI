@@ -1,4 +1,4 @@
-# Autonomous Multidisciplinary Scientific, Code, Dataset, Statistical, Clinical-Safety, and IEEE Conference Audit: Executive Summary
+﻿# Autonomous Multidisciplinary Scientific, Code, Dataset, Statistical, Clinical-Safety, and IEEE Conference Audit: Executive Summary
 
 **Project Title:** OphthalmoAI: Uncertainty-Aware Multi-Class Retinal Disease Screening with Conformal Sets & Biophysical Optical Guardrails  
 **Auditing Entity:** Independent Multidisciplinary Scientific Audit Board  
@@ -73,7 +73,7 @@ This audit was conducted by a ten-role multidisciplinary scientific board adheri
    - *Verdict:* **`UNVERIFIED / UNSUPPORTED CLAIM`**.
 
 6. **Simulated Negative Stress Corpus (2,500 Images):**
-   - *Forensic Finding:* Table 7 claims a 2,500-sample negative stress corpus across CheXpert (400), ISIC 2019 (400), ImageNet (400), synthetic noise (200), and near-OOD retinal artifacts (1,100). In `scripts/reproduce_evaluation.py` lines 127–148, this table is hardcoded as fixed print statements. No raw CheXpert, ISIC, or ImageNet image files exist in the repository.
+   - *Forensic Finding:* Table 7 claims a 2,500-sample negative stress corpus across CheXpert (400), ISIC 2019 (400), ImageNet (400), synthetic noise (200), and near-OOD retinal artifacts (1,100). In `scripts/reproduce_evaluation.py` lines 127-148, this table is hardcoded as fixed print statements. No raw CheXpert, ISIC, or ImageNet image files exist in the repository.
    - *Verdict:* **`UNVERIFIED / SIMULATED BENCHMARK`**.
 
 7. **Internal Table 6 Arithmetic Contradiction:**
@@ -107,7 +107,7 @@ The audit deliverables have been structured and generated in `research_audit/`:
 | [`12_RELATED_WORK_AND_NOVELTY.md`](file:///d:/OphthalmoAI/research_audit/12_RELATED_WORK_AND_NOVELTY.md) | Prior Art & Novelty Matrix | Skeptical Supervisor / Reviewer | Delineates genuine novelty vs. engineering glue. |
 | [`13_ABLATION_AND_EXPERIMENT_PLAN.md`](file:///d:/OphthalmoAI/research_audit/13_ABLATION_AND_EXPERIMENT_PLAN.md) | Component Ablation Protocol | Lead Biostatistician | Formulates 10-dimension hypothesis testing matrix. |
 | [`14_REPRODUCIBILITY_GUIDE.md`](file:///d:/OphthalmoAI/research_audit/14_REPRODUCIBILITY_GUIDE.md) | Step-by-Step Reproduction Guide | Software Engineering Auditor | Standalone CLI commands to replicate verified benchmarks. |
-| [`15_IEEE_REVIEWER_REPORT.md`](file:///d:/OphthalmoAI/research_audit/15_IEEE_REVIEWER_REPORT.md) | Simulated Peer Review Report | Skeptical IEEE Reviewer | Rigorous peer review report with numerical scoring (1–10). |
+| [`15_IEEE_REVIEWER_REPORT.md`](file:///d:/OphthalmoAI/research_audit/15_IEEE_REVIEWER_REPORT.md) | Simulated Peer Review Report | Skeptical IEEE Reviewer | Rigorous peer review report with numerical scoring (1-10). |
 | [`16_CRITICAL_ISSUE_REGISTER.md`](file:///d:/OphthalmoAI/research_audit/16_CRITICAL_ISSUE_REGISTER.md) | Comprehensive Defect Ledger | Skeptical Supervisor / Reviewer | Prioritized register of Critical, High, and Medium defects. |
 | [`17_FINAL_RESEARCH_ROADMAP.md`](file:///d:/OphthalmoAI/research_audit/17_FINAL_RESEARCH_ROADMAP.md) | Actionable Publication Plan | Coordinating Lead Auditor | Concrete roadmap to condense manuscript for ICCECE 2027. |
 | [`MASTER_ISSUE_REGISTER.csv`](file:///d:/OphthalmoAI/research_audit/MASTER_ISSUE_REGISTER.csv) | Machine-Readable Defect Ledger | Skeptical Reviewer | Tabular register of all 18 identified scientific issues. |

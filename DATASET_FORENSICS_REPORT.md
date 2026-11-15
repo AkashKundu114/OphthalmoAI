@@ -38,7 +38,7 @@ The master unaugmented raw image corpus comprised 22,369 images aggregated from 
 ## 3. Duplicate and Near-Duplicate Detection Audit
 
 ### Forensic Discovery:
-In early repository versions (`scripts/split_patient_level.py`), difference hash calculation (`compute_dhash()`, lines 35–45) was **dead code** (defined but never invoked), resulting in near-duplicate images sharing identical perceptual hashes leaking between train and test splits.
+In early repository versions (`scripts/split_patient_level.py`), difference hash calculation (`compute_dhash()`, lines 35-45) was **dead code** (defined but never invoked), resulting in near-duplicate images sharing identical perceptual hashes leaking between train and test splits.
 
 ### Remediation & Verification in V2:
 1. In `scripts/forensic_deduplication_v2.py` and `scripts/split_patient_level_v2.py`, we implemented a Disjoint Set Union (DSU) clustering algorithm incorporating:

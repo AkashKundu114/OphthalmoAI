@@ -136,7 +136,7 @@ Conducted via `scripts/secrets_and_privacy_scanner.py` across working tree and g
 ## 7. Documentation & Session Hygiene
 
 - **Stale Working Session Markers Identified:**
-  - `docs/technical/AZURE_DEPLOY.md`: "Added this session — run once after deploy.sh completes", "migration round-trip check added this session".
+  - `docs/technical/AZURE_DEPLOY.md`: "Run once after deploy.sh completes", "migration round-trip check".
   - `docs/technical/SECURITY_AUDIT.md`: "3 additional bugs found and fixed this session".
   - `README.md`: line 435 mentions obsolete "all 262 automated Pytest unit and integration tests" while line 84 correctly states 335 total tests.
   - `ISSUES.md`: line 28 references `v2.5.0` (must be updated to `v0.1.0-alpha research prototype`).

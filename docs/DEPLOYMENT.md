@@ -41,7 +41,7 @@ cp env.example .env
 | `MAX_FILE_SIZE_BYTES` | `20971520` (20MB) | Maximum allowed image upload size. |
 | `ENABLE_IQA` | `true` | Enables Image Quality Assessment prior to inference. |
 | `ENABLE_UNCERTAINTY` | `true` | Enables MC-dropout epistemic uncertainty estimation. |
-| `PERSIST_SCANS` | `true` | Persists scan records and audit logs to SQLite/PostgreSQL. |
+| `PERSIST_SCANS` | `false` | Ephemeral RAM processing by default; set to `true` to persist scan records and audit logs to SQLite/PostgreSQL. |
 | `GEMINI_API_KEY` | `""` | Optional Google Gemini key for multilingual AI doctor chat. |
 | `SARVAM_API_KEY` | `""` | Optional Sarvam AI key for Indic speech translation and TTS. |
 | `OLLAMA_URL` | `""` | Optional local LLM endpoint (e.g. `http://localhost:11434`). |

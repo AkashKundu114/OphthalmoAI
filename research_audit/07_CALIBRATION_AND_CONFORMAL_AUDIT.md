@@ -1,6 +1,6 @@
-# Phase 6: Calibration & Conformal Prediction Audit
+﻿# Phase 6: Calibration & Conformal Prediction Audit
 
-**Audit Stage:** Phase 6 — Post-Hoc Calibration & Distribution-Free Risk Control  
+**Audit Stage:** Phase 6 :  Post-Hoc Calibration & Distribution-Free Risk Control  
 **Auditor:** Senior Biostatistician & Calibration / Uncertainty Quantification Specialist  
 **Repository:** [https://github.com/AkashKundu114/OphthalmoAI](https://github.com/AkashKundu114/OphthalmoAI)  
 **Date of Audit:** October 30, 2026  
@@ -29,7 +29,7 @@ Temperature scaling (Guo et al., 2017) is a post-hoc, single-parameter extension
 $$\hat{p}_k(X; T) = \frac{\exp\big(z_k(X) / T\big)}{\sum_{j=1}^K \exp\big(z_j(X) / T\big)}, \quad \arg\max_k \hat{p}_k(X; T) = \arg\max_k z_k(X)$$
 The scalar $T$ is optimized on the holdout validation split $\mathcal{D}_{\text{val}}$ by minimizing the Negative Log-Likelihood (multinomial cross-entropy loss):
 $$\min_{T > 0} \mathcal{L}_{\text{NLL}}(T) = -\frac{1}{N_{\text{val}}} \sum_{i=1}^{N_{\text{val}}} \log \hat{p}_{y_i}(X_i; T)$$
-In `backend/calibration.py` (Lines 82–118), optimization is executed via the quasi-Newton **L-BFGS** algorithm with learning rate $\eta = 0.01$, max iterations $= 50$, and defensive parameter clamping:
+In `backend/calibration.py` (Lines 82-118), optimization is executed via the quasi-Newton **L-BFGS** algorithm with learning rate $\eta = 0.01$, max iterations $= 50$, and defensive parameter clamping:
 $$T \in [T_{\min}, T_{\max}] = [10^{-3}, 50.0]$$
 
 ---
@@ -68,7 +68,7 @@ $$\text{MCE} = \max_{m=1, \dots, M} \big| \text{acc}(B_m) - \text{conf}(B_m) \bi
 #### Brier Multi-Class Score
 $$\text{Brier} = \frac{1}{N} \sum_{i=1}^N \sum_{k=1}^K \big( \hat{p}_k(X_i) - \mathbb{I}(y_i = k) \big)^2$$
 
-In `models/extended_clinical_battery_report.json` (Lines 106–113), the empirical battery evaluation on $n = 2,249$ yields:
+In `models/extended_clinical_battery_report.json` (Lines 106-113), the empirical battery evaluation on $n = 2,249$ yields:
 - **Brier Multi-Class Score:** **0.042865** (`VERIFIED`)
 - **Negative Log-Likelihood:** **0.181366** (`VERIFIED`)
 - **MCE (15 bins):** **0.560443** (Demonstrates localized miscalibration in sparsely populated extreme bins)
@@ -124,7 +124,7 @@ Across OphthalmoAI documentation, model cards, and scripts, ECE is reported as *
 
 ## 4. The Calibration Inversion Phenomenon
 
-A critical empirical discovery in Table 5 of `research/manuscript.tex` (Lines 1178–1191) is the **Calibration Inversion Paradox**:
+A critical empirical discovery in Table 5 of `research/manuscript.tex` (Lines 1178-1191) is the **Calibration Inversion Paradox**:
 
 $$\text{DenseNet-201 Solo ECE} = \mathbf{0.0545}$$
 $$\text{ConvNeXt-Small Solo ECE} = \mathbf{0.0774}$$
@@ -161,7 +161,7 @@ $$P_{\text{meta}}(X) = \text{Softmax}\big( \mathbf{W}_2 \, \text{GELU}(\mathbf{W
 
 ## 5. Conformal Risk Control Audit: US-CRC vs. AW-CRC
 
-Source files: `models/aw_crc_calibration.json`, `scripts/run_aw_crc_calibration.py`, `scripts/run_conformal_calib.py`, `backend/conformal.py`, and `research/manuscript.tex` (Lines 370–435).
+Source files: `models/aw_crc_calibration.json`, `scripts/run_aw_crc_calibration.py`, `scripts/run_conformal_calib.py`, `backend/conformal.py`, and `research/manuscript.tex` (Lines 370-435).
 
 ### 5.1 Mathematical Formulations
 
@@ -189,7 +189,7 @@ Let $S(X) \in [\tau_{\text{guard}}, 1.0] = [0.50, 1.0]$ represent the continuous
 ### 5.2 Mathematical Audit of Formal Propositions
 
 #### Audit of Proposition 1: Canonical Ensemble Variance Bound
-In `research/manuscript.tex` (Lines 190–216):
+In `research/manuscript.tex` (Lines 190-216):
 $$\mathrm{Var}\left(P_{\text{ensemble}}\right) \le \sigma_{\max}^2 \left( \frac{1 + (M - 1)\bar{\rho}}{M} \right)$$
 - **Derivation Check:**
   $$\mathrm{Var}\left(\frac{1}{M}\sum_{m=1}^M p_m\right) = \frac{1}{M^2}\sum_{m=1}^M \sigma_m^2 + \frac{2}{M^2}\sum_{i < j} \sigma_{ij}$$
@@ -207,7 +207,7 @@ $$\mathrm{Var}\left(P_{\text{ensemble}}\right) \le \sigma_{\max}^2 \left( \frac{
 ---
 
 #### Audit of Proposition 2 / Theorem 1: Finite-Sample Validity of AW-CRC
-In `research/manuscript.tex` (Lines 385–410):
+In `research/manuscript.tex` (Lines 385-410):
 $$\mathbb{P}\left(Y_{N+1} \in \mathcal{C}_{\text{AW}}(X_{N+1}) \mid Y_{N+1} \in \mathcal{Y}_k\right) \ge 1 - \alpha_k$$
 - **Proof Structure:**
   1. Let $(X_1, Y_1), \dots, (X_{N+1}, Y_{N+1})$ be exchangeable random pairs.
@@ -229,7 +229,7 @@ $$\mathbb{P}\left(Y_{N+1} \in \mathcal{C}_{\text{AW}}(X_{N+1}) \mid Y_{N+1} \in 
 
 During forensic comparison between `scripts/run_aw_crc_calibration.py` and `backend/conformal.py`, a mathematical divergence was detected:
 
-1. **Theoretical Formulation & Script (`run_aw_crc_calibration.py:142–148`):**
+1. **Theoretical Formulation & Script (`run_aw_crc_calibration.py:142-148`):**
    ```python
    for c in range(6):
        if c in EMERGENCY_CLASSES:
@@ -241,7 +241,7 @@ During forensic comparison between `scripts/run_aw_crc_calibration.py` and `back
    ```
    *Behavior:* Each candidate class $c$ is checked against the quantile cutoff of **its own stratum** ($\text{strata}(c)$). This aligns strictly with Proposition 2.
 
-2. **Backend Runtime Implementation (`backend/conformal.py:188–196`):**
+2. **Backend Runtime Implementation (`backend/conformal.py:188-196`):**
    ```python
    top_urgency = URGENCY_TIERS.get(top_diagnosis, "Non-urgent")
    is_emergency = top_urgency in {"Emergency", "Urgent"}
@@ -261,15 +261,15 @@ During forensic comparison between `scripts/run_aw_crc_calibration.py` and `back
 
 ### 5.4 Empirical Verification: Grade C Coverage Restoration
 
-Source evidence: `models/aw_crc_calibration.json` (Lines 5–46).
+Source evidence: `models/aw_crc_calibration.json` (Lines 5-46).
 
 | Optical Quality Tier | Admissibility Range $S(X)$ | Standard US-CRC Coverage | Proposed AW-CRC Coverage | Coverage Delta ($\Delta$) | Mean Set Size (AW-CRC) | Singleton % (AW-CRC) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Grade A (Optimal Media)** | $S \in [0.70, 0.98]$ | **99.85%** | **97.71%** | $-2.14\%$ (Pruned) | 0.98 classes/pt | 98.2% |
 | **Grade B (Mild Flare/Haze)** | $S \in [0.60, 0.70]$ | **92.90%** | **92.90%** | $0.00\%$ | 0.93 classes/pt | 93.5% |
 | **Grade C (Dense Media/Cataract)**| $S \in [0.50, 0.60]$ | **78.31%** | **97.59%** | **+19.28%** | **1.35 classes/pt** | **72.4%** |
-| **Emergency Stratum Overall** | All Tiers | **98.56%** | **98.80%** | **+0.24%** | — | — |
-| **Routine Stratum Overall** | All Tiers | **94.95%** | **95.16%** | **+0.21%** | — | — |
+| **Emergency Stratum Overall** | All Tiers | **98.56%** | **98.80%** | **+0.24%** | N/A | :  |
+| **Routine Stratum Overall** | All Tiers | **94.95%** | **95.16%** | **+0.21%** | N/A | :  |
 | **Full Cohort Combined** | All Tiers | **96.64%** | **96.86%** | **+0.22%** | **1.08 classes/pt** | **96.86%** |
 
 **Audit Findings (`VERIFIED`):**
@@ -286,7 +286,7 @@ $$\mathcal{D}_{\text{cal}} \sim P_{XY}, \quad \mathcal{D}_{\text{test}} \sim P_{
 
 ### 6.1 Catastrophic External Breakdown on IDRiD Benchmark
 
-Source evidence: `models/external_validation_report.json` (Lines 1–81).
+Source evidence: `models/external_validation_report.json` (Lines 1-81).
 
 When the AW-CRC calibrated ensemble is deployed on the external **Indian Diabetic Retinopathy Image Dataset (IDRiD)** ($N = 413$, Kowa VX-10 camera, India):
 - **Nominal Conformal Coverage Guarantee:** $\ge 99.0\%$ on DR.

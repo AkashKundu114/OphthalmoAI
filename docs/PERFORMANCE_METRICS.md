@@ -102,8 +102,8 @@ To investigate precision-calibration tradeoffs on modern Blackwell-generation Te
 
 | Architecture / Model | Precision | Test Accuracy | Macro AUROC | Macro F1 | Optimal $T$ | Calibrated ECE | Epoch Time (s) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Ensemble (Production)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Soft-Vote** | **0.0644** | — |
-| Ensemble (Research) | BF16 | 81.02% | 0.9752 | 0.7814 | Soft-Vote | 0.0626 | — |
+| **Ensemble (Production)** | **FP16** | **85.18%** | **0.9818** | **0.8292** | **Soft-Vote** | **0.0644** | N/A |
+| Ensemble (Research) | BF16 | 81.02% | 0.9752 | 0.7814 | Soft-Vote | 0.0626 | N/A |
 | DenseNet-201 | FP16 | 84.43% | 0.9789 | 0.8195 | 1.2616 | 0.0519 | 100.8s |
 | DenseNet-201 | BF16 | 80.28% | 0.9719 | 0.7743 | 1.1215 | 0.0433 | 102.1s |
 | ConvNeXt-Small | FP16 | 83.80% | 0.9764 | 0.8120 | 1.3407 | 0.0614 | 78.5s |
@@ -215,7 +215,7 @@ Following FDA SaMD and Nature Medicine guidelines for machine learning in medica
 | **F1 Score** | 0.8292 | 0.8252 | **0.8690** | **+0.0438** |
 | **AUROC (DR vs Normal)** | 0.9818 | 0.7647 | **0.8824** | **+0.1177** |
 | **Proliferative DR (Stage 4)** | 91.20% | 76.92% (10/13) | **100.00%** (13/13) | **+23.08%** (Zero missed sight-threatening PDR) |
-| **Internal Retention** | Baseline | — | **85.18% Accuracy / 0.9818 AUROC** | **0.0% Regression** |
+| **Internal Retention** | Baseline | N/A | **85.18% Accuracy / 0.9818 AUROC** | **0.0% Regression** |
 
 <p align="center">
   <img src="images/external_adaptation_gain.png" alt="IDRiD External Validation: Generalization Gains Post Fine-Tuning" width="48%" />
