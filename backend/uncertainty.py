@@ -18,6 +18,15 @@ DEFAULT_UNCERTAINTY_THRESHOLD = 0.15
 DEFAULT_VACUITY_THRESHOLD = 0.40
 CRITICAL_CONFIDENCE_THRESHOLD = 0.90
 
+_DROPOUT_MODULES = (
+    torch.nn.Dropout,
+    torch.nn.Dropout1d,
+    torch.nn.Dropout2d,
+    torch.nn.Dropout3d,
+    torch.nn.AlphaDropout,
+    torch.nn.FeatureAlphaDropout,
+)
+
 
 @torch.no_grad()
 def mc_dropout_predict(
@@ -25,9 +34,14 @@ def mc_dropout_predict(
     input_tensor: torch.Tensor,
     n_passes: int = 8,
 ) -> Tuple[torch.Tensor, float]:
+    # Keep normalization layers in evaluation mode so repeated stochastic
+    # passes do not update running statistics or otherwise mutate model state.
+    module_states = [(module, module.training) for module in model.modules()]
+    model.eval()
+    for module in model.modules():
+        if isinstance(module, _DROPOUT_MODULES):
+            module.train(True)
 
-    was_training = model.training
-    model.train()
     try:
         probs_mc = []
         for _ in range(n_passes):
@@ -38,7 +52,10 @@ def mc_dropout_predict(
         epistemic_uncertainty = float(probs_stack.var(dim=0).sum().item())
         return mean_probs, epistemic_uncertainty
     finally:
-        model.train(was_training)
+        # Restore each module's exact prior state without recursively
+        # overwriting the state of its children.
+        for module, was_training in module_states:
+            module.training = was_training
 
 
 def needs_human_review(
