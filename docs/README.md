@@ -83,6 +83,8 @@ docs/
 
 ## Key Document Links
 
+- **[Uncertainty & Human Review Policy](UNCERTAINTY_AND_HUMAN_REVIEW.md)**: MC-dropout inference behavior, review triggers, and interpretation limits.
+
 - **[Interactive Architecture Map](architecture.html)**: Interactive, standalone Archify SVG architecture diagram (featuring keyboard navigation: `/` search, `R` route trace, `P` story playback, `F` presentation mode, `T` theme toggle).
 - **[Model Card](MODEL_CARD.md)**: Architecture details, cryptographic weights checksums, and empirical benchmarks.
 - **[Intended Use & Clinical Scope](INTENDED_USE.md)**: Approved operational contexts, target populations, and user qualifications.
