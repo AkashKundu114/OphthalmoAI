@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from threading import Lock
 from typing import Any, Dict, List, Tuple
+from weakref import WeakKeyDictionary
 
 import torch
 
@@ -26,6 +28,17 @@ _DROPOUT_MODULES = (
     torch.nn.AlphaDropout,
     torch.nn.FeatureAlphaDropout,
 )
+_MODEL_LOCKS: WeakKeyDictionary = WeakKeyDictionary()
+_MODEL_LOCKS_GUARD = Lock()
+
+
+def _model_lock(model: torch.nn.Module) -> Lock:
+    with _MODEL_LOCKS_GUARD:
+        lock = _MODEL_LOCKS.get(model)
+        if lock is None:
+            lock = Lock()
+            _MODEL_LOCKS[model] = lock
+        return lock
 
 
 @torch.no_grad()
@@ -34,28 +47,40 @@ def mc_dropout_predict(
     input_tensor: torch.Tensor,
     n_passes: int = 8,
 ) -> Tuple[torch.Tensor, float]:
-    # Keep normalization layers in evaluation mode so repeated stochastic
-    # passes do not update running statistics or otherwise mutate model state.
-    module_states = [(module, module.training) for module in model.modules()]
-    model.eval()
-    for module in model.modules():
-        if isinstance(module, _DROPOUT_MODULES):
-            module.train(True)
+    """Return mean probabilities and summed class-wise MC variance.
 
-    try:
-        probs_mc = []
-        for _ in range(n_passes):
-            logits = model(input_tensor)
-            probs_mc.append(torch.nn.functional.softmax(logits[0], dim=0))
-        probs_stack = torch.stack(probs_mc)
-        mean_probs = probs_stack.mean(dim=0)
-        epistemic_uncertainty = float(probs_stack.var(dim=0).sum().item())
-        return mean_probs, epistemic_uncertainty
-    finally:
-        # Restore each module's exact prior state without recursively
-        # overwriting the state of its children.
-        for module, was_training in module_states:
-            module.training = was_training
+    Only registered ``nn.Dropout`` modules are activated. Functional or
+    recurrent-layer internal dropout cannot be enabled independently and
+    is intentionally not claimed as supported by this helper.
+    """
+    if isinstance(n_passes, bool) or not isinstance(n_passes, int) or n_passes < 1:
+        raise ValueError("n_passes must be a positive integer")
+
+    with _model_lock(model):
+        modules = list(model.modules())
+        module_states = [(module, module.training) for module in modules]
+        try:
+            # Set flags directly to avoid recursive train()/eval() calls,
+            # which can overwrite mixed child states or invoke custom hooks.
+            for module in modules:
+                module.training = False
+            for module in modules:
+                if isinstance(module, _DROPOUT_MODULES):
+                    module.training = True
+
+            probs_mc = []
+            for _ in range(n_passes):
+                logits = model(input_tensor)
+                if logits.ndim < 2 or logits.shape[0] < 1:
+                    raise ValueError("model must return a non-empty batch of logits")
+                probs_mc.append(torch.nn.functional.softmax(logits[0], dim=0))
+            probs_stack = torch.stack(probs_mc)
+            mean_probs = probs_stack.mean(dim=0)
+            epistemic_uncertainty = float(probs_stack.var(dim=0, unbiased=False).sum().item())
+            return mean_probs, epistemic_uncertainty
+        finally:
+            for module, was_training in module_states:
+                module.training = was_training
 
 
 def needs_human_review(
